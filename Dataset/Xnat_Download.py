@@ -107,16 +107,7 @@ class Data_Download:
         with open(output_path + 'download_success.json','w') as f:
             json.dump(self.__suceess_lst,f,indent=2)
 
-    def upload_data(self,data_path,):
-        project = session.projects['CILM']
-        subject = project.subjects['CRLM_137']
-        experiment = subject.experiments['CT_10033']
-
-        # 上传文件
-        #experiment.scans['4'].create_resource(label='nnUnet_0')
-        #experiment.resources['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
-        #['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
-        experiment.scans['4'].resources['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
+    
     
     def _download_single_image(self,experiment,scan,output_path,modality='CT',quality='usable',format='NIFTI'):
         if self._check_usable(experiment,scan,modality,quality):
@@ -159,6 +150,41 @@ class Data_Download:
             return True
         else:
             return False
+        
+class Data_Uploade:
+    def __init__(self,data_path,xnat_project) -> None:
+        self.data_set = data_path
+        self.xnat_project = xnat_project
+
+    def upload_data(self,upload_path):
+        """
+        Upload data to the xnat project
+        args:
+            upload_path: path to the data to be uploaded
+        """
+        #check if the path exists
+        upload_path_lst = [os.path.join(upload_path,file) for file in os.listdir(upload_path)]
+        upload_data = pd.read_csv(self.data_set)
+        upload_data = upload_data.sort_values(by=['Experiment'])
+
+
+        for i in range(upload_data.shape[0]):
+            subject = self.xnat_project.subjects[upload_data.loc[i,'Subject']]
+            experiment = subject.experiments[upload_data.loc[i,'Experiment']]
+            scan = experiment.scans[upload_data.loc[i,'Scan']]
+
+            subject_name,experiment_name,scan_name = subject.label,experiment.label,scan.id
+            print(f"this is experiment:{experiment.label}, scan:{scan.id}")
+            try:
+                scan.create_resource(label='nnUnet_0')
+                scan.resources['nnUnet_0'].upload(upload_path_lst[i], os.path.basename(upload_path_lst[i]))
+            except Exception as e:
+                print('resource already exists',experiment_name,scan_name)
+                scan.resources['nnUnet_0'].upload(upload_path_lst[i], os.path.basename(upload_path_lst[i]))
+        #experiment.scans['4'].create_resource(label='nnUnet_0')
+        #experiment.resources['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
+        #['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
+        experiment.scans['4'].resources['nnUnet_0'].upload('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz', os.path.basename('../../Test_Data/CT_Phase/CILM_CT_100330.nii.gz'))
         
 class DataExtract:
     """
@@ -322,10 +348,11 @@ if __name__ == "__main__":
         parser.add_argument('--store_out_path', type=str, required=None, help='The path where the downloaded data will be stored')
         parser.add_argument('--data_csv', type=str, default=None,help='CSV file containing data to be downloaded')
         parser.add_argument('--task_name', type=str, required=False, help='The task name for the nnU-Net dataset')
-        parser.add_argument('--nnUnet_path',type=str,default='/data/scratch/r098986/nnUnet_Seg/nnUNet_raw_data_base/nnUNet_raw_data/',help='nnUnet path')
+        parser.add_argument('--nnUnet_path',type=str,default=False,help='nnUnet path')
         parser.add_argument('--Xnat_path',type=str,default=None,help='The path to the XNAT data')
         parser.add_argument('--extract_out_path',type=str,default=None,help='The path to extract the data from XNAT')
         parser.add_argument('--format',default='NIFTI',help='Data format to download')
+        parser.add_argument('--upload_path',type=str,default=None,help='The path to upload the data to XNAT')
         # Add more arguments as needed
 
         return parser.parse_args()
@@ -354,10 +381,17 @@ if __name__ == "__main__":
             nnunet_format = NNunetFormat(args.store_out_path,args.nnUnet_path,args.task_name)
             nnunet_format.make_file_name(args.project)
             nnunet_format.make_json_file()
-        else:
+        elif args.extract_out_path:
             # Extract the data from XNAT
             extract_data = DataExtract(args.extract_out_path)
             extract_data.extract_data(args.project,args.extract_out_path)
+
+        if args.upload_path:
+            # Upload the data to XNAT
+            xnat_session = XnatSession(args.url, args.user, args.passwd)
+            project = xnat_session.start_xnat_session(args.project)
+            data_upload = Data_Uploade(args.data_csv,project)
+            data_upload.upload_data(args.upload_path)
     main()
 
     # Use other classes and functions with the provided arguments

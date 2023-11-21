@@ -264,3 +264,24 @@ class SaveResults:
             os.makedirs(self.result_path)
             print(f'Create the {self.result_path} directory')
 
+
+class VisualInput:
+    def __init__(self,image_visual_path) -> None:
+        self.image_visual_path = image_visual_path
+
+    def visule_image(self,im,label,percentage_image=0.5):
+        """
+        args:
+            percentage_image: random show the percentage of image
+        """
+        #save the image
+        if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
+
+        if if_show:
+            plt.imshow(im[:,:,30],cmap='gray')
+            plt.title(f'Label:{label}')
+            plt.savefig(self.image_visual_path + f'Label_{label}.png')
+
+
+    def show_image_label(self):
+        print("Image:",self.im,"Label:",self.label)

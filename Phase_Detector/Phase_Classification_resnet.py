@@ -48,7 +48,6 @@ TIME_RUN = datetime.datetime.now().strftime("%Y-%m-%d-min %H:%M").replace(' ', '
 DATA_PATH = '/data/scratch/r098986/CT_Phase/Data/Resample_Data_all/Resample_222_Data/'
 LABEL_PATH = '/data/scratch/r098986/CT_Phase/Data/True_Label/Phase_label_all.csv'
 SAVE_PATH = '/data/scratch/r098986/CT_Phase/Data/Results/'+TIME_RUN+"/"
-
 #check pin,cuda
 print(f"torch.cuda.is_available():{torch.cuda.is_available()}")
 print(f"torch.cuda.device_count():{torch.cuda.device_count()}")
@@ -132,7 +131,10 @@ for fold,(train_idx,val_idx) in enumerate(stratify_kfold.split(image_files,label
     train_ds, val_ds = Utility.Image_Dataset(train_images,train_labels,transform_methods=tr_transform_methods),Utility.Image_Dataset(val_images,val_labels,transform_methods=[EnsureChannelFirst(),
                             ToTensor() 
                                 ])
-    
+    ## visualbe
+    visual_path = os.mkdir(SAVE_PATH + '/visualize_data/')
+    visule_data = Utility.VisualInput(SAVE_PATH + '/visualize_data/')
+
     # set saver
     #set sampler
     sampler = Utility.Balanced_sampler(labels=train_labels)
@@ -157,6 +159,8 @@ for fold,(train_idx,val_idx) in enumerate(stratify_kfold.split(image_files,label
 
         for im,label in train_loader:
             #contrast
+            visual_data = visule_data.visualize(im,label)
+            visual_data.show_image_label()
             im = torch.tensor(Utility.convert_hu_to_grayscale(im))
             step += 1
 

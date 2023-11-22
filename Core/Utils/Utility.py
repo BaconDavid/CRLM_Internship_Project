@@ -15,6 +15,35 @@ import json
 #                                Utils functions                                #
 #################################################################################
 
+#write a function to check the path, make it function wrapper
+
+def path_check(func):
+    def wrapper(*args,**kwargs):
+        if not os.path.exists(args[0]):
+            os.makedirs(args[0])
+            print(f'Create the {args[0]} directory')
+        return func(*args,**kwargs)
+    return wrapper
+
+
+
+
+@path_check
+def visual_input(im, label,image_visual_path, percentage_image=0.5):
+    """
+    args:
+        percentage_image: random show the percentage of image
+        image_visual_path: path to save the image
+    """
+    # save the image
+    if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
+
+    if if_show:
+        plt.imshow(im[:, :, 30], cmap='gray')
+        plt.title(f'Label:{label}')
+        plt.savefig(image_visual_path + f'Label_{label}.png')
+
+
 def convert_hu_to_grayscale(hu_images, hu_min=15, hu_max=80):
     # 将HU值裁剪到指定范围
     hu_images = np.clip(hu_images, hu_min, hu_max)
@@ -22,6 +51,9 @@ def convert_hu_to_grayscale(hu_images, hu_min=15, hu_max=80):
     grayscale_images = (hu_images - hu_min) / (hu_max - hu_min) * 255.0
     # 返回转换后的图像
     return grayscale_images.astype(np.float32)
+
+
+        
 
 def plot(train_loss_epoch_x_axis, epoch_loss_values, val_loss_epoch_x_axis, val_loss_values, path, current_epoch):
     """

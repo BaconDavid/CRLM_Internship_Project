@@ -2,8 +2,7 @@
 from torch import tensor
 from torch.utils.data import WeightedRandomSampler
 import torch
-from monai.metrics import get_confusion_matrix,compute_roc_auc
-from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_score
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -55,51 +54,7 @@ def convert_hu_to_grayscale(hu_images, hu_min=15, hu_max=80):
 
         
 
-def plot(train_loss_epoch_x_axis, epoch_loss_values, val_loss_epoch_x_axis, val_loss_values, path, current_epoch):
-    """
-    Generate and save three types of loss plots (train loss, test loss, and combined) as PNG images.
-    Additionally, save the loss data and x-axis values as numpy arrays.
 
-    Parameters:
-        train_loss_epoch_x_axis (list or array): X-axis values for the train loss plot (epochs).
-        epoch_loss_values (list or array): Train loss values corresponding to each epoch.
-        val_loss_epoch_x_axis (list or array): X-axis values for the test loss plot (epochs).
-        val_loss_values (list or array): Test loss values corresponding to each epoch.
-        path (str): Directory path where the plots and numpy arrays will be saved.
-        current_epoch (int): The current epoch number for which the plots are being generated.
-    """
-
-    plt.plot(train_loss_epoch_x_axis,epoch_loss_values, label='Train loss')
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.title(f'Train loss (epoch {current_epoch})')
-    plt.legend()
-    plt.savefig(path+'/Train_loss.png')
-    plt.clf()
-
-    plt.plot(val_loss_epoch_x_axis , val_loss_values, label='Test loss')
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.title(f'test loss (epoch {current_epoch})')
-    plt.legend()
-    plt.savefig(path+'/test_loss.png')
-    plt.clf()
-
-
-    plt.plot(train_loss_epoch_x_axis,epoch_loss_values, label='Train loss')
-    plt.plot(val_loss_epoch_x_axis , val_loss_values, label='Test loss')
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.title(f'Train and test loss (epoch {current_epoch})')
-    plt.legend()
-    plt.savefig(path+'/combi_loss.png')
-    plt.clf()
-
-    # also save them as a npy file
-    np.save(path+'/train_loss.npy', epoch_loss_values)
-    np.save(path+'/val_loss.npy', val_loss_values)
-    np.save(path+'/train_loss_epoch_x_axis.npy', train_loss_epoch_x_axis)
-    np.save(path+'/val_loss_epoch_x_axis.npy', val_loss_epoch_x_axis)
 
 class DataFiles:
     def __init__(self,data_path,label_path) -> None:
@@ -126,50 +81,6 @@ class Image_Dataset(ImageDataset):
         super().__init__(image_files=image_files,labels=labels,transform=transform,*args, **kwargs)
 
 
-class Metrics():
-    def __init__(self,num_class=2,y_pred=None,y_true_label=None):
-        """
-        args:
-            y_pred: list of predicted tensor
-            y_true_label: list of true labels
-        """
-        self.num_class = num_class
-        self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
-        self.y_true_label = y_true_label
-        self.y_pred_label = [torch.argmax(y_pre,dim=1).item() for y_pre in y_pred]
-        self.y_pred_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_pred_label),num_classes=self.num_class)
-        self.y_true_one_hot = torch.nn.functional.one_hot(torch.tensor(y_true_label),num_classes=self.num_class)
-      
-    def get_roc(self,average='macro'):
-        return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        
-
-    def get_four_rate(self) -> tensor:
-        """
-        args:
-            y_pred: (B,C) one-hot tensor
-            y_true: (B,C) one-hot tensor
-        """
-        confu_matrix = get_confusion_matrix(self.y_pred_one_hot,self.y_true_one_hot)
-        #calculate tp,fp,tn,fn
-        for i in range(self.num_class):
-            self.four_rate_dic[str(i)]['tp'] += confu_matrix[:,i,0].sum()
-            self.four_rate_dic[str(i)]['fp'] += confu_matrix[:,i,1].sum() 
-            self.four_rate_dic[str(i)]['tn'] += confu_matrix[:,i,2].sum() 
-            self.four_rate_dic[str(i)]['fn'] += confu_matrix[:,i,3].sum()
-        return self.four_rate_dic
-    
-    def get_accuracy(self) -> float:
-        """
-        args:
-            y_pred_label: list of predicted labels
-            y_true_label: list of true labels
-        """
-        accuracy = accuracy_score(self.y_pred_label,self.y_true_label)
-        return accuracy
-    
-    def get_f1_score(self,average='macro') -> float:
-        return f1_score(self.y_pred_label,self.y_true_label,average=average)
 
 
 class Balanced_sampler(WeightedRandomSampler):

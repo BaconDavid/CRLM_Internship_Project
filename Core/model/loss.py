@@ -1,4 +1,18 @@
-from torch.nn.functional import cross_entropy
+from torch.nn import CrossEntropyLoss
 
-def build_loss():
-    return cross_entropy()
+
+class Loss:
+    def __init__(self,losses,*args):
+        """
+        args:
+            args only have one loss function
+        """
+        self.args = args
+        self.losses = losses
+
+
+    def build_loss(self):
+        return self.args[0]
+    
+    def calculate_loss(self,*args):
+        self.losses += self.args[0].item()

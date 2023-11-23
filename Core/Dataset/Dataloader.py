@@ -12,17 +12,28 @@ from monai.transforms import Compose
 from monai.data import ImageDataset,DataLoader
 
 
+class DataFiles:
+    def __init__(self,data_path,label_path) -> None:
+        self.data_path = data_path
+        self.label_path = label_path
+
+    def get_images(self):
+        return [os.path.join(self.data_path, filename) for filename in os.listdir(self.data_path)]
+
+    def get_labels(self,label_name):
+        return pd.read_csv(self.label_path)[label_name].values.tolist()
+
+    def Data_check(self):
+        assert len(self.get_images()) == len(self.get_labels()) , 'The number of images and labels are not equal'
+
+    def generate_data_dic(self):
+        pass
+
+
+
 class Image_Dataset(ImageDataset):
     def __init__(self,image_files,labels,transform_methods=None,data_aug=True,label_name=None,*args,**kwargs):
-        """
-        args:
-            image_files: list of image files path
-            labels: list of labels
-            transform_methods: list of transform methods
-            data_aug: True if data augmentation is used
-            label_name: name of the label
-        
-        """
+
         if data_aug:
             transform = Compose(transform_methods)
         else:
@@ -30,21 +41,14 @@ class Image_Dataset(ImageDataset):
 
         super().__init__(image_files=image_files,labels=labels,transform=transform,*args, **kwargs)
 
-    
-    def __len__(self):
-        return len(self.image_files)
-    
-    def __getitem__(self,index):
-        image = self.image_files[index]
-        label = self.labels[index]
+    def __getitem__(self,index,*args,**kwargs):
+        output = super().__getitem__(index,*args,**kwargs)
 
-        # get image array
-        image = nib.load(image).get_fdata()
-        # here to do windowing
+        print(f"this is image {self.image_files[index]};This is label {self.labels[index]")
 
-        image = tensor(image)
-        return image,label
-    
+        return output
+
+
 class Data_Loader(DataLoader):
     def __init__(self,dataset,batch_size,num_workers=0,*args,**kwargs):
         super().__init__(dataset=dataset,batch_size=batch_size,num_workers=num_workers,*args,**kwargs)

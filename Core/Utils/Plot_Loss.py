@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from Utility import path_check
 
 
 def plot(train_loss_epoch_x_axis, epoch_loss_values, val_loss_epoch_x_axis, val_loss_values, path, current_epoch):

@@ -43,42 +43,13 @@ def visual_input(im, label,image_visual_path, percentage_image=0.5):
         plt.savefig(image_visual_path + f'Label_{label}.png')
 
 
-def convert_hu_to_grayscale(hu_images, hu_min=15, hu_max=80):
-    # 将HU值裁剪到指定范围
-    hu_images = np.clip(hu_images, hu_min, hu_max)
-    # 转换到灰度值（这里简单地将HU值的范围从[hu_min, hu_max]线性映射到[0, 255]）
-    grayscale_images = (hu_images - hu_min) / (hu_max - hu_min) * 255.0
-    # 返回转换后的图像
-    return grayscale_images.astype(np.float32)
 
 
         
 
 
 
-class DataFiles:
-    def __init__(self,data_path,label_path) -> None:
-        self.data_path = data_path
-        self.label_path = label_path
 
-    def get_images(self):
-        return [os.path.join(self.data_path, filename) for filename in os.listdir(self.data_path)]
-
-    def get_labels(self,label_name):
-        return pd.read_csv(self.label_path)[label_name].values.tolist()
-
-    def Data_check(self):
-        assert len(self.get_images()) == len(self.get_labels()) , 'The number of images and labels are not equal'
-
-class Image_Dataset(ImageDataset):
-    def __init__(self,image_files,labels,transform_methods=None,data_aug=True,label_name=None,*args,**kwargs):
-
-        if data_aug:
-            transform = Compose(transform_methods)
-        else:
-            transform = None
-
-        super().__init__(image_files=image_files,labels=labels,transform=transform,*args, **kwargs)
 
 
 

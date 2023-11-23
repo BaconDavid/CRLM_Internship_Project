@@ -197,7 +197,7 @@ for fold,(train_idx,val_idx) in enumerate(stratify_kfold.split(image_files,label
     
         #calculate the metrics
         if (epoch + 1) % val_interval == 0:
-            metrics = Utility.Metrics(3,train_pred,train_labels)
+            metrics = Utility.Metrics(3,train_pred,train_label)
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
             #store results
             tr_result_saver.store_results(tr_result_saver.df_results(four_rate_dic,AUC,accuracy,F1,epoch_loss,epoch))

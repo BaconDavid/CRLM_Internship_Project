@@ -11,26 +11,21 @@ from monai.transforms import Compose
 
 from monai.data import ImageDataset,DataLoader
 
-
-class DataFiles:
-    def __init__(self,data_path,label_path,label_name) -> None:
-        self.data_path = data_path
-        self.label_path = label_path
-        self.label_name = label_name
-
-    def get_images(self):
-        return [os.path.join(self.data_path, filename) for filename in os.listdir(self.data_path)]
-
-    def get_labels(self):
-        return pd.read_csv(self.label_path)[self.label_name].values.tolist()
-
-    def Data_check(self):
-        assert len(self.get_images()) == len(self.get_labels()) , 'The number of images and labels are not equal'
-
-    def generate_data_dic(self):
-        pass
-
-
+from monai.transforms import (
+    EnsureChannelFirst,
+    RandZoom,
+    Compose,
+    RandRotate,
+    RandFlip,
+    RandGaussianNoise,
+    ToTensor,
+    Resize,
+    Rand3DElastic,
+    RandSpatialCrop,
+    ScaleIntensityRange,
+    CenterSpatialCrop
+    )
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class DataFiles:
     def __init__(self,data_path,label_path,label_name) -> None:
@@ -85,3 +80,27 @@ class Data_Loader(DataLoader):
     
     def build_test_loader(self):
         return DataLoader(self.dataset,batch_size=self.batch_size,shuffle=False,num_workers=self.num_workers,drop_last=False,*self.args,**self.kwargs)
+    
+Data = DataFiles('../Data/CT_Phase/Resample_222/','../Data/CT_Phase/True_Label/Phase_label_all.csv','Phase')
+images_lst = Data.get_images()
+labels_lst = Data.get_labels()
+Data.Data_check()
+
+
+transform_param = {"transform_methods":[
+                                    EnsureChannelFirst(),
+                                    # Data augmentation
+                                    RandZoom(prob = 0.5, min_zoom=1.0, max_zoom=1.2),
+                                    RandRotate(range_z = 0.35, prob = 0.8),
+                                    RandFlip(prob = 0.5),
+                                    # To tensor
+                                    ToTensor()
+                                    ]}
+
+dataset = Image_Dataset(image_files=images_lst,labels=labels_lst,transform_methods=transform_param['transform_methods'],data_aug=True,label_name=None)
+dataloader = Data_Loader(dataset=dataset,batch_size=1,num_workers=0)
+
+dataloader = dataloader.build_train_loader()
+
+for i,(im,label) in enumerate(dataloader):
+    print(im.shape)

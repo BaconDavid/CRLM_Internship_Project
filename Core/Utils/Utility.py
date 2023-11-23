@@ -18,9 +18,9 @@ import json
 
 def path_check(func):
     def wrapper(*args,**kwargs):
-        if not os.path.exists(args[0]):
-            os.makedirs(args[0])
-            print(f'Create the {args[0]} directory')
+        if not os.path.exists(args[2]):
+            os.makedirs(args[2])
+            print(f'Create the {args[2]} directory')
         return func(*args,**kwargs)
     return wrapper
 
@@ -38,7 +38,8 @@ def visual_input(im, label,image_visual_path, percentage_image=0.5):
     if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
 
     if if_show:
-        plt.imshow(im[:, :, 30], cmap='gray')
+        print("this is visual image shape",im.shape)
+        plt.imshow(im[0,0,:,:, 10], cmap='gray')
         plt.title(f'Label:{label}')
         plt.savefig(image_visual_path + f'Label_{label}.png')
 
@@ -147,7 +148,6 @@ class SaveResults:
         self.result_path = result_path
         self.type = type
         self._path_check()
-
     
     def df_results(self,four_rate_dic,auc,accuracy,f1,loss,epoch):
         #each epoch save the results

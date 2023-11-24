@@ -39,7 +39,7 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         #print('mother fucker',im.shape)
         if visual_im:
             # visualize input
-            visual_input(im,label,visual_out_path)
+            visual_input(im,label+i,visual_out_path)
 
         im,label = im.to(device),label.to(device)
         #print leraing rate

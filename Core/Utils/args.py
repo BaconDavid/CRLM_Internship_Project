@@ -9,5 +9,6 @@ def parse_args():
     #parser.add_argument('--model_save_path',type=str,help='path to save model')
     #parser.add_argument('--visual_out_path',type=str,help='path to save visualized images')
     parser.add_argument('--result_save_path',type=str,help='path to save results')
+    parser.add_argument('--device',type=str,default='cpu',help='device to train on')
     args = parser.parse_args()
     return args

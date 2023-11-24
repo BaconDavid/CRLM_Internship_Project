@@ -114,7 +114,7 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
                 train_loss_epoch_x_axis.append(epoch)
                 val_loss_epoch_x_axis.append(epoch)
 
-                ave_loss,y_pred,AUC,accuracy,F1,four_rate_dic = train_loop(model,tr_dataloader,epoch,'cpu',num_class,optimizer_fun,scheduler_fun,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input/")
+                ave_loss,y_pred,AUC,accuracy,F1,four_rate_dic = train_loop(model,tr_dataloader,epoch,args.device,num_class,optimizer_fun,scheduler_fun,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input/")
                 tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch))
                 epoch_loss_values.append(ave_loss)
             
@@ -126,7 +126,7 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
                 #save results
                 val_results = SaveResults(save_path + f"fold{fold}/",'vali')
 
-                ave_loss,y_pred,AUC,accuracy,F1,four_rate_dic = Validation_loop(model,val_dataloader,'cpu',num_class,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input_vali/")
+                ave_loss,y_pred,AUC,accuracy,F1,four_rate_dic = Validation_loop(model,val_dataloader,args.device,num_class,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input_vali/")
                 print('this is fucking average loss',ave_loss)
                 val_results.store_results(val_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch))
 

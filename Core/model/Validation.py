@@ -38,7 +38,7 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
             visual_input(im,label,visual_out_path)
 
         im,label = im.to(device),label.to(device)
-
+        model = model.to(device)
         #predict
         model.eval()
         with torch.no_grad():

@@ -48,6 +48,7 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
 
         optimizer.zero_grad()
         model.train()
+        model = model.to(device)
         output = (model(im))
         print('mother fucker loss function',criterion)
         print(type(label),'and fucking label',label)

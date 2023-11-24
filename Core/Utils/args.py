@@ -7,7 +7,7 @@ def parse_args():
     parser.add_argument('--epochs',type=int,default=100,help='number of epochs')
     parser.add_argument('--mode',type=str,default='train',help='train/vali or test')
     #parser.add_argument('--model_save_path',type=str,help='path to save model')
-    parser.add_argument('--visual_out_path',type=str,help='path to save visualized images')
+    #parser.add_argument('--visual_out_path',type=str,help='path to save visualized images')
     parser.add_argument('--result_save_path',type=str,help='path to save results')
     args = parser.parse_args()
     return args

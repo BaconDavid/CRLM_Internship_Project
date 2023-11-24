@@ -78,7 +78,7 @@ class Data_Loader(DataLoader):
         self.kwargs = kwargs
     
     def build_train_loader(self):
-        return DataLoader(self.dataset,batch_size=self.batch_size,shuffle=True,num_workers=self.num_workers,drop_last=True,*self.args,**self.kwargs)
+        return DataLoader(self.dataset,batch_size=self.batch_size,num_workers=self.num_workers,drop_last=True,*self.args,**self.kwargs)
 
     def build_vali_loader(self):
         return DataLoader(self.dataset,batch_size=self.batch_size,shuffle=False,num_workers=self.num_workers,drop_last=False,*self.args,**self.kwargs)

@@ -171,6 +171,7 @@ class SaveResults:
 
         return df
     def store_results(self,df):
+        print("saving results")
         df.to_csv(self.result_path + self.type +'.csv',index=False,mode='a')
     
     def _path_check(self):

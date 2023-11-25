@@ -13,7 +13,7 @@ from Utils.Metrics import Metrics
 
 NUM_CLASSES = 2
 
-def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,criterion,visual_im=False,leraning_rate=0.01,visual_out_path=None):
+def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None):
     """
     args:
         model: model to be trained
@@ -68,10 +68,10 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         scheduler.step()
 
         #metrics
-        metrics = Metrics(num_class,y_pred,y_true)
-        print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-        AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
-        print('accur',accuracy)
+    metrics = Metrics(num_class,y_pred,y_true)
+    print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
+    AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
+    print('accur',accuracy)
     
 
     average_loss /= len(train_bar)

@@ -33,7 +33,7 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     print("##################")
 
     for i,(im,label) in enumerate(vali_bar):
-        if visual_input:
+        if visual_im:
             # visualize input
             visual_input(im,label,visual_out_path)
 
@@ -63,10 +63,10 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
 
         vali_bar.set_description(f"loss:{average_loss}")
 
-         #metrics
-        metrics = Metrics(num_class,y_pred,y_true)
-        AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
-        print('accur',accuracy)
+        #metrics
+    metrics = Metrics(num_class,y_pred,y_true)
+    AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
+    print('accur',accuracy)
 
     
     average_loss = average_loss/len(vali_bar)

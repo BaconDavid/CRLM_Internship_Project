@@ -76,7 +76,7 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
             tr_results = SaveResults(save_path + f"fold{fold}/",'train')
 
             #weighted sampler
-            sampler = Balanced_sampler(train_labels,3)
+            sampler = Balanced_sampler(train_labels,2)
 
             #transform methods
             transform_param = {"transform_methods":[
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     
     TIME_RUN = datetime.datetime.now().strftime("%Y-%m-%d-min %H:%M").replace(' ', '_').replace('-', '_').replace(':', '_')
     SAVE_PATH = args.result_save_path + TIME_RUN + '/'
-    NUM_CLASS = 3
+    NUM_CLASS = 2
     #args
 
     #set the cross validation

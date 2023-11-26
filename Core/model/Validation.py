@@ -64,13 +64,11 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
         vali_bar.set_description(f"loss:{average_loss}")
 
         #metrics
-    metrics = Metrics(num_class,y_pred,y_true)
-    AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
-    print('accur',accuracy)
+    
 
     
     average_loss = average_loss/len(vali_bar)
     print('this is average loss',average_loss)
-    return average_loss,y_pred,AUC,accuracy,F1,four_rate_dic
+    return average_loss,y_pred
 
     

@@ -68,14 +68,13 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         scheduler.step()
 
         #metrics
-    metrics = Metrics(num_class,y_pred,y_true)
-    print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-    AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
-    print('accur',accuracy)
+    
+
+    #print('accur',accuracy)
     
 
     average_loss /= len(train_bar)
     print('average_loss',average_loss)
-    return average_loss,y_pred,AUC,accuracy,F1,four_rate_dic
+    return average_loss,y_pred
 
     

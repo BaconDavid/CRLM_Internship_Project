@@ -1,22 +1,48 @@
 from monai.metrics import get_confusion_matrix,compute_roc_auc
 from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_score
 from torch import tensor
+from sklearn.metrics import precision_score, recall_score
 import torch
-
+import pandas as pd
+import numpy as np
 class Metrics():
-    def __init__(self,num_class=2,y_pred=None,y_true_label=None):
+    def __init__(self,num_class=2,y_pred=None,y_true_label=None,targets=None):
         """
         args:
             y_pred: list of predicted tensor
             y_true_label: list of true labels
+            targets: dicts of targets and their labels
         """
         self.num_class = num_class
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
-        self.y_true_label = y_true_label
-        self.y_pred_label = [torch.argmax(y_pre,dim=1).item() for y_pre in y_pred]
-        self.y_pred_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_pred_label),num_classes=self.num_class)
-        self.y_true_one_hot = torch.nn.functional.one_hot(torch.tensor(y_true_label),num_classes=self.num_class)
-      
+        self.y_true_label = np.array(y_true_label)
+        self.y_pred_label = [torch.argmax(y_pre,dim=1).detach().cpu().numpy().tolist() for y_pre in y_pred]
+        self.y_pred_label = [item for sublist in self.y_pred_label for item in sublist]
+
+        self.y_pred_label = np.array(self.y_pred_label)
+        self.y_pred_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_pred_label,dtype=torch.int64),num_classes=self.num_class)
+        self.y_true_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_true_label.tolist(),dtype=torch.int64),num_classes=self.num_class)
+    
+    def calculate_metrics(self):
+        self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0} for i in range(self.num_class)}
+
+        for i in range(self.num_class):
+            true_binary = (self.y_true_label == i).astype(int)
+            pred_binary = (self.y_pred_label == i).astype(int)
+
+            self.metrics[str(i)]['f1'] = f1_score(true_binary, pred_binary)
+            self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
+            self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
+
+            if len(np.unique(true_binary)) > 1:
+                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred_one_hot[:, i])
+
+            self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
+
+        return self.metrics
+
+
+
     def get_roc(self,average='macro'):
         return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
         
@@ -47,3 +73,22 @@ class Metrics():
     
     def get_f1_score(self,average='macro') -> float:
         return f1_score(self.y_pred_label,self.y_true_label,average=average)
+    
+
+    def generate_metrics_df(self,epoch):
+
+        # 将指标数据整理成列表形式
+        metrics_data = []
+        for class_id, class_metrics in self.metrics.items():
+            metrics_data = []
+            data_row = {"epoch": epoch}  # 首先添加 epoch
+            data_row.update({"class_id": class_id})  # 然后添加 class_id
+            data_row.update(class_metrics)  # 最后添加其他指标
+            metrics_data.append(data_row)
+
+
+
+        # 创建DataFrame
+        df = pd.DataFrame(metrics_data)
+
+        return df

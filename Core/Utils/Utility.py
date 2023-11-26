@@ -39,7 +39,7 @@ def visual_input(im, label,image_visual_path, percentage_image=0.5):
 
     if if_show:
         print("this is visual image shape",im.shape)
-        plt.imshow(im[0,0,:,:, 10], cmap='gray')
+        plt.imshow(im[0:,0,0,10,:], cmap='gray')
         plt.title(f'Label:{label}')
         plt.savefig(image_visual_path + f'Label_{label}.png')
 
@@ -193,7 +193,7 @@ class VisualInput:
         if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
 
         if if_show:
-            plt.imshow(im[:,:,30],cmap='gray')
+            plt.imshow(im[0,0,:,:],cmap='gray')
             plt.title(f'Label:{label}')
             plt.savefig(self.image_visual_path + f'Label_{label}.png')
 

@@ -121,6 +121,8 @@ class SwinUNETR(nn.Module):
         patch_sizes = ensure_tuple_rep(self.patch_size, spatial_dims)
         window_size = ensure_tuple_rep(7, spatial_dims)
         #print(patch_sizes,'666')
+
+
         if spatial_dims not in (2, 3):
             raise ValueError("spatial dimension should be 2 or 3.")
 
@@ -160,6 +162,9 @@ class SwinUNETR(nn.Module):
             downsample=look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample,
             use_v2=use_v2,
         )
+
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
+        self.head = nn.Linear(self.final_feature_size, self.num_class)
         """
         self.encoder1 = UnetrBasicBlock(
             spatial_dims=spatial_dims,
@@ -327,10 +332,7 @@ class SwinUNETR(nn.Module):
             self._check_input_size(x_in.shape[2:])
         hidden_states_out = self.swinViT(x_in, self.normalize)
         print('hidden states out',hidden_states_out.shape)
-        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        self.head = (
-            nn.Linear(self.final_feature_size, self.num_class)
-        )
+        
         """
         enc0 = self.encoder1(x_in)
         enc1 = self.encoder2(hidden_states_out[0])

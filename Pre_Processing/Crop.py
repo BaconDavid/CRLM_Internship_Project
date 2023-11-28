@@ -10,13 +10,16 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import SimpleITK as sitk
 import nibabel as nib
-
+#print(os.listdir('../../Test_Data/Test_3D/'))
 class ImageLoad:
     def __init__(self,input_path):
         """
         The path should only contain images
         """
         self.input_path = input_path
+
+
+        #self.images_names = os.listdir('../../Test_Data/Test_3D/')
         self.images_names = os.listdir(self.input_path)
         self.images_num = len(self.images_names)
         self.image_path = [self.input_path + name for name in self.images_names]
@@ -152,13 +155,14 @@ class LiverBoundingBox:
         with open(self.out_path_box + 'failing_box.txt','a') as f:
             f.write(self.file_name + '\n')
 if __name__ == "__main__":
+
     # load the image
     #image_orig_path = '/data/scratch/r098986/CT_Phase/Data/Raw_Phase_data/'
-    #image_seg_path = '/data/scratch/r098986/CT_Phase/Data/Seg_Phase_Data/'
+    #image_seg_path = '/data/scratch/r098986/nnUnet_Seg/nnUNeT_test/Task_502_Phase_Data/'
     #cropped_out_path = '/data/scratch/r098986/CT_Phase/Data/Cropped_Data/'
-    image_orig_path = './Test_Data/Raw_Phase_Data/'
-    image_seg_path = './Test_Data/Seg_Phase_Data/'
-    cropped_out_path = './Test_Data/Test_Cropped/'
+    image_orig_path = 'D:/Onedrive/bioinformatics_textbook/VU_Study/internship/Erasmusmc/Test_Data/Raw_Phase_data/'
+    image_seg_path = 'D:/Onedrive/bioinformatics_textbook/VU_Study/internship/Erasmusmc/Test_Data/Seg_Phase_data/'
+    cropped_out_path = '../../Test_Data/CT_Phase/Cropped_Data_Liver/'
     #load the images
     image_orig_load = ImageLoad(image_orig_path)
     image_seg_load = ImageLoad(image_seg_path)

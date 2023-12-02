@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # 根据输入的参数来设置Resampler类
     interpolator = sitk.sitkBSpline if args.interpolator == 'bspline' else sitk.sitkNearestNeighbor
     if not os.path.exists(args.output_path):
-        os.makedirs(args.output_dir)
+        os.makedirs(args.output_path)
         print(f'Create the {args.output_path} directory')
 
     image_load = ImageLoad(args.input_path)

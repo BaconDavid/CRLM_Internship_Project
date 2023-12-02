@@ -41,8 +41,7 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         #print('mother fucker',im.shape)
         
         #applying windowing
-        im = apply_window_to_volume(im,50,400)
-        im = torch.tensor(im)
+       
         if visual_im:
             # visualize input
             visual_input(im,label+i,visual_out_path)

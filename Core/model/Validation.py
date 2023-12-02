@@ -33,9 +33,6 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     print("##################")
 
     for i,(im,label) in enumerate(vali_bar):
-         #applying windowing
-        im = apply_window_to_volume(im,50,400)
-        im = torch.tensor(im)
 
 
         if visual_im:

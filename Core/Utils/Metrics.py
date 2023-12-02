@@ -80,7 +80,6 @@ class Metrics():
         # 将指标数据整理成列表形式
         metrics_data = []
         for class_id, class_metrics in self.metrics.items():
-            metrics_data = []
             data_row = {"epoch": epoch}  # 首先添加 epoch
             data_row.update({"class_id": class_id})  # 然后添加 class_id
             data_row.update(class_metrics)  # 最后添加其他指标

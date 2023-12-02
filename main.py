@@ -87,7 +87,7 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
                                     EnsureChannelFirst(),
                                     # Data augmentation
                                     RandZoom(prob = 0.5, min_zoom=1.0, max_zoom=1.2),
-                                    RandRotate(range_z = 0.35, prob = 0.8),
+                                    RandRotate(range_z = 0.35, prob = 0.5),
                                     RandFlip(prob = 0.5),
                                     #Resize((256,256,128)),
                                     NormalizeIntensity(),

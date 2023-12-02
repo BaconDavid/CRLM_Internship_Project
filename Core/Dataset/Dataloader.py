@@ -12,6 +12,8 @@ from monai.transforms import Compose
 from monai.data import ImageDataset,DataLoader
 
 
+
+
 class DataFiles:
     def __init__(self,data_path,label_path,label_name) -> None:
         self.data_path = data_path
@@ -64,7 +66,6 @@ class Image_Dataset(ImageDataset):
 
     def __getitem__(self,index,*args,**kwargs):
         output = super().__getitem__(index,*args,**kwargs)
-
         #print(f"this is image {output[0][index]}")
         #print(f"this is image shape {output[0].shape}")
         print('this is image and labels',self.image_files[index],self.labels[index])

@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
 
 from tqdm import tqdm
-from Utils.Utility import visual_input
+from Utils.Utility import visual_input, apply_window_to_volume
 
 import torch
 import matplotlib.pyplot as plt
@@ -33,6 +33,11 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     print("##################")
 
     for i,(im,label) in enumerate(vali_bar):
+         #applying windowing
+        im = apply_window_to_volume(im,50,400)
+        im = torch.tensor(im)
+
+
         if visual_im:
             # visualize input
             visual_input(im,label,visual_out_path)
@@ -44,7 +49,7 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
         with torch.no_grad():
             output = (model(im))
             loss = criterion(output,label)
-            average_loss += loss
+            average_loss += loss.item()
 
             #softmax probability
             output = torch.nn.functional.softmax(output,dim=1)

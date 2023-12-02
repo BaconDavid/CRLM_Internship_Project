@@ -10,6 +10,8 @@ from Utils.Models import build_model
 from Utils.Utility import path_check,visual_input
 from Utils.Metrics import Metrics
 
+from Utils.Utility import apply_window_to_volume
+
 
 NUM_CLASSES = 2
 
@@ -37,9 +39,17 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
 
     for i,(im,label) in enumerate(train_bar):
         #print('mother fucker',im.shape)
+        
+        #applying windowing
+        im = apply_window_to_volume(im,50,400)
+        im = torch.tensor(im)
         if visual_im:
             # visualize input
             visual_input(im,label+i,visual_out_path)
+
+
+
+
 
         im,label = im.to(device),label.to(device)
         #print leraing rate
@@ -53,8 +63,9 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         print('mother fucker loss function',criterion)
         print(type(label),'and fucking label',label)
         loss = criterion(output,label)
-        average_loss += loss
         loss.backward()
+
+        average_loss += loss.item()
         
 
         #softmax probability

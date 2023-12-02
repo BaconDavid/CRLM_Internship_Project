@@ -39,17 +39,29 @@ def visual_input(im, label,image_visual_path, percentage_image=0.5):
 
     if if_show:
         print("this is visual image shape",im.shape)
-        plt.imshow(im[0:,0,0,10,:], cmap='gray')
+        plt.imshow(im[0,0,:,:,0], cmap='gray')
         plt.title(f'Label:{label}')
         plt.savefig(image_visual_path + f'Label_{label}.png')
 
 
 
+import nibabel as nib
+import numpy as np
 
-        
+import numpy as np
 
-
-
+def apply_window_to_volume(batched_volumes, window_center, window_width):
+    """
+    Apply windowing to a batch of 3D volumes.
+    :param batched_volumes: The input batch of 3D volumes.
+    :param window_center: The center of the window (window level).
+    :param window_width: The width of the window.
+    :return: Windowed batch of 3D volumes.
+    """
+    lower_bound = window_center - window_width / 2
+    upper_bound = window_center + window_width / 2
+    windowed_batched_volumes = np.clip(batched_volumes, lower_bound, upper_bound)
+    return windowed_batched_volumes
 
 
 
@@ -67,76 +79,6 @@ class Balanced_sampler(WeightedRandomSampler):
         print(len(class_freq),len(weights))
         super().__init__(weights=weights,num_samples=len(weights),replacement=True,*args,**kwargs)
 
-class Parameters:
-    def __init__(self) -> None:
-        self._cross_val_par = None
-        self._model_par = None
-        self._loss_par = None
-        self._model_info = None
-
-
-    @property
-    def cross_val_par(self):
-        return self._cross_val_par
-    
-    @property
-    def model_par(self):
-        return self._model_par
-    
-    @property
-    def loss_par(self):
-        pass
-
-    @property
-    def model_info(self):
-        return self._model_info
-
-    @loss_par.setter
-    def loss_par(self,value):
-        self._loss_par = value
-    
-    @cross_val_par.setter
-    def cross_val_par(self,value):
-        self._cross_val_par = value
-
-    @model_par.setter
-    def model_par(self,value):
-        self._model_par = value
-    
-    @model_info.setter
-    def model_info(self,value):
-        self._model_info = value
-
-    @loss_par.getter
-    def loss_par(self):
-        return self._loss_par
-    
-    @cross_val_par.getter
-    def cross_val_par(self):
-        return self._cross_val_par
-    
-    @model_par.getter
-    def model_par(self):
-        return self._model_par
-    
-    @model_info.getter
-    def model_info(self):
-        return self._model_info
-
-
-
-    def _aggregate_par(self):
-        self.par = {**self._cross_val_par,**self._model_info,**self.model_par,**self._loss_par}
-        self.par = {key: str(value) for key, value in self.par.items()}
-        return self.par
-
-    def write_model_info(self,out_path):
-        #json dump
-        model_info = self._aggregate_par()
-        with open(out_path,'w') as f:
-            #write txt
-            for key,value in model_info.items():
-                f.write(f'{key}:{value}\n')
 
 
 class SaveResults:
@@ -180,23 +122,3 @@ class SaveResults:
             print(f'Create the {self.result_path} directory')
 
 
-class VisualInput:
-    def __init__(self,image_visual_path) -> None:
-        self.image_visual_path = image_visual_path
-
-    def visule_image(self,im,label,percentage_image=0.5):
-        """
-        args:
-            percentage_image: random show the percentage of image
-        """
-        #save the image
-        if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
-
-        if if_show:
-            plt.imshow(im[0,0,:,:],cmap='gray')
-            plt.title(f'Label:{label}')
-            plt.savefig(self.image_visual_path + f'Label_{label}.png')
-
-
-    def show_image_label(self):
-        print("Image:",self.im,"Label:",self.label)

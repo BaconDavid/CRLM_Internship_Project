@@ -1,0 +1,2 @@
+通道注意力 因为CT不同的deep不一样!
+slice attention! ---advantage: 去除nnunet false 的肿瘤！

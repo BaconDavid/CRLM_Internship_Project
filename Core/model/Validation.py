@@ -31,7 +31,9 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     y_true = []
     print("##################")
     print("##################")
-
+    #model = model.to(device)
+    #predict
+    model.eval()
     for i,(im,label) in enumerate(vali_bar):
 
 
@@ -40,9 +42,8 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
             visual_input(im,label,visual_out_path)
 
         im,label = im.to(device),label.to(device)
-        model = model.to(device)
-        #predict
-        model.eval()
+        print('validation',im.shape,label)
+
         with torch.no_grad():
             output = (model(im))
             loss = criterion(output,label)
@@ -54,7 +55,6 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     
 
         #softmax probability
-        output = torch.nn.functional.softmax(output,dim=1)
         y_pred.append(output.cpu())
         y_true.append(label.cpu())
         print("this is y_pred",output,'and this is y_true',label)

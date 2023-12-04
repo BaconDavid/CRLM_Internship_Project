@@ -103,7 +103,7 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
             val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader() 
             #set scheduler,optimizer parameters
 
-            optimizer_param = {"lr":0.005}
+            optimizer_param = {"lr":0.001}
             scheduler_param = {"step_size":2000,"gamma":0.1}
 
             loss_fun = Loss().build_loss()
@@ -116,6 +116,8 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
             
             epoch_loss_values, train_loss_epoch_x_axis = [], []
             val_loss_values, val_loss_epoch_x_axis = [], []
+            
+            model.to(args.device)
 
             for epoch in range(epochs):
                 train_loss_epoch_x_axis.append(epoch)

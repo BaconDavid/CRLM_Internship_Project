@@ -36,7 +36,8 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
     print("##################")
     print(f"epoch {epoch_num+1}")
     print("##################")
-
+    model.train()
+    #model = model.to(device)
     for i,(im,label) in enumerate(train_bar):
         #print('mother fucker',im.shape)
         
@@ -56,8 +57,7 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
 
 
         optimizer.zero_grad()
-        model.train()
-        model = model.to(device)
+
         output = (model(im))
         print('mother fucker loss function',criterion)
         print(type(label),'and fucking label',label)

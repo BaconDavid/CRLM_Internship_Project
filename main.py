@@ -15,6 +15,7 @@ from Core.Utils import Plot_Loss
 
 from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
 
+from torch.utils.data import Subset
 from torch.utils.data import WeightedRandomSampler
 from monai.transforms import (
     EnsureChannelFirst,
@@ -41,7 +42,7 @@ import datetime
 from sklearn.model_selection import StratifiedKFold
 
 
-def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
+def main(data_path,label_path,save_path,epochs,num_class,model,mode='train'):
     """
     args:
         epochs: number of epochs
@@ -94,13 +95,30 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
                                     # To tensor
                                     ToTensor()
                                     ]}
-            model = build_model("resnet10",num_class)
+           
             #model =  Swin_Transformer_Classification.SwinUNETR(in_channels=1, out_channels=2, img_size=(256, 256, 128))
             tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_param['transform_methods'],data_aug=True,label_name=None)
-            tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
+
+         
+
 
             val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=[EnsureChannelFirst(),Resize((256,256,128)),ToTensor()],data_aug=True,label_name=None)
             val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader() 
+            
+
+            if args.Debug:
+                tr_subset = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+                val_subset = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+
+                tr_dataloader = Data_Loader(dataset=tr_subset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
+                val_dataloader = Data_Loader(dataset=val_subset,batch_size=1,num_workers=0).build_vali_loader()
+            else:
+                tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
+                val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader()
+            
+                    
+
+            
             #set scheduler,optimizer parameters
 
             optimizer_param = {"lr":0.001}
@@ -178,5 +196,10 @@ if __name__ == "__main__":
 
     #set the cross validation
 
-    main(args.data_path,args.label_path,SAVE_PATH,args.epochs,NUM_CLASS,mode=args.mode)
+    # build model
+    model = build_model("resnet10",NUM_CLASS)
+    model.to(args.device)
+
+
+    main(args.data_path,args.label_path,SAVE_PATH,args.epochs,NUM_CLASS,model,mode=args.mode)
     main()

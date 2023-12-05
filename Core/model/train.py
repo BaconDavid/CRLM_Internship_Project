@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 from tqdm import tqdm
 import torch
 
+from torch.utils.data import Subset
 
 from Utils.Models import build_model
 from Utils.Utility import path_check,visual_input
@@ -13,9 +14,7 @@ from Utils.Metrics import Metrics
 from Utils.Utility import apply_window_to_volume
 
 
-NUM_CLASSES = 2
-
-def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None):
+def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,debug=False,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None):
     """
     args:
         model: model to be trained
@@ -29,6 +28,8 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
     #prepare data for training
     train_bar = tqdm(dataloader)
     average_loss = 0
+
+
 
     #set metrics record
     y_pred = []

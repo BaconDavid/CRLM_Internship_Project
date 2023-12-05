@@ -10,5 +10,6 @@ def parse_args():
     #parser.add_argument('--visual_out_path',type=str,help='path to save visualized images')
     parser.add_argument('--result_save_path',type=str,help='path to save results')
     parser.add_argument('--device',type=str,default='cpu',help='device to train on')
+    parser.add_argument('--Debug',type=str,default='False',help='Use a small subset of dataset to debug')
     args = parser.parse_args()
     return args

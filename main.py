@@ -125,6 +125,13 @@ def main(data_path,label_path,save_path,epochs,num_class,model,mode='train'):
                 tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
                 val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader()
             
+
+
+            ## get train_labels and image_labels
+            train_labels = [tr_dataset.labels[i] for i in range(int(len(tr_dataset)*0.2))]
+
+            train_images = [tr_dataset.image_files[i] for i in range(int(len(tr_dataset)*0.2))]
+
                     
 
             

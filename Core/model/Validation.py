@@ -33,7 +33,8 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     print("##################")
     #model = model.to(device)
     #predict
-    model.eval()
+
+
     for i,(im,label) in enumerate(vali_bar):
 
 
@@ -46,6 +47,7 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
 
         with torch.no_grad():
             output = (model(im))
+            print('this is output',output)
             loss = criterion(output,label)
             average_loss += loss.item()
 
@@ -58,7 +60,7 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
         y_pred.append(output.cpu())
         y_true.append(label.cpu())
         print("this is y_pred",output,'and this is y_true',label)
-        print("this is step loss",loss)
+        #print("this is step loss",loss)
         
         #set description for tqdm
 

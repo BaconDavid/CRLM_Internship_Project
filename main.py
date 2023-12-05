@@ -93,7 +93,7 @@ def main(data_path,label_path,save_path,epochs,num_class,model,mode='train'):
                                     RandZoom(prob = 0.5, min_zoom=1.0, max_zoom=1.2),
                                     RandRotate(range_z = 0.35, prob = 0.5),
                                     RandFlip(prob = 0.5),
-                                    #Resize((256,256,128)),
+                                    Resize((480,480,40)),
                                     NormalizeIntensity(),
                                     # To tensor
                                     ToTensor()

@@ -14,7 +14,7 @@ from Utils.Metrics import Metrics
 from Utils.Utility import apply_window_to_volume
 
 
-def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,debug=False,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None):
+def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None,debug=False):
     """
     args:
         model: model to be trained
@@ -28,7 +28,7 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,d
     #prepare data for training
     train_bar = tqdm(dataloader)
     average_loss = 0
-
+    print(len(train_bar),'length of train_bar')
 
 
     #set metrics record

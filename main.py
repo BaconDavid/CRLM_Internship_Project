@@ -1,3 +1,6 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 from Core.Utils.Models import build_model
 from Core.Utils import args
 from Core.Utils.Metrics import Metrics
@@ -81,7 +84,7 @@ def main(data_path,label_path,save_path,epochs,num_class,model,mode='train'):
             tr_results = SaveResults(save_path + f"fold{fold}/",'train')
 
             #weighted sampler
-            sampler = Balanced_sampler(train_labels,num_class)
+            
 
             #transform methods
             transform_param = {"transform_methods":[
@@ -109,8 +112,14 @@ def main(data_path,label_path,save_path,epochs,num_class,model,mode='train'):
             if args.Debug:
                 tr_subset = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
                 val_subset = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+                #print("this is the length of train and vali dataset",len(tr_subset),len(val_subset))
 
-                tr_dataloader = Data_Loader(dataset=tr_subset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
+                #sampler
+                tr_subset_labels = [tr_dataset.labels[i] for i in range(int(len(tr_dataset)*0.2))]
+                sampler = WeightedRandomSampler(tr_subset_labels,len(tr_subset_labels))
+
+
+                tr_dataloader = Data_Loader(dataset=tr_subset,batch_size=1,num_workers=0,sampler=sampler).build_train_loader() 
                 val_dataloader = Data_Loader(dataset=val_subset,batch_size=1,num_workers=0).build_vali_loader()
             else:
                 tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 

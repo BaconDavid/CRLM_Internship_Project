@@ -55,7 +55,6 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         #print leraing rate
         print(f"learning rate: {scheduler.get_last_lr()[0]}")
 
-
         optimizer.zero_grad()
 
         output = (model(im))
@@ -70,7 +69,10 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
         #softmax probability
         output = torch.nn.functional.softmax(output,dim=1)
         y_pred.append(output.cpu())
-        y_true.append(label.cpu())
+        y_true.extend(label.cpu().numpy().tolist())
+
+
+        #print(y_true,6666)
         #set description for tqdm
         train_bar.set_description(f"step_loss:{loss},learning_rate: {scheduler.get_last_lr()[0]}")
         print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
@@ -85,6 +87,6 @@ def train_loop(model,dataloader,epoch_num,device,num_class,optimizer,scheduler,c
 
     average_loss /= len(train_bar)
     print('average_loss',average_loss)
-    return average_loss,y_pred
+    return average_loss,y_pred,y_true
 
     

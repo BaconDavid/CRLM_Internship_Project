@@ -107,11 +107,12 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
          
 
 
-            val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=[EnsureChannelFirst(),Resize((480,480,40)),NormalizeIntensity(),ToTensor()],data_aug=True,label_name=None)
+            val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=[EnsureChannelFirst(),Resize((256,256,40)),NormalizeIntensity(),ToTensor()],data_aug=True,label_name=None)
             #val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader() 
             
 
-            if args.Debug:
+            if args.Debug == 'True':
+                print(3333)
                 tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
                 val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
                 #print("this is the length of train and vali dataset",len(tr_subset),len(val_subset))
@@ -129,13 +130,13 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
                 val_dataset = val_dataset_sub
 
 
-                tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,sampler=sampler).build_train_loader() 
-                val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader()
+                tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=0,sampler=sampler,batch_size=3,drop_last=True).build_train_loader() 
+                val_dataloader = Data_Loader(dataset=val_dataset,num_workers=0,batch_size=3).build_vali_loader()
                 print(len(tr_dataloader),'shit')
             else:
                 sampler = Balanced_sampler(train_labels,num_class=num_class)
-                tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=1,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
-                val_dataloader = Data_Loader(dataset=val_dataset,batch_size=1,num_workers=0).build_vali_loader()
+                tr_dataloader = Data_Loader(dataset=tr_dataset,batch_size=3,num_workers=0,**{'sampler':sampler,"shuffle":False}).build_train_loader() 
+                val_dataloader = Data_Loader(dataset=val_dataset,batch_size=3,num_workers=0).build_vali_loader()
             
 
 
@@ -169,14 +170,14 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
          
 
             for epoch in range(epochs):
-                #model.train()
+                model.train()
                 
                 train_loss_epoch_x_axis.append(epoch)
                 val_loss_epoch_x_axis.append(epoch)
                 loss_fun = Loss().build_loss()
-                ave_loss,y_pred = train_loop(model,tr_dataloader,epoch,args.device,num_class,optimizer_fun,scheduler_fun,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input/")
+                ave_loss,y_pred,y_true = train_loop(model,tr_dataloader,epoch,args.device,num_class,optimizer_fun,scheduler_fun,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input/")
 
-                metrics = Metrics(num_class,y_pred,train_labels)
+                metrics = Metrics(num_class,y_pred,y_true)
                 AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
 
                 metrics.calculate_metrics()
@@ -199,11 +200,12 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
 
 
                 #################
+                model.eval()
 
-                ave_loss,y_pred = Validation_loop(model,val_dataloader,args.device,num_class,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input_vali/")
+                ave_loss,y_pred,y_true = Validation_loop(model,val_dataloader,args.device,num_class,loss_fun,visual_im=True,visual_out_path=save_path + f"fold{fold}/visual_input_vali/")
                 print('this is fucking average loss',ave_loss)
 
-                metrics = Metrics(num_class,y_pred,vali_labels)
+                metrics = Metrics(num_class,y_pred,y_true)
                 print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
                 AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
                 metrics.calculate_metrics()

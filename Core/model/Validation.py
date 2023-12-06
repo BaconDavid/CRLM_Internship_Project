@@ -58,7 +58,9 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
 
         #softmax probability
         y_pred.append(output.cpu())
-        y_true.append(label.cpu())
+        y_true.extend(label.cpu().numpy().tolist())
+
+
         print("this is y_pred",output,'and this is y_true',label)
         #print("this is step loss",loss)
         
@@ -73,6 +75,6 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     
     average_loss = average_loss/len(vali_bar)
     print('this is average loss',average_loss)
-    return average_loss,y_pred
+    return average_loss,y_pred,y_true
 
     

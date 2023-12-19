@@ -56,6 +56,7 @@ class Resampler:
                 print('here!')
                 resample.SetInterpolator(sitk.sitkBSpline)
             out_image = resample.Execute(image)
+            print(out_image.GetSize(),'image size')
             self.image_save(out_image,name)
 
     def image_save(self,out_image,name):

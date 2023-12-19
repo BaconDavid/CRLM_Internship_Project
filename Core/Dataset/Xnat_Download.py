@@ -49,6 +49,8 @@ class Data_Download:
         self.__download_data = data
         self.__suceess_lst = {}
 
+        print('this is the project:',self.xnat_project)
+
 
     def download_from_data(self,output_path,format='NIFTI'):
         """
@@ -62,14 +64,15 @@ class Data_Download:
 
 
         for i in range(download_data.shape[0]):
-            subject = self.xnat_project.subjects[download_data.loc[i,'Subject']]
+            
+            subject = self.xnat_project.subjects[str(download_data.loc[i,'Subject'])]
             experiment = subject.experiments[download_data.loc[i,'Experiment']]
-            scan = experiment.scans[download_data.loc[i,'Scan']]
+            scan = experiment.scans[str(download_data.loc[i,'Scan'])]
 
             subject_name,experiment_name,scan_name = subject.label,experiment.label,scan.id
             print(f"this is experiment:{experiment.label}, scan:{scan.id}")
             try:
-                self._download_single_image(experiment,scan,output_path,format)
+                self._download_single_image(experiment,scan,output_path)
                 self._store_download_success(output_path,experiment_name,subject_name,scan_name)
             except Exception as e:
                 self._recording_failing_download(output_path,experiment_name,subject_name,scan_name)
@@ -111,6 +114,7 @@ class Data_Download:
     
     def _download_single_image(self,experiment,scan,output_path,modality='CT',quality='usable',format='NIFTI'):
         if self._check_usable(experiment,scan,modality,quality):
+            print('downloading!')
             scan.resources[format].download_dir(output_path)
             
 
@@ -147,8 +151,11 @@ class Data_Download:
         '''
         #only quality usable and right modality 
         if scan.quality == quality and experiment.label.startswith(modality):
+            
             return True
         else:
+            print('false!',modality)
+            print(experiment.label.startswith(modality),modality)
             return False
         
 class Data_Uploade:
@@ -199,7 +206,10 @@ class DataExtract:
         Extract data from the xnat folder
         """
         #check if the path exists
+        print(os.getcwd())
+        print('fuck',self.Xnat_path)
         experi_lst = os.listdir(self.Xnat_path)
+        self._path_check(out_path)
 
         for exp_num,exp in enumerate(experi_lst):
             if exp.startswith('CT'):
@@ -343,9 +353,9 @@ if __name__ == "__main__":
         parser.add_argument('--url', type=str, required=False, default='https://bigr-rad-xnat.erasmusmc.nl',help='The URL of the XNAT instance')
         parser.add_argument('--user', type=str, required=False, default='yliu',help='Username for XNAT')
         parser.add_argument('--passwd', type=str, required=False, default='x37vnp78',help='Password for XNAT')
-        parser.add_argument('--project', type=str, required=False, help='The project name in XNAT')
-        parser.add_argument('--Download_Data',default=False,help='Whether to download data')
-        parser.add_argument('--store_out_path', type=str, required=None, help='The path where the downloaded data will be stored')
+        parser.add_argument('--project', type=str, required=True, help='The project name in XNAT')
+        parser.add_argument('--Download_Data',action='store_true',help='Whether to download data')
+        parser.add_argument('--store_out_path', type=str, required=False, help='The path where the downloaded data will be stored')
         parser.add_argument('--data_csv', type=str, default=None,help='CSV file containing data to be downloaded')
         parser.add_argument('--task_name', type=str, required=False, help='The task name for the nnU-Net dataset')
         parser.add_argument('--nnUnet_path',type=str,default=False,help='nnUnet path')
@@ -364,6 +374,8 @@ if __name__ == "__main__":
         # Establish the connection to XNAT and see whether we need to download data
 
         if args.Download_Data:
+            print(args.Download_Data,'shit')
+            #print(args.Download_Data,'fuck')
             xnat_session = XnatSession(args.url, args.user, args.passwd)
             project = xnat_session.start_xnat_session(args.project)
             if args.data_csv:
@@ -383,7 +395,7 @@ if __name__ == "__main__":
             nnunet_format.make_json_file()
         elif args.extract_out_path:
             # Extract the data from XNAT
-            extract_data = DataExtract(args.extract_out_path)
+            extract_data = DataExtract(args.Xnat_path)
             extract_data.extract_data(args.project,args.extract_out_path)
 
         if args.upload_path:

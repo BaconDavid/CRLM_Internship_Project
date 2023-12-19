@@ -47,7 +47,7 @@ import datetime
 from sklearn.model_selection import StratifiedKFold
 
 
-def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
+def main(cfg,data_path,label_path,save_path,epochs,num_class,mode='train'):
     """
     args:
         epochs: number of epochs
@@ -228,8 +228,14 @@ def main(data_path,label_path,save_path,epochs,num_class,mode='train'):
         test_loop(model,dataloader,device,loss_fun,visual_input=True,visual_out_path=args.visual_out_path)
 
 
-if __name__ == "__main__":
 
+def main(cfg):
+    print(cfg)
+    print(cfg.SYSTEM.NUM_GPUS)
+
+if __name__ == "__main__":
+    """
+    
     args = args.parse_args()
     
     TIME_RUN = datetime.datetime.now().strftime("%Y-%m-%d-min %H:%M").replace(' ', '_').replace('-', '_').replace(':', '_')
@@ -243,4 +249,9 @@ if __name__ == "__main__":
 
 
     main(args.data_path,args.label_path,SAVE_PATH,args.epochs,NUM_CLASS,mode=args.mode)
-    main()
+    """
+    from Core.Config.config import get_cfg_defaults
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file("./Core/Config/Resnet10.yaml")
+    cfg.freeze()
+    main(cfg)

@@ -13,7 +13,7 @@ from Utils.Metrics import Metrics
 CLASSIFICATION = {'blanco':0,'AP':1,"PVP":2}
 
 
-def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual_out_path=None):
+def Validation_loop(cfg,model,dataloader,criterion):
     """
     args:
         model: model to be trained
@@ -35,24 +35,28 @@ def Validation_loop(model,dataloader,device,num_class,criterion,visual_im,visual
     #predict
 
 
-    for i,(im,label) in enumerate(vali_bar):
+    for i,(im,label) in enumerate(vali_bar):       
+        #rotate and flip
+        im = torch.rot90(im,k=3,dims=(2,3))
+        im = torch.flip(im,[3])
 
-
-        if visual_im:
+        if cfg.visual_im.visual_im:
             # visualize input
-            visual_input(im,label,visual_out_path)
+            visual_input(im,label,cfg.visual_im.visual_out_path)
 
-        im,label = im.to(device),label.to(device)
+
+        im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         print('validation',im.shape,label)
 
         with torch.no_grad():
             output = (model(im))
-            print('this is output',output)
+
             loss = criterion(output,label)
             average_loss += loss.item()
 
             #softmax probability
             output = torch.nn.functional.softmax(output,dim=1)
+            print('this is output',output)
 
     
 

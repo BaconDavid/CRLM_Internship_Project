@@ -170,7 +170,7 @@ class Data_Uploade:
             upload_path: path to the data to be uploaded
         """
         #check if the path exists
-        upload_path_lst = [os.path.join(upload_path,file) for file in os.listdir(upload_path)]
+        upload_path_lst = [os.path.join(upload_path,file) for file in os.listdir(upload_path) if file.endswith('.nii.gz')]
         upload_data = pd.read_csv(self.data_set)
         upload_data = upload_data.sort_values(by=['Experiment'])
 

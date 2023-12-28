@@ -112,9 +112,15 @@ class SaveResults:
         df['loss'] = loss
 
         return df
-    def store_results(self,df):
+    def store_results(self,df,metric_name):
+        """
+        args:
+            df: dataframe that store the results
+            metric_name: store type. eg: TP,FP,TN,FN
+        
+        """
         print("saving results")
-        df.to_csv(self.result_path + self.type +'.csv',index=False,mode='a')
+        df.to_csv(self.result_path + self.type + '_' + metric_name+ '.csv',index=False,mode='a')
     
     def _path_check(self):
         if not os.path.exists(self.result_path):

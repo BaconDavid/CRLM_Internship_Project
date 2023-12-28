@@ -5,7 +5,6 @@ if __name__ == "__main__":
     cfg = get_cfg_defaults()
     cfg.merge_from_file("./Resnet10.yaml")
     cfg.freeze()
-    print(cfg)
-    
+    #print(cfg.TRAIN.scheduler_param)
+    print(type(cfg.TRAIN.Debug))
 
-    model = my_project(cfg)

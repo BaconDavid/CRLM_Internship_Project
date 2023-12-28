@@ -14,7 +14,7 @@ from Utils.Metrics import Metrics
 from Utils.Utility import apply_window_to_volume
 
 
-def train_loop(cfg,model,dataloader,epoch_num,device,num_class,optimizer,scheduler,criterion,visual_im=True,leraning_rate=0.01,visual_out_path=None,debug=False):
+def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
     """
     args:
         model: model to be trained
@@ -39,19 +39,20 @@ def train_loop(cfg,model,dataloader,epoch_num,device,num_class,optimizer,schedul
     print("##################")
     #model = model.to(device)
     for i,(im,label) in enumerate(train_bar):
-        #print('mother fucker',im.shape)
-        
-        #applying windowing
+ 
+
+        #rotate and flip
+        im = torch.rot90(im,k=3,dims=(2,3))
+        im = torch.flip(im,[3])
        
-        if visual_im:
+        if cfg.visual_im.visual_im:
             # visualize input
-            visual_input(im,label+i,visual_out_path)
+            visual_input(im,label+i,cfg.visual_im.visual_out_path)
 
 
 
 
-
-        im,label = im.to(device),label.to(device)
+        im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         #print leraing rate
         print(f"learning rate: {scheduler.get_last_lr()[0]}")
 

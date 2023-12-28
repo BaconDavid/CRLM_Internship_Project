@@ -92,14 +92,14 @@ def main(cfg,mode='train'):
                                     RandZoom(prob = 0.3, min_zoom=1.0, max_zoom=1.2),
                                     RandRotate(range_z = 0.3, prob = 0.5),
                                     RandFlip(prob = 0.3),
-                                    Resize((256,256,40)),
+                                    #Resize((256,256,40)),
                                     NormalizeIntensity(),
                                     # To tensor
                                     ToTensor()
                                     ]}
            
             transform_param_val = {"transform_methods":[EnsureChannelFirst(),
-                                                       Resize((256,256,40)),
+                                                       #Resize((256,256,40)),
                                                        NormalizeIntensity(),
                                                        ToTensor()]}
 

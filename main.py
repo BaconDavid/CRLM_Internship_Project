@@ -221,7 +221,7 @@ def main(cfg,mode='train'):
                                 'arch': cfg.MODEL.name
                             }
                     save_checkpoint(cfg.SAVE.save_dir + cfg.SAVE.save_name + f"/fold{fold}/",save_dict,f'best_metric_{epoch+1}.pth')
-
+                    best_metric = ave_loss
                 #plot loss
                 #Plot_Loss(train_loss_epoch_x_axis,epoch_loss_values,val_loss_epoch_x_axis,val_loss_values,tr_results.result_path,epoch+1)
 

@@ -6,13 +6,13 @@
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
-  NUM_WORKERS: 6
+  NUM_WORKERS: 8
     
 DATA:
   Data_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Train/'
   Valid_dir: 1
-  Test_dir: None
+  Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
   label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
@@ -61,12 +61,12 @@ Preprocess:
 
 SAVE:
   save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
-  save_name: 'Reset_10_raw'
+  save_name: 'Resnet_10_raw_0'
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Weight/'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Visual/'
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Visual/'
 

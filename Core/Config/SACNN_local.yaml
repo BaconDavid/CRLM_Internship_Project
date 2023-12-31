@@ -43,7 +43,7 @@ DATASET:
   num_channels: 3
 
 MODEL:
-  name: 'Resnet10'
+  name: 'SACNN'
   pretrained: False
   num_class: 2
   num_in_channels: 1
@@ -60,13 +60,13 @@ Preprocess:
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\SACNN\'
   save_name: 'Test_local'
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Weight\'
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\SACNN\Test_local\Weight\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Visual\'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SACNN\Test_local\Visual\'
 

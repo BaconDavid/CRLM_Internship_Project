@@ -44,6 +44,7 @@ __all__ = [
 ]
 
 
+
 class SwinUNETR(nn.Module):
     """
     Swin UNETR based on: "Hatamizadeh et al.,
@@ -77,7 +78,7 @@ class SwinUNETR(nn.Module):
         spatial_dims: int = 3,
         downsample="merging",
         use_v2=False,
-        num_class = 2
+        num_classes = 2
     ) -> None:
         """
         Args:
@@ -141,7 +142,7 @@ class SwinUNETR(nn.Module):
             raise ValueError("feature_size should be divisible by 12.")
 
         self.normalize = normalize
-        self.num_class = num_class
+        self.num_class = num_classes
         self.final_feature_size = feature_size * 2 * 2 ** (len(depths) - 1)
 
         self.swinViT = SwinTransformer(
@@ -814,6 +815,7 @@ def compute_mask(dims, window_size, shift_size, device):
 
     if len(dims) == 3:
         d, h, w = dims
+        print('fucking dhw',d,h,w)
         img_mask = torch.zeros((1, d, h, w, 1), device=device)
         for d in slice(-window_size[0]), slice(-window_size[0], -shift_size[0]), slice(-shift_size[0], None):
             for h in slice(-window_size[1]), slice(-window_size[1], -shift_size[1]), slice(-shift_size[1], None):
@@ -1064,6 +1066,7 @@ class SwinTransformer(nn.Module):
         if normalize:
             x_shape = x.size()
             if len(x_shape) == 5:
+
                 n, ch, d, h, w = x_shape
                 x = rearrange(x, "n c d h w -> n d h w c")
                 x = F.layer_norm(x, [ch])
@@ -1078,6 +1081,7 @@ class SwinTransformer(nn.Module):
     def forward(self, x, normalize=True):
         print(x.shape,'this is x shape')
         x0 = self.patch_embed(x)
+        print(x0.shape,'after embed')
         x0 = self.pos_drop(x0)
         print(x0.shape,'this is x0 shape')
         x0_out = self.proj_out(x0, normalize)

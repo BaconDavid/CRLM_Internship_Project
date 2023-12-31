@@ -92,14 +92,14 @@ def main(cfg,mode='train'):
                                     RandZoom(prob = 0.3, min_zoom=1.0, max_zoom=1.2),
                                     RandRotate(range_z = 0.3, prob = 0.5),
                                     RandFlip(prob = 0.3),
-                                    #Resize((256,256,40)),
+                                    Resize((256,256,32)),
                                     NormalizeIntensity(),
                                     # To tensor
                                     ToTensor()
                                     ]}
            
             transform_param_val = {"transform_methods":[EnsureChannelFirst(),
-                                                       #Resize((256,256,40)),
+                                                       Resize((256,256,32)),
                                                        NormalizeIntensity(),
                                                        ToTensor()]}
 
@@ -109,8 +109,8 @@ def main(cfg,mode='train'):
             
             if cfg.TRAIN.Debug:
                 print(3333)
-                tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
-                val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
+                tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+                val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
                 #print("this is the length of train and vali dataset",len(tr_subset),len(val_subset))
 
                 #labels and images for subset
@@ -214,13 +214,13 @@ def main(cfg,mode='train'):
                 #save best metric
                 if ave_loss <= best_metric:
                     save_dict = {
-                                'epoch':1,
+                                'epoch':epoch+1,
                                 'model':model.state_dict(),
                                 'optimizer':optimizer_fun.state_dict(),
                                 'loss':loss_fun.state_dict(),
                                 'arch': cfg.MODEL.name
                             }
-                    save_checkpoint(cfg.weight_dir+ f"/fold{fold}/",save_dict,f'best_metric_{epoch+1}.pth')
+                    save_checkpoint(cfg.SAVE.save_dir + cfg.SAVE.save_name+ f"/fold{fold}/",save_dict,f'best_metric_{epoch+1}.pth')
                     best_metric = ave_loss
                 #plot loss
                 #Plot_Loss(train_loss_epoch_x_axis,epoch_loss_values,val_loss_epoch_x_axis,val_loss_values,tr_results.result_path,epoch+1)

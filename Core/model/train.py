@@ -44,7 +44,9 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))
         im = torch.flip(im,[3])
-       
+        #permute to [B,C,D,H,W]
+        im = im.permute(0,1,4,2,3)
+        #print('this is im',im.shape)
         if cfg.visual_im.visual_im:
             # visualize input
             visual_input(im,label+i,cfg.visual_im.visual_out_path)
@@ -54,13 +56,13 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         #print leraing rate
-        print(f"learning rate: {scheduler.get_last_lr()[0]}")
+        #print(f"learning rate: {scheduler.get_last_lr()[0]}")
 
         optimizer.zero_grad()
 
         output = (model(im))
-        print('mother fucker loss function',criterion)
-        print(type(label),'and fucking label',label)
+        #print('mother fucker loss function',criterion)
+        #print(type(label),'and fucking label',label)
         loss = criterion(output,label)
         loss.backward()
 
@@ -76,7 +78,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
         #print(y_true,6666)
         #set description for tqdm
         train_bar.set_description(f"step_loss:{loss},learning_rate: {scheduler.get_last_lr()[0]}")
-        print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
+        #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
         optimizer.step()
         scheduler.step()
 
@@ -87,7 +89,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
     
 
     average_loss /= len(train_bar)
-    print('average_loss',average_loss)
+    #print('average_loss',average_loss)
     return average_loss,y_pred,y_true
 
     

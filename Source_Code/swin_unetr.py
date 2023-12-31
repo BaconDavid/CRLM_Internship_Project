@@ -77,6 +77,7 @@ class SwinUNETR(nn.Module):
         spatial_dims: int = 3,
         downsample="merging",
         use_v2=False,
+        num_classes: int = 2,
     ) -> None:
         """
         Args:
@@ -138,7 +139,7 @@ class SwinUNETR(nn.Module):
             raise ValueError("feature_size should be divisible by 12.")
 
         self.normalize = normalize
-
+        
         self.swinViT = SwinTransformer(
             in_chans=in_channels,
             embed_dim=feature_size,

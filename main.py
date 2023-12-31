@@ -148,13 +148,16 @@ def main(cfg,mode='train'):
             #set scheduler,optimizer parameters
 
             loss_fun = Loss().build_loss()
-            
-            scheduler_param = {'step_size':2000,'gamma':0.1}
-            
-            
-            #optimizer_param = {"lr":0.001}
+             #optimizer_param = {"lr":0.001}
             optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
-            scheduler_fun = scheduler.build_scheduler(optimizer_fun,**scheduler_param) 
+            
+            if cfg.TRAIN.scheduler:
+                scheduler_param = {'step_size':2000,'gamma':0.1}
+                scheduler_fun = scheduler.build_scheduler(optimizer_fun,**scheduler_param) 
+            
+            
+
+           
             
             epoch_loss_values, train_loss_epoch_x_axis = [], []
             val_loss_values, val_loss_epoch_x_axis = [], []

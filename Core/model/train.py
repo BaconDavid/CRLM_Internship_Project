@@ -77,10 +77,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
 
         #print(y_true,6666)
         #set description for tqdm
-        train_bar.set_description(f"step_loss:{loss},learning_rate: {scheduler.get_last_lr()[0]}")
+        train_bar.set_description(f"step_loss:{loss}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
         optimizer.step()
-        scheduler.step()
+
+        #scheduler.step()
 
         #metrics
     

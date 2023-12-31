@@ -5,26 +5,26 @@
 # my_project/experiment.yaml
 SYSTEM:
   NUM_GPUS: None
-  DEVICE: 'cpu'
-  NUM_WORKERS: 0
+  DEVICE: 'cuda'
+  NUM_WORKERS: 8
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Liver_07073_Windowed'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Liver_07073_Windowed'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Train/'
   Valid_dir: 1
-  Test_dir: None
+  Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
-  label_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\scans_used_all_info.csv'
+  label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
   
 TRAIN:
   lr: 0.001
   batch_size: 1
-  num_epochs: 10
+  num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
-  Debug: True
+  Debug: False
   #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
   data_aug: True
 
@@ -40,7 +40,7 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
-  num_channels: 3
+  num_channels: 1
 
 MODEL:
   name: 'Resnet10'
@@ -60,13 +60,13 @@ Preprocess:
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
-  save_name: 'Test_local'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  save_name: 'Resnet_10_raw_0'
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Weight\'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Weight/'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Visual\'
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Visual/'
 

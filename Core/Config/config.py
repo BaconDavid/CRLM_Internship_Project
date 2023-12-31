@@ -29,6 +29,7 @@ _C.TRAIN.optimizer = 'Adam'
 _C.TRAIN.loss = 'CrossEntropy'
 _C.TRAIN.data_aug = True
 _C.TRAIN.Debug = False
+_C.TRAIN.scheduler = False
 #_C.TRAIN.scheduler_param = {'step_size':2000,'gamma':0.1}
 
 

@@ -150,12 +150,12 @@ def main(cfg,mode='train'):
             loss_fun = Loss().build_loss()
              #optimizer_param = {"lr":0.001}
             optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
-            
+
             if cfg.TRAIN.scheduler:
                 scheduler_param = {'step_size':2000,'gamma':0.1}
                 scheduler_fun = scheduler.build_scheduler(optimizer_fun,**scheduler_param) 
-            
-            
+            else:
+                scheduler_fun = None
 
            
             

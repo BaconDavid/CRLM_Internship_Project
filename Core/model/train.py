@@ -14,7 +14,7 @@ from Utils.Metrics import Metrics
 from Utils.Utility import apply_window_to_volume
 
 
-def train_loop(cfg,model,dataloader,epoch_num,optimizer,scheduler,criterion):
+def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None):
     """
     args:
         model: model to be trained

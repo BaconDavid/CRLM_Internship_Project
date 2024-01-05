@@ -1,7 +1,6 @@
 import numpy as np
 import SimpleITK as sitk
 import os
-import nibabel as nib
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import argparse
@@ -23,6 +22,7 @@ class ImageLoad:
                 img = sitk.ReadImage(self.input_path + name)
             except Exception as e:
                 raise NameError("There are wrong files in the dir!")
+                print(e)
             images_sitk[name] = img
         return images_sitk
         
@@ -34,7 +34,7 @@ class Resampler:
         self.out_image = {}
         self.out_path = out_path
     
-    def resample(self,label=False,out_spacing=[0.7421875, 0.7421875, 1.0]):
+    def resample(self,label=False,out_spacing=[0.7421875, 0.7421875, 3.0]):
         resample = sitk.ResampleImageFilter()
         resample.SetOutputSpacing(out_spacing)
         print('here!')
@@ -56,7 +56,7 @@ class Resampler:
                 print('here!')
                 resample.SetInterpolator(sitk.sitkBSpline)
             out_image = resample.Execute(image)
-            print(out_image.GetSize(),'image size')
+            print(out_image.GetSize(),'image size:',name)
             self.image_save(out_image,name)
 
     def image_save(self,out_image,name):

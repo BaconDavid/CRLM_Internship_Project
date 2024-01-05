@@ -28,7 +28,7 @@ def path_check(func):
 
 
 @path_check
-def visual_input(im, label,image_visual_path, percentage_image=0.5):
+def visual_input(im,label,image_visual_path, percentage_image=0.2):
     """
     args:
         percentage_image: random show the percentage of image
@@ -39,7 +39,7 @@ def visual_input(im, label,image_visual_path, percentage_image=0.5):
 
     if if_show:
         print("this is visual image shape",im.shape)
-        plt.imshow(im[0,0,5,:,:], cmap='gray')
+        plt.imshow(im[0,0,45,:,:], cmap='gray')
         plt.title(f'Label:{label}')
         plt.savefig(image_visual_path + f'Label_{label}{np.random.randint(0,100,1).item()}.png')
 

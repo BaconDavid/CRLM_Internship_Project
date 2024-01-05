@@ -182,6 +182,7 @@ class SelfAttentionBlock(nn.Module):
 
         self.in_ch = in_ch
         self.out_ch = out_ch
+        print(self.in_ch,self.out_ch,'this is in_ch and out_ch')
         
         self.conv3d_3 = nn.Sequential(
             # Conv3d input:N*C*D*H*W
@@ -203,13 +204,9 @@ class SelfAttentionBlock(nn.Module):
 
     def Cal_Patt(self,k_x, q_x, v_x, N, C, D, H, W):
         """
-        input:N*C*H*W*D
         origin_input : N*C*D*H*W
         """
-        ##first permute the input to N*C*D*H*W
-        k_x = k_x.permute(0, 1, 4, 2, 3)
-        q_x = q_x.permute(0, 1, 4, 2, 3)
-        v_x = v_x.permute(0, 1, 4, 2, 3)
+
 
 
         k_x_flatten = k_x.reshape((N, C, D, 1, H * W))
@@ -226,13 +223,10 @@ class SelfAttentionBlock(nn.Module):
 
     def Cal_Datt(self,k_x, q_x, v_x, N, C, D, H, W):
         """
-        input:N*C*H*W*D
+        input:N*C*D*H*W
         """
         ##first permute the input to N*C*D*H*W
-        k_x = k_x.permute(0, 1, 4, 2, 3)
-        q_x = q_x.permute(0, 1, 4, 2, 3)
-        v_x = v_x.permute(0, 1, 4, 2, 3)
-
+  
 
         k_x_flatten = k_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
         q_x_flatten = q_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
@@ -243,13 +237,14 @@ class SelfAttentionBlock(nn.Module):
         #print(sigma_x.shape,'this is sigma_x shape')
         r_x = F.softmax(sigma_x, dim=5)
         # r_x = F.softmax(sigma_x.float(), dim=4)
-        Datt = torch.matmul(v_x_flatten, r_x).reshape(N, C, H, W, D)
+        Datt = torch.matmul(v_x_flatten, r_x).reshape(N, C, H, W,D)
         return Datt.permute(0, 1, 4, 2, 3)
 
     
     def forward(self, x):
         #print(x.shape,'this is x shape')
-        N,C,H,W,D = x.shape
+        N,C,D,H,W = x.shape
+        print(x.shape,'this is x shape')
         v_x = self.conv3d_3(x)
         k_x = self.conv3d_1(x)
         q_x = self.conv3d_1(x)
@@ -259,8 +254,7 @@ class SelfAttentionBlock(nn.Module):
         Datt = self.Cal_Datt(k_x, q_x, v_x, N, C, D, H, W)
         #print(Patt.shape,'this is Patt shape',Datt.shape,'this is Datt shape')
         #reshape to N*C*H*W*D
-        Patt = Patt.permute(0, 1, 3, 4, 2)
-        Datt = Datt.permute(0, 1, 3, 4, 2)
+        print(Patt.shape,Datt.shape,'this is Patt and Datt shape')
         Y = self.gama*(Patt + Datt) + x
         return Y
     
@@ -350,7 +344,7 @@ class ResNet(nn.Module):
         self.maxpool = pool_type(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, block_inplanes[0], layers[0], spatial_dims, shortcut_type)
         self.layer2 = self._make_layer(block, block_inplanes[1], layers[1], spatial_dims, shortcut_type, stride=2)
-        self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2)
+        self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2,SelfAttention=SA)
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2,SelfAttention=SA)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, num_classes) if feed_forward else None
@@ -405,6 +399,7 @@ class ResNet(nn.Module):
                     norm_type(planes * block.expansion),
                 )
         #here add attention block
+        print('fuck inplan he planes',self.in_planes,planes)
         if SelfAttention:                
             layers = [
                 block(
@@ -424,7 +419,7 @@ class ResNet(nn.Module):
         if SelfAttention:
             for _i in range(1, blocks):
                 layers.append(block(self.in_planes, planes, spatial_dims=spatial_dims))
-                layers.append(SelfAttentionBlock(self.in_planes, planes, 1))
+                layers.append(SelfAttentionBlock(planes, planes, 1))
         else:
             for _i in range(1, blocks):
                 layers.append(block(self.in_planes, planes, spatial_dims=spatial_dims))
@@ -444,9 +439,9 @@ class ResNet(nn.Module):
             x = self.maxpool(x)
         #print('run layer1')
         x = self.layer1(x)
-        #print('after layer1',x.shape)
+        print('after layer1',x.shape)
         x = self.layer2(x)
-        #print('after layer2',x.shape)
+        print('after layer2',x.shape)
         x = self.layer3(x)
         #print('after layer3',x.shape)
         x = self.layer4(x)

@@ -9,8 +9,8 @@ SYSTEM:
   NUM_WORKERS: 0
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Liver_07073_Windowed'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Liver_07073_Windowed'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Tumor_07073_Windowed'
+  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Tumor_07073_Windowed'
   Valid_dir: 1
   Test_dir: None
 

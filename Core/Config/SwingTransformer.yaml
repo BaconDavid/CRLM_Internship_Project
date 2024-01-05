@@ -9,17 +9,17 @@ SYSTEM:
   NUM_WORKERS: 6
     
 DATA:
-  Data_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/Mixed_HGP_Only_Liver_07073_Windowed_Train/'
-  Valid_dir: 1
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/Mixed_HGP_lv_with_tumor_07073_Windowed/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_0.csv'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_0.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
-  label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/Train.csv'
+  label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
   
 TRAIN:
-  lr: 0.001
+  lr: 0.00001
   batch_size: 1
   num_epochs: 200
   optimizer: 'Adam'
@@ -55,13 +55,13 @@ LOG:
   log_file: log.txt
 
 Preprocess:
-  resize_shape: (256,256,32)
+  resize_shape: (256,256,64)
   normalize: 'NormalizeIntensity'
 
 
 SAVE:
   save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/'
-  save_name: 'Resnet_10_raw_0'
+  save_name: 'SwingTransformer'
 
 WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_0/Weight/'

@@ -1,8 +1,0 @@
-通道注意力 因为CT不同的deep不一样!
-slice attention! ---advantage: 去除nnunet false 的肿瘤！
-
-
-04/12/2023
-
-Rewrite image in the same direction (full image liver slice and full image liver slice 07075 window)
-Check data bug

@@ -73,7 +73,7 @@ def Validation_loop(cfg,model,dataloader,criterion):
         #set description for tqdm
 
 
-        vali_bar.set_description(f"loss:{average_loss}")
+        vali_bar.set_description(f"label{label},loss:{average_loss},out_put_prob:{output}")
 
         #metrics
     

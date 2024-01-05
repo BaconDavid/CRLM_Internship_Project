@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import SimpleITK as sitk
 import nibabel as nib
-#print(os.listdir('../../Test_Data/Test_3D/'))
+
+
+
 class ImageLoad:
     def __init__(self,input_path):
         """

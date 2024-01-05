@@ -68,16 +68,17 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None
 
         average_loss += loss.item()
         
+        output = torch.nn.functional.softmax(output,dim=1)
 
         #softmax probability
-        output = torch.nn.functional.softmax(output,dim=1)
+       
         y_pred.append(output.cpu())
         y_true.extend(label.cpu().numpy().tolist())
 
 
         #print(y_true,6666)
         #set description for tqdm
-        train_bar.set_description(f"step_loss:{loss}")
+        train_bar.set_description(f"label:{label},step_loss:{loss},out_put_prob:{output}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
         optimizer.step()
 
@@ -90,7 +91,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None
     
 
     average_loss /= len(train_bar)
-    #print('average_loss',average_loss)
+    print('average_loss',average_loss)
     return average_loss,y_pred,y_true
 
     

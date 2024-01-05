@@ -332,7 +332,7 @@ class SwinUNETR(nn.Module):
         if not torch.jit.is_scripting():
             self._check_input_size(x_in.shape[2:])
         hidden_states_out = self.swinViT(x_in, self.normalize)
-        print('hidden states out',hidden_states_out.shape)
+        #print('hidden states out',hidden_states_out.shape)
         
         """
         enc0 = self.encoder1(x_in)
@@ -670,6 +670,7 @@ class SwinTransformerBlock(nn.Module):
         return x
 
     def forward_part2(self, x):
+        print("all < 0",torch.all(self.norm2(x)<0))
         return self.drop_path(self.mlp(self.norm2(x)))
 
     def load_from(self, weights, n_block, layer):
@@ -1079,11 +1080,11 @@ class SwinTransformer(nn.Module):
         return x
 
     def forward(self, x, normalize=True):
-        print(x.shape,'this is x shape')
+        #print(x.shape,'this is x shape')
         x0 = self.patch_embed(x)
-        print(x0.shape,'after embed')
+        #print(x0.shape,'after embed')
         x0 = self.pos_drop(x0)
-        print(x0.shape,'this is x0 shape')
+        #print(x0.shape,'this is x0 shape')
         x0_out = self.proj_out(x0, normalize)
         if self.use_v2:
             x0 = self.layers1c[0](x0.contiguous())
@@ -1094,7 +1095,7 @@ class SwinTransformer(nn.Module):
             x1 = self.layers2c[0](x1.contiguous())
         x2 = self.layers2[0](x1.contiguous())
         x2_out = self.proj_out(x2, normalize)
-        print(x2.shape,'this is x2 shape')
+        #print(x2.shape,'this is x2 shape')
         if self.use_v2:
             x2 = self.layers3c[0](x2.contiguous())
         x3 = self.layers3[0](x2.contiguous())

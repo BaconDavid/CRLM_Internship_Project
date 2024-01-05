@@ -1,21 +1,26 @@
 import argparse
 import Crop,Resample,Xnat_Download,Data_Check
+from Crop import ImageLoad
 
-def run_resample(input_dir, output_dir, out_spacing=[0.7421875, 0.7421875, 1.0], **kwargs):
-    parameters = {"out_spacing": out_spacing}
 
-    for key, value in kwargs.items():
-        parameters[key] = value
+import argparse
 
-    image_load = Resample.ImageLoad(input_dir)
-    images_sitk = image_load.image_load()
-    resampler = Resample.Resampler(images_sitk)
-    resampler.resample()
-    resampler.image_save(output_dir)
+def parse_args():
+    parser = argparse.ArgumentParser(description="Preprocessing CT images")
+    parser.add_argument('--data_dir',type=str,help='path to the data folder')
+    parser.add_argument('--mask_dir',type=str,help='path to the mask_dir')
+    parser.add_argument('--output_dir',type=str,help='path to the output folder')
+    parser.add_argument('--window_pars',type=list,required=False,help='window level and window width')
+    parser.add_argument('--resample_spacing',type=list,required=True,help='resample size')
+
+    args = parser.parse_args()
+    return args
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Preprocessing CT images")
-    tasks = {"resample": run_resample}
 
     subparsers = parser.add_subparsers(dest="Task", help="Sub-commands help")
     parser_resample = subparsers.add_parser("resample", help="Resample help")

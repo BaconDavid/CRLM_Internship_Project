@@ -48,6 +48,7 @@ _C.DATASET.WeightedRandomSampler = False
 _C.DATASET.num_classes = 2
 _C.DATASET.num_channels = 3
 
+
 _C.MODEL = CN()
 _C.MODEL.name = 'Resnet10'
 _C.MODEL.pretrained = False
@@ -65,6 +66,7 @@ _C.Preprocess.resize_shape = None
 #_C.Preprocess.resize_width = 256
 #_C.Preprocess.resize_height = 256
 _C.Preprocess.normalize = 'NormalizeIntensity()'
+_C.Preprocess.padding_size = None
 
 _C.LABEL = CN()
 _C.LABEL.label_dir = None
@@ -81,6 +83,7 @@ _C.WEIGHT.weight_dir = None
 _C.SAVE = CN()
 _C.SAVE.save_dir = None
 _C.SAVE.save_name = None
+_C.SAVE.fold = None
 
 
 

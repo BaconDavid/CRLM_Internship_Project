@@ -19,9 +19,9 @@ LABEL:
   label_name: 'HGP_Type'
   
 TRAIN:
-  lr: 0.001
+  lr: 0.00001
   batch_size: 1
-  num_epochs: 200
+  num_epochs: 20
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: True
@@ -43,7 +43,7 @@ DATASET:
   num_channels: 1
 
 MODEL:
-  name: 'Resnet10'
+  name: 'SwingTransformerSparse'
   pretrained: False
   num_class: 2
   num_in_channels: 1
@@ -55,19 +55,20 @@ LOG:
   log_file: log.txt
 
 Preprocess:
-  padding_size: (368,368,64)
+  padding_size: (256,256,64)
   normalize: 'NormalizeIntensity'
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\'
-  save_name: 'Resnet_10_raw_0\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformerSparse\Test_local\SwingTransformerSparse\'
+  save_name: 'SwingTransformerSparse\'
   fold: '01'
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\fold_0\'
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformerSparse\Test_local\fold_0\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\fold_0\Visual\'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformerSparse\Test_local\SwingTransformerSparse\Visual\'
+
 

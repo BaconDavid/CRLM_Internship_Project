@@ -1,0 +1,41 @@
+{
+  "name": "Task503_HGCSorafenib_Data_1",
+  "description": "Task503_HGCSorafenib_Data_1",
+  "reference": "Erasmus Medical Centre",
+  "licence": "Not applicable",
+  "release": "Not applicable",
+  "tensorImageSize": "3D",
+  "modality": {
+    "0": "3D"
+  },
+  "labels": {
+    "0": "background",
+    "1": "organ",
+    "2": "tumor"
+  },
+  "numTraining": 10,
+  "numTest": 0,
+  "training": [
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_100172_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_100172_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_101278_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_101278_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_102410_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_102410_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_1059913_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_1059913_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_107665_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_107665_0000.nii.gz"
+    }
+  ],
+  "test": []
+}

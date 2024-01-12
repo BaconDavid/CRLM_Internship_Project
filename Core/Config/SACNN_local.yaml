@@ -6,13 +6,14 @@
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cpu'
-  NUM_WORKERS: 0
+  NUM_WORKERS: 2
+    
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Tumor_07073_Windowed'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_Only_Tumor_07073_Windowed'
-  Valid_dir: 1
-  Test_dir: None
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\'
+  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\train_cv_0.csv'
+  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\val_cv_0.csv'
+  Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
   label_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\scans_used_all_info.csv'
@@ -24,7 +25,7 @@ TRAIN:
   num_epochs: 10
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
-  Debug: True
+  Debug: False 
   #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
   data_aug: True
 
@@ -60,8 +61,9 @@ Preprocess:
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\SACNN\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\SACNN\Test_local\'
   save_name: 'Test_local'
+  fold : '01'
 
 WEIGHT:
   weight_dir: 'c:\Users\098986\Intership_CILM\Output\SACNN\Test_local\Weight\'

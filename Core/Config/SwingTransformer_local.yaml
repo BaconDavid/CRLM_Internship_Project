@@ -20,7 +20,7 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 2
+  batch_size: 1
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
@@ -29,7 +29,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 2
+  batch_size: 1
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -60,15 +60,15 @@ Preprocess:
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\'
   save_name: 'SwingTransformer\'
-  fold: '0'
+  fold: '01'
 
 WEIGHT:
   weight_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\fold_0\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\fold_0\Visual\'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\Visual\'
 
 

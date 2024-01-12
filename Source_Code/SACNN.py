@@ -8,8 +8,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import annotations
+
+
 
 import logging
 import re
@@ -51,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_inplanes():
-    return [32,64,128,256]
+    return [64,128,256,512]
 
 
 def get_avgpool():
@@ -99,11 +100,11 @@ class ResNetBlock(nn.Module):
 
         out = self.conv2(out)
         out = self.bn2(out)
-        #print(self.downsample,'before downsample!',out.shape)
+        print(self.downsample,'before downsample!',out.shape)
         if self.downsample is not None:
-            #print('downsample!')
+            print('downsample!')
             residual = self.downsample(x)
-            #print(residual.shape,'after downsample!')
+            print(residual.shape,'after downsample!')
         out += residual
         out = self.relu(out)
 
@@ -167,27 +168,22 @@ class ResNetBottleneck(nn.Module):
 
         return out
 
-class SelfAttentionBlock(nn.Module):
-    """
-    input:N*C*H*W*D
-    """
-    def __init__(self, in_ch, out_ch):
+
+class BottleNeckaSA(nn.Module):
+    def __init__(self,in_ch,reduction_ratio) -> None:
         super().__init__()
-        #self.N = N 
-        #self.C = in_ch
-        #self.D = 8
-        #self.H = 64
-        #self.W = 64
+        self.in_ch = in_ch
+        self.out_ch = in_ch//reduction_ratio 
         self.gama = nn.Parameter(torch.tensor([0.0]))
 
-        self.in_ch = in_ch
-        self.out_ch = out_ch
-        print(self.in_ch,self.out_ch,'this is in_ch and out_ch')
-        
+        self.conv3d = nn.Sequential(nn.Conv3d(self.in_ch,self.out_ch,kernel_size=1,padding=0),
+                                   nn.BatchNorm3d(self.out_ch),
+                                   nn.ReLU(inplace=True)
+        )
         self.conv3d_3 = nn.Sequential(
             # Conv3d input:N*C*D*H*W
             # Conv3d output:N*C*D*H*W
-            nn.Conv3d(in_channels=self.in_ch, out_channels=self.out_ch, kernel_size=(3, 3, 3), padding=1),
+            nn.Conv3d(in_channels=self.out_ch, out_channels=self.out_ch, kernel_size=(3, 3, 3), padding=1),
             nn.BatchNorm3d(self.out_ch),
             nn.ReLU(inplace=True),
         )
@@ -195,18 +191,24 @@ class SelfAttentionBlock(nn.Module):
         self.conv3d_1 = nn.Sequential(
             # Conv3d input:N*C*D*H*W
             # Conv3d output:N*C*D*H*W
-            nn.Conv3d(in_channels=self.in_ch, out_channels=self.out_ch, kernel_size=(1, 1, 1)),
+            nn.Conv3d(in_channels=self.out_ch, out_channels=self.out_ch, kernel_size=(1, 1, 1)),
             nn.BatchNorm3d(self.out_ch),
             nn.ReLU(inplace=True), 
         )
 
-
+        self.conv3d_back = nn.Sequential(nn.Conv3d(self.out_ch,self.in_ch,kernel_size=1,padding=0),
+                                   nn.BatchNorm3d(self.in_ch),
+                                   nn.ReLU(inplace=True)
+        )
 
     def Cal_Patt(self,k_x, q_x, v_x, N, C, D, H, W):
         """
-        origin_input : N*C*D*H*W
+        input : N*C*D*H*W
         """
-
+        ##first permute the input to N*C*D*H*W
+        k_x = k_x.permute(0, 1, 4, 2, 3)
+        q_x = q_x.permute(0, 1, 4, 2, 3)
+        v_x = v_x.permute(0, 1, 4, 2, 3)
 
 
         k_x_flatten = k_x.reshape((N, C, D, 1, H * W))
@@ -216,7 +218,7 @@ class SelfAttentionBlock(nn.Module):
         r_x = F.softmax(sigma_x, dim=4)
         # r_x = F.softmax(sigma_x.float(), dim=4)
         Patt = torch.matmul(v_x_flatten, r_x).reshape(N, C, D, H, W)
-        #print(Patt.shape,'this is Patt shape')
+        print(Patt.shape,'this is Patt shape')
         return Patt
 
     
@@ -226,36 +228,137 @@ class SelfAttentionBlock(nn.Module):
         input:N*C*D*H*W
         """
         ##first permute the input to N*C*D*H*W
-  
+        k_x = k_x.permute(0, 1, 4, 2, 3)
+        q_x = q_x.permute(0, 1, 4, 2, 3)
+        v_x = v_x.permute(0, 1, 4, 2, 3)
+
 
         k_x_flatten = k_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
         q_x_flatten = q_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
         v_x_flatten = v_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
-        #print(k_x_flatten.shape,'this is k_x_flatten shape')
-        #print(q_x_flatten.permute(0, 1, 2, 3, 5, 4).shape,'this is q_x_flatten shape')
+        print(k_x_flatten.shape,'this is k_x_flatten shape')
+        print(q_x_flatten.permute(0, 1, 2, 3, 5, 4).shape,'this is q_x_flatten shape')
         sigma_x = torch.mul(q_x_flatten.permute(0, 1, 2, 3, 5, 4), k_x_flatten)
-        #print(sigma_x.shape,'this is sigma_x shape')
+        print(sigma_x.shape,'this is sigma_x shape')
         r_x = F.softmax(sigma_x, dim=5)
         # r_x = F.softmax(sigma_x.float(), dim=4)
-        Datt = torch.matmul(v_x_flatten, r_x).reshape(N, C, H, W,D)
+        Datt = torch.matmul(v_x_flatten, r_x).reshape(N, C, H, W, D)
         return Datt.permute(0, 1, 4, 2, 3)
 
     
     def forward(self, x):
-        #print(x.shape,'this is x shape')
-        N,C,D,H,W = x.shape
         print(x.shape,'this is x shape')
+        x = self.conv3d(x)
+        print(x.shape,'this is x shape')
+        N,C,H,W,D = x.shape
         v_x = self.conv3d_3(x)
         k_x = self.conv3d_1(x)
         q_x = self.conv3d_1(x)
-        #print('use SA block!')
-        #print('this is v_x shape',v_x.shape)
+        print('use SA block!')
+        print('this is v_x shape',v_x.shape)
         Patt = self.Cal_Patt(k_x, q_x, v_x, N, C, D, H, W)
         Datt = self.Cal_Datt(k_x, q_x, v_x, N, C, D, H, W)
-        #print(Patt.shape,'this is Patt shape',Datt.shape,'this is Datt shape')
+        print(Patt.shape,'this is Patt shape',Datt.shape,'this is Datt shape')
         #reshape to N*C*H*W*D
-        print(Patt.shape,Datt.shape,'this is Patt and Datt shape')
+        Patt = Patt.permute(0, 1, 3, 4, 2)
+        Datt = Datt.permute(0, 1, 3, 4, 2)
         Y = self.gama*(Patt + Datt) + x
+        Y = self.conv3d_back(Y)
+        return Y
+
+    
+    
+class SelfAttentionBlock(nn.Module):
+    """
+    input:N*C*H*W*D
+    """
+    def __init__(self, in_ch, out_ch):
+        super().__init__()
+        self.gama = nn.Parameter(torch.tensor([0.0]))
+
+        self.in_ch = in_ch
+        self.out_ch = out_ch
+        
+        self.conv3d_3 = nn.Sequential(
+            # Conv3d input:N*C*D*H*W
+            # Conv3d output:N*C*D*H*W
+            nn.Conv3d(in_channels=self.out_ch, out_channels=self.out_ch, kernel_size=(3, 3, 3), padding=1),
+            nn.BatchNorm3d(self.out_ch),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv3d_1 = nn.Sequential(
+            # Conv3d input:N*C*D*H*W
+            # Conv3d output:N*C*D*H*W
+            nn.Conv3d(in_channels=self.out_ch, out_channels=self.out_ch, kernel_size=(1, 1, 1)),
+            nn.BatchNorm3d(self.out_ch),
+            nn.ReLU(inplace=True), 
+        )
+
+
+
+    def Cal_Patt(self,k_x, q_x, v_x, N, C, D, H, W):
+        """
+        input : N*C*D*H*W
+        """
+        ##first permute the input to N*C*D*H*W
+        k_x = k_x.permute(0, 1, 4, 2, 3)
+        q_x = q_x.permute(0, 1, 4, 2, 3)
+        v_x = v_x.permute(0, 1, 4, 2, 3)
+
+
+        k_x_flatten = k_x.reshape((N, C, D, 1, H * W))
+        q_x_flatten = q_x.reshape((N, C, D, 1, H * W))
+        v_x_flatten = v_x.reshape((N, C, D, 1, H * W))
+        sigma_x = torch.mul(q_x_flatten.permute(0, 1, 2, 4, 3), k_x_flatten)
+        r_x = F.softmax(sigma_x, dim=4)
+        # r_x = F.softmax(sigma_x.float(), dim=4)
+        Patt = torch.matmul(v_x_flatten, r_x).reshape(N, C, D, H, W)
+        print(Patt.shape,'this is Patt shape')
+        return Patt
+
+    
+
+    def Cal_Datt(self,k_x, q_x, v_x, N, C, D, H, W):
+        """
+        input:N*C*D*H*W
+        """
+        ##first permute the input to N*C*D*H*W
+        k_x = k_x.permute(0, 1, 4, 2, 3)
+        q_x = q_x.permute(0, 1, 4, 2, 3)
+        v_x = v_x.permute(0, 1, 4, 2, 3)
+
+
+        k_x_flatten = k_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
+        q_x_flatten = q_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
+        v_x_flatten = v_x.permute(0, 1, 3, 4, 2).reshape((N, C, H, W, 1, D))
+        print(k_x_flatten.shape,'this is k_x_flatten shape')
+        print(q_x_flatten.permute(0, 1, 2, 3, 5, 4).shape,'this is q_x_flatten shape')
+        sigma_x = torch.mul(q_x_flatten.permute(0, 1, 2, 3, 5, 4), k_x_flatten)
+        print(sigma_x.shape,'this is sigma_x shape')
+        r_x = F.softmax(sigma_x, dim=5)
+        # r_x = F.softmax(sigma_x.float(), dim=4)
+        Datt = torch.matmul(v_x_flatten, r_x).reshape(N, C, H, W, D)
+        return Datt.permute(0, 1, 4, 2, 3)
+
+    
+    def forward(self, x):
+        print(x.shape,'this is x shape')
+        res = x
+        N,C,H,W,D = x.shape
+        v_x = self.conv3d_3(x)
+        k_x = self.conv3d_1(x)
+        q_x = self.conv3d_1(x)
+        print('use SA block!')
+        print('this is v_x shape',v_x.shape)
+        Patt = self.Cal_Patt(k_x, q_x, v_x, N, C, D, H, W)
+        Datt = self.Cal_Datt(k_x, q_x, v_x, N, C, D, H, W)
+        print(Patt.shape,'this is Patt shape',Datt.shape,'this is Datt shape')
+        #reshape to N*C*H*W*D
+        Patt = Patt.permute(0, 1, 3, 4, 2)
+        Datt = Datt.permute(0, 1, 3, 4, 2)
+        Y = self.gama*(Patt + Datt)
+        Y = self.conv3d_back(Y) + res
         return Y
     
 class ResNet(nn.Module):
@@ -300,8 +403,7 @@ class ResNet(nn.Module):
         widen_factor: float = 1.0,
         num_classes: int = 400,
         feed_forward: bool = True,
-        bias_downsample: bool = True, 
-        SA: bool = True # for backwards compatibility (also see PR #5477)
+        bias_downsample: bool = True,  # for backwards compatibility (also see PR #5477)
     ) -> None:
         super().__init__()
         if isinstance(block, str):
@@ -322,7 +424,7 @@ class ResNet(nn.Module):
         block_avgpool = get_avgpool()
         #widen fatcor means feature map size
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
-        #print(block_inplanes,'shit')
+        print(block_inplanes,'shit')
 
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
@@ -343,9 +445,9 @@ class ResNet(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = pool_type(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, block_inplanes[0], layers[0], spatial_dims, shortcut_type)
-        self.layer2 = self._make_layer(block, block_inplanes[1], layers[1], spatial_dims, shortcut_type, stride=2)
-        self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2,SelfAttention=SA)
-        self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2,SelfAttention=SA)
+        self.layer2 = self._make_layer(block, block_inplanes[1], layers[1], spatial_dims, shortcut_type, stride=2,SelfAttention=True,reduction_ratio=32)
+        self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2,SelfAttention=True,reduction_ratio=16)
+        self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2,SelfAttention=True,reduction_ratio=8)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, num_classes) if feed_forward else None
 
@@ -373,6 +475,7 @@ class ResNet(nn.Module):
         shortcut_type: str,
         stride: int = 1,
         SelfAttention: bool = False,
+        reduction_ratio: int = 32,
     ) -> nn.Sequential:
         conv_type: Callable = Conv[Conv.CONV, spatial_dims]
         norm_type: Callable = Norm[Norm.BATCH, spatial_dims]
@@ -399,13 +502,13 @@ class ResNet(nn.Module):
                     norm_type(planes * block.expansion),
                 )
         #here add attention block
-        print('fuck inplan he planes',self.in_planes,planes)
         if SelfAttention:                
             layers = [
                 block(
                     in_planes=self.in_planes, planes=planes, spatial_dims=spatial_dims, stride=stride, downsample=downsample
                 ),
-                SelfAttentionBlock(planes, planes)
+                BottleNeckaSA(planes,reduction_ratio),
+                #SelfAttentionBlock(planes, planes)
             ]
         else:
             layers = [
@@ -419,10 +522,13 @@ class ResNet(nn.Module):
         if SelfAttention:
             for _i in range(1, blocks):
                 layers.append(block(self.in_planes, planes, spatial_dims=spatial_dims))
-                layers.append(SelfAttentionBlock(planes, planes, 1))
+                layers.append(BottleNeckaSA(planes,reduction_ratio))
+                #layers.append(SelfAttentionBlock(planes, planes))
         else:
             for _i in range(1, blocks):
                 layers.append(block(self.in_planes, planes, spatial_dims=spatial_dims))
+        #print('666666666666')
+        #print(layers,'this is layers')
 
         return nn.Sequential(*layers)
 
@@ -430,22 +536,19 @@ class ResNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        #
-        
-        
-        #print(x.shape)
+        print(x.shape)
         if not self.no_max_pool:
             print(x.shape)
             x = self.maxpool(x)
-        #print('run layer1')
+        print('run layer1')
         x = self.layer1(x)
         print('after layer1',x.shape)
         x = self.layer2(x)
         print('after layer2',x.shape)
         x = self.layer3(x)
-        #print('after layer3',x.shape)
+        print('after layer3',x.shape)
         x = self.layer4(x)
-        #print('after layer4',x.shape)
+        print('after layer4',x.shape)
 
         x = self.avgpool(x)
 

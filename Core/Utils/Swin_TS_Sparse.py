@@ -66,7 +66,7 @@ class SwinUNETR(nn.Module):
         img_size: Sequence[int] | int,
         in_channels: int,
         out_channels: int,
-        depths: Sequence[int] = (2, 2, 2, 2),
+        depths: Sequence[int] = (3, 3, 3, 3),
         num_heads: Sequence[int] = (3, 6, 12, 24),
         feature_size: int = 24,
         norm_name: tuple | str = "instance",
@@ -78,7 +78,8 @@ class SwinUNETR(nn.Module):
         spatial_dims: int = 3,
         downsample="merging",
         use_v2=False,
-        num_classes = 2
+        num_classes = 2,
+        interval = [(4,16),(2,8),(2,4),(2,4)]
     ) -> None:
         """
         Args:
@@ -122,8 +123,17 @@ class SwinUNETR(nn.Module):
         patch_sizes = ensure_tuple_rep(self.patch_size, spatial_dims)
         window_size = ensure_tuple_rep(7, spatial_dims)
         #print(patch_sizes,'666')
+        d,h,w = img_size[0],img_size[1],img_size[2]
+        sparse_window_size = []
+        #calculatye sparse size
+        for i in range(len(depths)):
+            G_d = d//(2**(i+1) * interval[i][0])
 
-
+            G_h = h//(2**(i+1) * interval[i][1])
+            G_w = w//(2**(i+1) * interval[i][1])
+            print(G_d,G_h,G_w,'this is sparse size')
+            sparse_window_size.append((G_d,G_h,G_w))
+        print('fuck sparse',sparse_window_size)
         if spatial_dims not in (2, 3):
             raise ValueError("spatial dimension should be 2 or 3.")
 
@@ -162,6 +172,8 @@ class SwinUNETR(nn.Module):
             spatial_dims=spatial_dims,
             downsample=look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample,
             use_v2=use_v2,
+            interval = interval,
+            sparse_window_size = sparse_window_size
         )
 
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
@@ -332,7 +344,7 @@ class SwinUNETR(nn.Module):
         if not torch.jit.is_scripting():
             self._check_input_size(x_in.shape[2:])
         hidden_states_out = self.swinViT(x_in, self.normalize)
-        #print('hidden states out',hidden_states_out.shape)
+        print('hidden states out',hidden_states_out.shape)
         
         """
         enc0 = self.encoder1(x_in)
@@ -349,8 +361,11 @@ class SwinUNETR(nn.Module):
         return logits
         """
         x = self.avgpool(hidden_states_out)
+        print('avgpool',x.shape)
         x = torch.flatten(x, 1)
+        print('flatten',x.shape)
         x = self.head(x)
+        print('head',x.shape)
         return x
 
 def window_partition(x, window_size):
@@ -383,6 +398,7 @@ def window_partition(x, window_size):
         b, h, w, c = x.shape
         x = x.view(b, h // window_size[0], window_size[0], w // window_size[1], window_size[1], c)
         windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size[0] * window_size[1], c)
+    print(windows.shape,'this is windows shape in partiton')
     return windows
 
 
@@ -530,6 +546,8 @@ class WindowAttention(nn.Module):
 
     def forward(self, x, mask):
         b, n, c = x.shape
+        print(x.shape,'this is x shape in attention')
+        print(self.qkv(x).shape,'this is qkv shape in attention')
         qkv = self.qkv(x).reshape(b, n, 3, self.num_heads, c // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         q = q * self.scale
@@ -551,8 +569,95 @@ class WindowAttention(nn.Module):
         x = (attn @ v).transpose(1, 2).reshape(b, n, c)
         x = self.proj(x)
         x = self.proj_drop(x)
+        #print(x.shape,'this is x shape in attention')
         return x
 
+class SparseBlock(nn.Module):
+    def __init__(self,
+                 dim: int,
+                 num_heads: int,
+                 window_size: Sequence[int],
+                 interval: tuple,
+                 mlp_ratio: float = 4.0,
+                 qkv_bias: bool = True,
+                 attn_drop: float = 0.0,
+                 drop: float = 0.0,
+                 drop_path: float = 0.0,
+                 act_layer: str = "GELU",
+                 norm_layer: type[LayerNorm] = nn.LayerNorm,
+                 ):
+        """
+        args:
+            interval: the interval of the sparse block, the first element is the interval of the depth, the second is the interval of the size
+
+        """
+        super(SparseBlock, self).__init__()
+        self.window_size = window_size
+        self.interval = interval
+        self.depth_interval = interval[0]
+        self.size_interval = interval[1]
+        self.norm1 = norm_layer(dim)
+        self.dim = dim
+        self.num_heads = num_heads
+        self.mlp_ratio = mlp_ratio
+        self.attn = WindowAttention(dim,
+                                    window_size=window_size,
+                                    num_heads=num_heads,
+                                    qkv_bias=qkv_bias,
+                                    attn_drop=attn_drop,
+                                    proj_drop=drop)
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+        self.norm2 = norm_layer(dim)
+        mlp_hidden_dim = int(dim * mlp_ratio)
+        self.mlp = Mlp(hidden_size=dim, mlp_dim=mlp_hidden_dim, act=act_layer, dropout_rate=drop, dropout_mode="swin")
+
+    
+    def forward_part1(self,x):
+        x_shape = x.size()
+        print('x shape',x_shape)
+        x = self.norm1(x)
+        if len(x_shape) == 5:
+            b, d, h, w, c = x.shape
+            I_d, I_size, G_d, G_h, G_w = self.depth_interval, self.size_interval, d//self.depth_interval, h//self.size_interval, w//self.size_interval
+
+            pad_l = pad_t = pad_d0 = 0
+            pad_d1 = (self.window_size[0] - d % self.window_size[0]) % self.window_size[0]
+            pad_b = (self.window_size[1] - h % self.window_size[1]) % self.window_size[1]
+            pad_r = (self.window_size[2] - w % self.window_size[2]) % self.window_size[2]
+            x = F.pad(x, (0, 0, pad_l, pad_r, pad_t, pad_b, pad_d0, pad_d1))
+            _, dp, hp, wp, _ = x.shape
+            dims = [b, dp, hp, wp]
+
+
+
+
+
+
+        I_d, I_size, G_d, G_h, G_w = self.depth_interval, self.size_interval, d//self.depth_interval, h//self.size_interval, w//self.size_interval
+        x_windows = x.reshape(b, G_d, I_d, G_h, I_size,  G_w, I_size, c).permute(0, 2, 4, 6, 1, 3, 5, 7).contiguous()
+        #x = x.reshape(B*I_d*I_size*I_size,G_d,G_h,G_w,C)
+        x_windows = x.reshape(b*I_d*I_size*I_size,G_d*G_h*G_w,c)
+        print(x_windows.shape,'this is x shape sparse')
+        attn_mask = None
+
+        attn_windows = self.attn(x_windows, mask=attn_mask)
+        attn_windows = attn_windows.view(b,I_d,I_size,I_size,G_d,G_h,G_w,c).permute(0,4,1,5,2,6,3,7).contiguous()
+        attn_windows = attn_windows.reshape(b,G_d*I_d,G_h*I_size,G_w*I_size,c)
+        print(attn_windows.shape,'atten_shape')
+        return x
+    
+
+
+
+
+    def forward_part2(self, x):
+        #print("all < 0",torch.all(self.norm2(x)<0))
+        return self.drop_path(self.mlp(self.norm2(x)))
+
+    def forward(self, x, mask_matrix):
+        x = self.forward_part1(x)
+        x = self.forward_part2(x)
+        return x
 
 class SwinTransformerBlock(nn.Module):
     """
@@ -617,10 +722,12 @@ class SwinTransformerBlock(nn.Module):
 
     def forward_part1(self, x, mask_matrix):
         x_shape = x.size()
+        print('x shape',x_shape)
         x = self.norm1(x)
         if len(x_shape) == 5:
             b, d, h, w, c = x.shape
             window_size, shift_size = get_window_size((d, h, w), self.window_size, self.shift_size)
+            print(window_size,'this is window size',self.window_size,'this is self window size')
             pad_l = pad_t = pad_d0 = 0
             pad_d1 = (window_size[0] - d % window_size[0]) % window_size[0]
             pad_b = (window_size[1] - h % window_size[1]) % window_size[1]
@@ -628,7 +735,7 @@ class SwinTransformerBlock(nn.Module):
             x = F.pad(x, (0, 0, pad_l, pad_r, pad_t, pad_b, pad_d0, pad_d1))
             _, dp, hp, wp, _ = x.shape
             dims = [b, dp, hp, wp]
-
+            print(window_size,'this is window size',self.window_size,'this is self window size')
         elif len(x_shape) == 4:
             b, h, w, c = x.shape
             window_size, shift_size = get_window_size((h, w), self.window_size, self.shift_size)
@@ -649,6 +756,10 @@ class SwinTransformerBlock(nn.Module):
             shifted_x = x
             attn_mask = None
         x_windows = window_partition(shifted_x, window_size)
+
+
+
+        print(x_windows.shape,'x_windows')
         attn_windows = self.attn(x_windows, mask=attn_mask)
         attn_windows = attn_windows.view(-1, *(window_size + (c,)))
         shifted_x = window_reverse(attn_windows, window_size, dims)
@@ -670,7 +781,7 @@ class SwinTransformerBlock(nn.Module):
         return x
 
     def forward_part2(self, x):
-        print("all < 0",torch.all(self.norm2(x)<0))
+        #print("all < 0",torch.all(self.norm2(x)<0))
         return self.drop_path(self.mlp(self.norm2(x)))
 
     def load_from(self, weights, n_block, layer):
@@ -708,6 +819,7 @@ class SwinTransformerBlock(nn.Module):
             self.mlp.linear2.bias.copy_(weights["state_dict"][root + block_names[13]])
 
     def forward(self, x, mask_matrix):
+        print('run bitch')
         shortcut = x
         if self.use_checkpoint:
             x = checkpoint.checkpoint(self.forward_part1, x, mask_matrix, use_reentrant=False)
@@ -718,6 +830,7 @@ class SwinTransformerBlock(nn.Module):
             x = x + checkpoint.checkpoint(self.forward_part2, x, use_reentrant=False)
         else:
             x = x + self.forward_part2(x)
+        print('sbsbsb',x.shape)
         return x
 
 
@@ -853,7 +966,9 @@ class BasicLayer(nn.Module):
         dim: int,
         depth: int,
         num_heads: int,
+        interval: tuple,
         window_size: Sequence[int],
+        sparse_window_size: Sequence[int],
         drop_path: list,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = False,
@@ -862,6 +977,7 @@ class BasicLayer(nn.Module):
         norm_layer: type[LayerNorm] = nn.LayerNorm,
         downsample: nn.Module | None = None,
         use_checkpoint: bool = False,
+        
     ) -> None:
         """
         Args:
@@ -877,6 +993,7 @@ class BasicLayer(nn.Module):
             norm_layer: normalization layer.
             downsample: an optional downsampling layer at the end of the layer.
             use_checkpoint: use gradient checkpointing for reduced memory usage.
+            interval: the interval of the sparse block, the first element is the interval of the depth, the second is the interval of the size
         """
 
         super().__init__()
@@ -886,6 +1003,8 @@ class BasicLayer(nn.Module):
         self.no_shift = tuple(0 for i in window_size)
         self.depth = depth
         self.use_checkpoint = use_checkpoint
+        self.interval = interval
+        self.sparse_window_size = sparse_window_size
         self.blocks = nn.ModuleList(
             [
                 SwinTransformerBlock(
@@ -902,8 +1021,20 @@ class BasicLayer(nn.Module):
                     use_checkpoint=use_checkpoint,
                 )
                 for i in range(depth)
-            ]
-        )
+            ])
+        print('droppath',drop_path)
+        self.blocks.append(SparseBlock(
+                    dim=dim,
+                    num_heads=num_heads,
+                    interval = interval,
+                    window_size=sparse_window_size,
+                    mlp_ratio=mlp_ratio,
+                    qkv_bias=qkv_bias,
+                    drop=drop,
+                    attn_drop=attn_drop,
+                    norm_layer=norm_layer,
+                    drop_path = drop_path[2] if isinstance(drop_path, list) else drop_path
+                    ))
         #就是patch merging
         self.downsample = downsample
         if callable(self.downsample):
@@ -919,12 +1050,19 @@ class BasicLayer(nn.Module):
             hp = int(np.ceil(h / window_size[1])) * window_size[1]
             wp = int(np.ceil(w / window_size[2])) * window_size[2]
             attn_mask = compute_mask([dp, hp, wp], window_size, shift_size, x.device)
+            
+            #print(len(self.blocks),'longe of blco')
+            print(shift_size,'this is shift size')
             for blk in self.blocks:
+
                 x = blk(x, attn_mask)
+                
             x = x.view(b, d, h, w, -1)
+            print(x.shape,'this is x shape after three blocks in each layer')
             if self.downsample is not None:
                 x = self.downsample(x)
             x = rearrange(x, "b d h w c -> b c d h w")
+        
 
         elif len(x_shape) == 4:
             b, c, h, w = x_shape
@@ -956,6 +1094,8 @@ class SwinTransformer(nn.Module):
         embed_dim: int,
         window_size: Sequence[int],
         patch_size: Sequence[int],
+        interval: Sequence[tuple],
+        sparse_window_size: Sequence[tuple],
         depths: Sequence[int],
         num_heads: Sequence[int],
         mlp_ratio: float = 4.0,
@@ -969,6 +1109,7 @@ class SwinTransformer(nn.Module):
         spatial_dims: int = 3,
         downsample="merging",
         use_v2=False,
+       
     ) -> None:
         """
         Args:
@@ -1019,6 +1160,7 @@ class SwinTransformer(nn.Module):
             self.layers3c = nn.ModuleList()
             self.layers4c = nn.ModuleList()
         down_sample_mod = look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample
+        print(self.num_layers,'this is num layers')
         for i_layer in range(self.num_layers):
             layer = BasicLayer(
                 dim=int(embed_dim * 2**i_layer),
@@ -1033,6 +1175,9 @@ class SwinTransformer(nn.Module):
                 norm_layer=norm_layer,
                 downsample=down_sample_mod,
                 use_checkpoint=use_checkpoint,
+                interval=interval[i_layer],
+                sparse_window_size=sparse_window_size[i_layer],
+                
             )
             if i_layer == 0:
                 self.layers1.append(layer)
@@ -1086,6 +1231,7 @@ class SwinTransformer(nn.Module):
         x0 = self.pos_drop(x0)
         #print(x0.shape,'this is x0 shape')
         x0_out = self.proj_out(x0, normalize)
+        print(x0_out.shape,'this is x0_out shape')
         if self.use_v2:
             x0 = self.layers1c[0](x0.contiguous())
         x1 = self.layers1[0](x0.contiguous())
@@ -1155,4 +1301,3 @@ def filter_swinunetr(key, value):
         return new_key, value
     else:
         return None
-

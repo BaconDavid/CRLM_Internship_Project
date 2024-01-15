@@ -1,6 +1,6 @@
 {
-  "name": "Task503_HGCSorafenib_Data_1",
-  "description": "Task503_HGCSorafenib_Data_1",
+  "name": "Task503_HGCSorafenib_Data_3",
+  "description": "Task503_HGCSorafenib_Data_3",
   "reference": "Erasmus Medical Centre",
   "licence": "Not applicable",
   "release": "Not applicable",
@@ -17,24 +17,148 @@
   "numTest": 0,
   "training": [
     {
-      "image": "./imagesTr/HCCSorafenib_CT_100172_0000.nii.gz",
-      "label": "./labelsTr/HCCSorafenib_CT_100172_0000.nii.gz"
+      "image": "./imagesTr/HCCSorafenib_CT_160800_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160800_0000.nii.gz"
     },
     {
-      "image": "./imagesTr/HCCSorafenib_CT_101278_0000.nii.gz",
-      "label": "./labelsTr/HCCSorafenib_CT_101278_0000.nii.gz"
+      "image": "./imagesTr/HCCSorafenib_CT_1608010_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_1608010_0000.nii.gz"
     },
     {
-      "image": "./imagesTr/HCCSorafenib_CT_102410_0000.nii.gz",
-      "label": "./labelsTr/HCCSorafenib_CT_102410_0000.nii.gz"
+      "image": "./imagesTr/HCCSorafenib_CT_160801_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160801_0000.nii.gz"
     },
     {
-      "image": "./imagesTr/HCCSorafenib_CT_1059913_0000.nii.gz",
-      "label": "./labelsTr/HCCSorafenib_CT_1059913_0000.nii.gz"
+      "image": "./imagesTr/HCCSorafenib_CT_160802_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160802_0000.nii.gz"
     },
     {
-      "image": "./imagesTr/HCCSorafenib_CT_107665_0000.nii.gz",
-      "label": "./labelsTr/HCCSorafenib_CT_107665_0000.nii.gz"
+      "image": "./imagesTr/HCCSorafenib_CT_160803_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160803_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160804_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160804_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160805_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160805_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160806_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160806_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160807_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160807_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160808_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160808_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_160809_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_160809_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161930_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161930_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161931_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161931_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161932_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161932_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161933_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161933_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161934_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161934_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161935_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161935_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161936_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161936_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161937_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161937_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161938_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161938_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_161939_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_161939_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_163520_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_163520_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_163521_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_163521_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_163522_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_163522_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_163523_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_163523_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_163524_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_163524_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165580_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165580_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165581_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165581_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165582_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165582_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165583_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165583_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165584_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165584_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165585_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165585_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165586_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165586_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165587_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165587_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165588_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165588_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_165589_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_165589_0000.nii.gz"
     }
   ],
   "test": []

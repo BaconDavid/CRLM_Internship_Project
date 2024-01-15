@@ -51,21 +51,10 @@ from sklearn.model_selection import StratifiedKFold
 def main(cfg,mode='train'):
     """
     args:
-        epochs: number of epochs
+        cfg: cfg configuration file
         mode: train/vali or test
-        data_path: path to the data folder
-
     """
-
-
-
-    #prepare data and label path
-    #train_data_path = cfg.DATA.Train_dir
-    #vali_data_path = cfg.DATA.Valid_dir
-    #test_data_path = cfg.DATA.Test_dir
     data_path = cfg.DATA.Data_dir
-    #label_dir = cfg.LABEL.label_dir
-    #label name in excel
     train_data_label = cfg.DATA.Train_dir
     vali_data_label = cfg.DATA.Valid_dir
     label_name = cfg.LABEL.label_name
@@ -76,12 +65,12 @@ def main(cfg,mode='train'):
     vali_images = sorted(vali_data.get_images())
     vali_labels = vali_data.get_labels()
     train_data.Data_check()
+    vali_data.Data_check()
     
     if mode == 'train':
 
         #save results
         tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold , 'train')
-
         #transform methods
         transform_param_train = {"transform_methods":[
                                 EnsureChannelFirst(),
@@ -106,16 +95,13 @@ def main(cfg,mode='train'):
 
             
         if cfg.TRAIN.Debug:
-            print(3333)
             tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
             val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
-            #print("this is the length of train and vali dataset",len(tr_subset),len(val_subset))
-
             #labels and images for subset
-            train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
-            vali_labels = [val_dataset[i][1] for i in range(len(val_dataset_sub))]
-            train_images = [tr_dataset[i][0] for i in range(len(tr_dataset_sub))]
-            vali_images = [val_dataset[i][0] for i in range(len(val_dataset_sub))]
+            # train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
+            # vali_labels = [val_dataset[i][1] for i in range(len(val_dataset_sub))]
+            # train_images = [tr_dataset[i][0] for i in range(len(tr_dataset_sub))]
+            # vali_images = [val_dataset[i][0] for i in range(len(val_dataset_sub))]
             
             #sampler
             if cfg.DATASET.WeightedRandomSampler:

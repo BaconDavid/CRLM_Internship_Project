@@ -20,7 +20,7 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
+  batch_size: 2
   num_epochs: 20
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
@@ -29,7 +29,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 1
+  batch_size: 2
   loss: 'CrossEntropyLoss'
   data_aug: True
 

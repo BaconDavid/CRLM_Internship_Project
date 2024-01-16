@@ -16,8 +16,6 @@ from Core.model.loss import Loss
 from Core.model.train import train_loop
 from Core.model.Validation import Validation_loop
 from Core.Utils.Utility import Balanced_sampler
-from Core.Utils import Plot_Loss
-
 from Core.Config.config import get_cfg_defaults
 from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
 
@@ -46,7 +44,7 @@ import torch
 import numpy as np
 import datetime
 from sklearn.model_selection import StratifiedKFold
-
+from ema_pytorch import EMA
 
 def main(cfg,mode='train'):
     """
@@ -70,7 +68,7 @@ def main(cfg,mode='train'):
     if mode == 'train':
 
         #save results
-        tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold , 'train')
+        tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train')
         #transform methods
         transform_param_train = {"transform_methods":[
                                 EnsureChannelFirst(),
@@ -98,10 +96,10 @@ def main(cfg,mode='train'):
             tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
             val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
             #labels and images for subset
-            # train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
-            # vali_labels = [val_dataset[i][1] for i in range(len(val_dataset_sub))]
-            # train_images = [tr_dataset[i][0] for i in range(len(tr_dataset_sub))]
-            # vali_images = [val_dataset[i][0] for i in range(len(val_dataset_sub))]
+            train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
+            vali_labels = [val_dataset[i][1] for i in range(len(val_dataset_sub))]
+            train_images = [tr_dataset[i][0] for i in range(len(tr_dataset_sub))]
+            vali_images = [val_dataset[i][0] for i in range(len(val_dataset_sub))]
             
             #sampler
             if cfg.DATASET.WeightedRandomSampler:
@@ -139,11 +137,18 @@ def main(cfg,mode='train'):
         model = build_model(cfg)
         model.to(cfg.SYSTEM.DEVICE)
         
+        ## add exponential moving average
+        ema = EMA(
+        model,
+        beta = 100000,              # exponential moving average factor
+        update_after_step = 1,    # only after this number of .update() calls will it start updating
+        update_every = 1, 
+        power =3/4 )
+        print(ema.step,"ema step!!")
+        
         #set scheduler,optimizer parameters
 
         loss_fun = Loss().build_loss()
-      
-            #optimizer_param = {"lr":0.001}
         optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
 
         if cfg.TRAIN.scheduler:
@@ -164,7 +169,7 @@ def main(cfg,mode='train'):
             
             train_loss_epoch_x_axis.append(epoch+1)
             val_loss_epoch_x_axis.append(epoch+1)
-            ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,scheduler_fun)
+            ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,scheduler=scheduler_fun,ema=ema)
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
@@ -176,23 +181,21 @@ def main(cfg,mode='train'):
             tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
             tr_results.store_results(singel_metric,'Four_rate')
             epoch_loss_values.append(ave_loss)
-        
-            
-    ###########validation##############
-            
-            
 
+    ###########validation##############
             #save results
-            val_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold ,'vali')
+            val_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/','vali')
             ###############
 
 
 
 
             #################
-            model.eval()
-
-            ave_loss,y_pred,y_true = Validation_loop(cfg,model,val_dataloader,loss_fun)
+            #model.eval()
+            ema_model = ema.ema_model()
+            ema_model.eval()
+            print(ema.step,'this is ema step')
+            ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is fucking average loss',ave_loss)
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)

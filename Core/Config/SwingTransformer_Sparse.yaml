@@ -9,7 +9,7 @@ SYSTEM:
   NUM_WORKERS: 6
     
 DATA:
-  Data_dir: '/data/scratch/r098986/tm_slices_lv_region_07073_windowed/'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/tm_slices_lv_region_07073_windowed/'
   Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_0.csv'
   Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_0.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
@@ -20,8 +20,8 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
-  num_epochs: 200
+  batch_size: 2
+  num_epochs: 100
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: False
@@ -29,7 +29,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 1
+  batch_size: 2
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -40,12 +40,12 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
-  num_channels: 5
+  num_channels: 3
 
 MODEL:
-  name: 'SwingTransformer'
+  name: 'SwingTransformerSparse'
   pretrained: False
-  num_class: 5
+  num_class: 2
   num_in_channels: 1
   dropout: 0.5
   num_out_channels: 1
@@ -61,13 +61,14 @@ Preprocess:
 
 
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/'
-  save_name: 'SwingTransformer'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_0/'
+  save_name: 'SwingTransformer_sparse/'
+  fold: '01'
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_0/Weight/'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Visual/'
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_0/Visual/'
 

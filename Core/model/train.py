@@ -12,19 +12,26 @@ from Utils.Utility import path_check,visual_input
 from Utils.Metrics import Metrics
 
 from Utils.Utility import apply_window_to_volume
+from ema_pytorch import EMA
 
 
-def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None):
+
+
+
+def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None):
     """
     args:
-        model: model to be trained
+        cfg: cfg configuration file
+        model: model
         dataloader: dataloader
-        epoch_num: number of epochs
-        device: device to train on
+        epoch_num: epoch number
         optimizer: optimizer
         criterion: loss function
-        learning_rate: learning rate
+        ema: exponential moving average
+        scheduler: scheduler
+        
     """
+    print(ema,"ema!!")
     #prepare data for training
     train_bar = tqdm(dataloader)
     average_loss = 0
@@ -55,32 +62,24 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None
 
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
-        #print leraing rate
-        #print(f"learning rate: {scheduler.get_last_lr()[0]}")
-
         optimizer.zero_grad()
 
         output = (model(im))
-        #print('mother fucker loss function',criterion)
-        #print(type(label),'and fucking label',label)
         loss = criterion(output,label)
         loss.backward()
 
         average_loss += loss.item()
-        
         output = torch.nn.functional.softmax(output,dim=1)
 
         #softmax probability
-       
         y_pred.append(output.cpu())
         y_true.extend(label.cpu().numpy().tolist())
-
-
-        #print(y_true,6666)
         #set description for tqdm
         train_bar.set_description(f"label:{label},step_loss:{loss},out_put_prob:{output}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
         optimizer.step()
+        ema.update()
+
 
         #scheduler.step()
 
@@ -94,4 +93,3 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,scheduler=None
     print('average_loss',average_loss)
     return average_loss,y_pred,y_true
 
-    

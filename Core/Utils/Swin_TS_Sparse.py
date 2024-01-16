@@ -131,9 +131,11 @@ class SwinUNETR(nn.Module):
 
             G_h = h//(2**(i+1) * interval[i][1])
             G_w = w//(2**(i+1) * interval[i][1])
-            print(G_d,G_h,G_w,'this is sparse size')
+            #print(G_d,G_h,G_w,'this is sparse size')
             sparse_window_size.append((G_d,G_h,G_w))
-        print('fuck sparse',sparse_window_size)
+        #
+            
+            #print('fuck sparse',sparse_window_size)
         if spatial_dims not in (2, 3):
             raise ValueError("spatial dimension should be 2 or 3.")
 
@@ -344,7 +346,7 @@ class SwinUNETR(nn.Module):
         if not torch.jit.is_scripting():
             self._check_input_size(x_in.shape[2:])
         hidden_states_out = self.swinViT(x_in, self.normalize)
-        print('hidden states out',hidden_states_out.shape)
+        #print('hidden states out',hidden_states_out.shape)
         
         """
         enc0 = self.encoder1(x_in)
@@ -361,11 +363,11 @@ class SwinUNETR(nn.Module):
         return logits
         """
         x = self.avgpool(hidden_states_out)
-        print('avgpool',x.shape)
+        #print('avgpool',x.shape)
         x = torch.flatten(x, 1)
-        print('flatten',x.shape)
+        #print('flatten',x.shape)
         x = self.head(x)
-        print('head',x.shape)
+        #print('head',x.shape)
         return x
 
 def window_partition(x, window_size):
@@ -398,7 +400,7 @@ def window_partition(x, window_size):
         b, h, w, c = x.shape
         x = x.view(b, h // window_size[0], window_size[0], w // window_size[1], window_size[1], c)
         windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size[0] * window_size[1], c)
-    print(windows.shape,'this is windows shape in partiton')
+    #print(windows.shape,'this is windows shape in partiton')
     return windows
 
 
@@ -546,8 +548,8 @@ class WindowAttention(nn.Module):
 
     def forward(self, x, mask):
         b, n, c = x.shape
-        print(x.shape,'this is x shape in attention')
-        print(self.qkv(x).shape,'this is qkv shape in attention')
+       # print(x.shape,'this is x shape in attention')
+       # print(self.qkv(x).shape,'this is qkv shape in attention')
         qkv = self.qkv(x).reshape(b, n, 3, self.num_heads, c // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         q = q * self.scale
@@ -614,7 +616,7 @@ class SparseBlock(nn.Module):
     
     def forward_part1(self,x):
         x_shape = x.size()
-        print('x shape',x_shape)
+       # print('x shape',x_shape)
         x = self.norm1(x)
         if len(x_shape) == 5:
             b, d, h, w, c = x.shape
@@ -637,13 +639,13 @@ class SparseBlock(nn.Module):
         x_windows = x.reshape(b, G_d, I_d, G_h, I_size,  G_w, I_size, c).permute(0, 2, 4, 6, 1, 3, 5, 7).contiguous()
         #x = x.reshape(B*I_d*I_size*I_size,G_d,G_h,G_w,C)
         x_windows = x.reshape(b*I_d*I_size*I_size,G_d*G_h*G_w,c)
-        print(x_windows.shape,'this is x shape sparse')
+      #  print(x_windows.shape,'this is x shape sparse')
         attn_mask = None
 
         attn_windows = self.attn(x_windows, mask=attn_mask)
         attn_windows = attn_windows.view(b,I_d,I_size,I_size,G_d,G_h,G_w,c).permute(0,4,1,5,2,6,3,7).contiguous()
         attn_windows = attn_windows.reshape(b,G_d*I_d,G_h*I_size,G_w*I_size,c)
-        print(attn_windows.shape,'atten_shape')
+        #print(attn_windows.shape,'atten_shape')
         return x
     
 
@@ -722,12 +724,12 @@ class SwinTransformerBlock(nn.Module):
 
     def forward_part1(self, x, mask_matrix):
         x_shape = x.size()
-        print('x shape',x_shape)
+        #print('x shape',x_shape)
         x = self.norm1(x)
         if len(x_shape) == 5:
             b, d, h, w, c = x.shape
             window_size, shift_size = get_window_size((d, h, w), self.window_size, self.shift_size)
-            print(window_size,'this is window size',self.window_size,'this is self window size')
+           # print(window_size,'this is window size',self.window_size,'this is self window size')
             pad_l = pad_t = pad_d0 = 0
             pad_d1 = (window_size[0] - d % window_size[0]) % window_size[0]
             pad_b = (window_size[1] - h % window_size[1]) % window_size[1]
@@ -735,7 +737,7 @@ class SwinTransformerBlock(nn.Module):
             x = F.pad(x, (0, 0, pad_l, pad_r, pad_t, pad_b, pad_d0, pad_d1))
             _, dp, hp, wp, _ = x.shape
             dims = [b, dp, hp, wp]
-            print(window_size,'this is window size',self.window_size,'this is self window size')
+           # print(window_size,'this is window size',self.window_size,'this is self window size')
         elif len(x_shape) == 4:
             b, h, w, c = x.shape
             window_size, shift_size = get_window_size((h, w), self.window_size, self.shift_size)
@@ -759,7 +761,7 @@ class SwinTransformerBlock(nn.Module):
 
 
 
-        print(x_windows.shape,'x_windows')
+       # print(x_windows.shape,'x_windows')
         attn_windows = self.attn(x_windows, mask=attn_mask)
         attn_windows = attn_windows.view(-1, *(window_size + (c,)))
         shifted_x = window_reverse(attn_windows, window_size, dims)
@@ -819,7 +821,6 @@ class SwinTransformerBlock(nn.Module):
             self.mlp.linear2.bias.copy_(weights["state_dict"][root + block_names[13]])
 
     def forward(self, x, mask_matrix):
-        print('run bitch')
         shortcut = x
         if self.use_checkpoint:
             x = checkpoint.checkpoint(self.forward_part1, x, mask_matrix, use_reentrant=False)
@@ -830,7 +831,7 @@ class SwinTransformerBlock(nn.Module):
             x = x + checkpoint.checkpoint(self.forward_part2, x, use_reentrant=False)
         else:
             x = x + self.forward_part2(x)
-        print('sbsbsb',x.shape)
+        #print('sbsbsb',x.shape)
         return x
 
 
@@ -1022,7 +1023,7 @@ class BasicLayer(nn.Module):
                 )
                 for i in range(depth)
             ])
-        print('droppath',drop_path)
+        #print('droppath',drop_path)
         self.blocks.append(SparseBlock(
                     dim=dim,
                     num_heads=num_heads,
@@ -1052,13 +1053,13 @@ class BasicLayer(nn.Module):
             attn_mask = compute_mask([dp, hp, wp], window_size, shift_size, x.device)
             
             #print(len(self.blocks),'longe of blco')
-            print(shift_size,'this is shift size')
+            #print(shift_size,'this is shift size')
             for blk in self.blocks:
 
                 x = blk(x, attn_mask)
                 
             x = x.view(b, d, h, w, -1)
-            print(x.shape,'this is x shape after three blocks in each layer')
+            #print(x.shape,'this is x shape after three blocks in each layer')
             if self.downsample is not None:
                 x = self.downsample(x)
             x = rearrange(x, "b d h w c -> b c d h w")
@@ -1160,7 +1161,7 @@ class SwinTransformer(nn.Module):
             self.layers3c = nn.ModuleList()
             self.layers4c = nn.ModuleList()
         down_sample_mod = look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample
-        print(self.num_layers,'this is num layers')
+       # print(self.num_layers,'this is num layers')
         for i_layer in range(self.num_layers):
             layer = BasicLayer(
                 dim=int(embed_dim * 2**i_layer),
@@ -1231,11 +1232,11 @@ class SwinTransformer(nn.Module):
         x0 = self.pos_drop(x0)
         #print(x0.shape,'this is x0 shape')
         x0_out = self.proj_out(x0, normalize)
-        print(x0_out.shape,'this is x0_out shape')
+        #print(x0_out.shape,'this is x0_out shape')
         if self.use_v2:
             x0 = self.layers1c[0](x0.contiguous())
         x1 = self.layers1[0](x0.contiguous())
-        print(x1.shape,'this is x1 shape')
+        #print(x1.shape,'this is x1 shape')
         x1_out = self.proj_out(x1, normalize)
         if self.use_v2:
             x1 = self.layers2c[0](x1.contiguous())

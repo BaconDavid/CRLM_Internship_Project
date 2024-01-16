@@ -38,7 +38,7 @@ def visual_input(im,label,image_visual_path, percentage_image=0.2):
     if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
 
     if if_show:
-        print("this is visual image shape",im.shape)
+        #print("this is visual image shape",im.shape)
         plt.imshow(im[0,0,0,:,:], cmap='gray')
         plt.title(f'Label:{label}')
         plt.savefig(image_visual_path + f'Label_{label}{np.random.randint(0,100,1).item()}.png')

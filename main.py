@@ -192,7 +192,7 @@ def main(cfg,mode='train'):
 
             #################
             #model.eval()
-            ema_model = ema.ema_model()
+            ema_model = ema.ema_model
             ema_model.eval()
             print(ema.step,'this is ema step')
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)

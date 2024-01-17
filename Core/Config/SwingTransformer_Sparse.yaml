@@ -21,7 +21,7 @@ LABEL:
 TRAIN:
   lr: 0.00001
   batch_size: 2
-  num_epochs: 100
+  num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: False
@@ -61,14 +61,14 @@ Preprocess:
 
 
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_1/'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_2/'
   save_name: 'SwingTransformer_sparse/'
-  fold: '02'
+  fold: '01'
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_1/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_2/Weight/'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_1/Visual/'
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_2/Visual/'
 

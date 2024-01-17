@@ -140,11 +140,11 @@ def main(cfg,mode='train'):
         ## add exponential moving average
         ema = EMA(
         model,
-        beta = 100000,              # exponential moving average factor
-        update_after_step = 1,    # only after this number of .update() calls will it start updating
-        update_every = 1, 
+        beta = 0.999,              # exponential moving average factor
+        update_after_step = 100,    # only after this number of .update() calls will it start updating
+        update_every = 10, 
         power =3/4 )
-        print(ema.step,"ema step!!")
+        #print(ema.step,"ema step!!")
         
         #set scheduler,optimizer parameters
 
@@ -216,7 +216,7 @@ def main(cfg,mode='train'):
             if ave_loss <= best_metric:
                 save_dict = {
                             'epoch':epoch+1,
-                            'model':model.state_dict(),
+                            'model':ema_model.state_dict(),
                             'optimizer':optimizer_fun.state_dict(),
                             'loss':loss_fun.state_dict(),
                             'arch': cfg.MODEL.name

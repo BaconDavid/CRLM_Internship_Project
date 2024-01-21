@@ -1,6 +1,3 @@
-#Resnet10 3D model for training
-
-
 
 # my_project/experiment.yaml
 SYSTEM:
@@ -20,7 +17,7 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
+  batch_size: 2
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
@@ -44,7 +41,10 @@ DATASET:
 
 MODEL:
   name: 'SwingTransformer'
-  pretrained: False
+  pretrained: True
+  freeze_layers: ('layers1','layers2')  
+  pretrained_path: 'c:\Users\098986\Intership_CILM\Pre_trained\model_swinvit.pt'
+  
   num_class: 2
   num_in_channels: 1
   dropout: 0.5

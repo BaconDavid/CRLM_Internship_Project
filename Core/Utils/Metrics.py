@@ -1,10 +1,11 @@
+import torch
+import pandas as pd
+import numpy as np
 from monai.metrics import get_confusion_matrix,compute_roc_auc
 from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_score
 from torch import tensor
 from sklearn.metrics import precision_score, recall_score
-import torch
-import pandas as pd
-import numpy as np
+
 class Metrics():
     def __init__(self,num_class=2,y_pred=None,y_true_label=None,targets=None):
         """
@@ -22,7 +23,7 @@ class Metrics():
         self.y_pred_label = np.array(self.y_pred_label)
         self.y_pred_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_pred_label,dtype=torch.int64),num_classes=self.num_class)
         self.y_true_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_true_label.tolist(),dtype=torch.int64),num_classes=self.num_class)
-    
+        self.metrics_df = pd.DataFrame()
     def calculate_metrics(self):
         self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0} for i in range(self.num_class)}
 
@@ -75,9 +76,8 @@ class Metrics():
         return f1_score(self.y_pred_label,self.y_true_label,average=average)
     
 
-    def generate_metrics_df(self,epoch):
-
-        # 将指标数据整理成列表形式
+    def generate_metrics_df(self, epoch):
+        # 存储度量数据
         metrics_data = []
         for class_id, class_metrics in self.metrics.items():
             data_row = {"epoch": epoch}  # 首先添加 epoch
@@ -85,9 +85,9 @@ class Metrics():
             data_row.update(class_metrics)  # 最后添加其他指标
             metrics_data.append(data_row)
 
+        # 将新数据添加到现有的DataFrame中
+        new_df = pd.DataFrame(metrics_data)
+    # Using concat instead of append
+        #self.metrics_df = pd.concat([self.metrics_df, new_df], ignore_index=True)
 
-
-        # 创建DataFrame
-        df = pd.DataFrame(metrics_data)
-
-        return df
+        return new_df

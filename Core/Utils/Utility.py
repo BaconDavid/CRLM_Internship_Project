@@ -1,15 +1,21 @@
 
+import torch
 from torch import tensor
 from torch.utils.data import WeightedRandomSampler
-import torch
+from monai.transforms import Compose
+from monai.data import ImageDataset
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
-from monai.transforms import Compose
-from monai.data import ImageDataset
+
 import json
+import math
+import nibabel as nib
+import numpy as np
+
+
 #################################################################################
 #                                Utils functions                                #
 #################################################################################
@@ -18,9 +24,10 @@ import json
 
 def path_check(func):
     def wrapper(*args,**kwargs):
-        if not os.path.exists(args[2]):
-            os.makedirs(args[2])
-            print(f'Create the {args[2]} directory')
+        print(args,'fuck args')
+        if not os.path.exists(args[-1]):
+            os.makedirs(args[-1])
+            print(f'Create the {args[-1]} directory')
         return func(*args,**kwargs)
     return wrapper
 
@@ -28,7 +35,7 @@ def path_check(func):
 
 
 @path_check
-def visual_input(im,label,image_visual_path, percentage_image=0.2):
+def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
     """
     args:
         percentage_image: random show the percentage of image
@@ -36,19 +43,30 @@ def visual_input(im,label,image_visual_path, percentage_image=0.2):
     """
     # save the image
     if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
-
+    batch_size = im.shape[0]
     if if_show:
         #print("this is visual image shape",im.shape)
-        plt.imshow(im[0,0,0,:,:], cmap='gray')
-        plt.title(f'Label:{label}')
-        plt.savefig(image_visual_path + f'Label_{label}{np.random.randint(0,100,1).item()}.png')
+        rows = math.ceil(batch_size/2)
+        fig, axes = plt.subplots(rows, 2, figsize=(10, rows * 5))
+       
 
 
 
-import nibabel as nib
-import numpy as np
+        for i in range(batch_size):
+            col = i % 2
+ 
+   
+            ax = axes[col]
+            ax.imshow(im[i, 0, 32, :, :], cmap='gray')  # which slice to show
+            im_name_ = im_name[i].split('/')[-1]
+            ax.set_title(f'Label: {im_name_} {label[i]}')
+            
+            ax.axis('off')  # close axias
 
-import numpy as np
+    # layout
+        plt.tight_layout()
+        plt.savefig(image_visual_path + 'Batch_Visualization.png')
+        plt.close()  
 
 def apply_window_to_volume(batched_volumes, window_center, window_width):
     """
@@ -120,8 +138,13 @@ class SaveResults:
         
         """
         print("saving results")
-        df.to_csv(self.result_path + self.type + '_' + metric_name+ '.csv',index=False,mode='a')
-    
+        filename = self.result_path + self.type + '_' + metric_name + '.csv'
+        if not os.path.isfile(filename):
+            df.to_csv(filename, index=False, mode='w')
+        else:
+            df.to_csv(filename, index=False, mode='a', header=False)
+
+
     def _path_check(self):
         if not os.path.exists(self.result_path):
             os.makedirs(self.result_path)

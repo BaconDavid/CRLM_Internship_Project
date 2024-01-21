@@ -1,18 +1,9 @@
 from monai.transforms import Compose,SpatialPad
 from monai.data import ImageDataset,DataLoader
-
-
-
 import torch
 from torch import tensor
 from torch.utils.data import WeightedRandomSampler
-
-
-
 import nibabel as nib
-
-
-
 import numpy as np
 import pandas as pd
 import os
@@ -20,42 +11,29 @@ import os
 
 
 
-
-
 class DataFiles:
-    def __init__(self,data_path,label_path,label_name) -> None:
+    def __init__(self,
+                 data_path: str,
+                 label_path: str,
+                 label_name: str) -> None:
+        """
+        Args:
+            data_path: csv path to the data
+            label_path: path to the label
+            label_name: name of the label
+        """
         self.data_path = data_path
         self.label_path = label_path
         self.label_name = label_name
 
     def get_images(self):
-        return [os.path.join(self.data_path, filename) for filename in os.listdir(self.data_path)]
-
-    def get_labels(self):
-        return pd.read_csv(self.label_path)[self.label_name].values.tolist()
-
-    def Data_check(self):
-        assert len(self.get_images()) == len(self.get_labels()) , 'The number of images and labels are not equal'
-
-    def generate_data_dic(self):
-        pass
-
-
-
-class DataFiles:
-    def __init__(self,data_path,label_path,label_name) -> None:
-        self.data_path = data_path
-        self.label_path = label_path
-        self.label_name = label_name
-
-    def get_images(self):
-        filenames = self.get_data_names()
+        filenames = self.get_data_path()
         return [os.path.join(self.data_path, filename) for filename in filenames]
 
     def get_labels(self):
         return pd.read_csv(self.label_path)[self.label_name].values.tolist()
     
-    def get_data_names(self):
+    def get_data_path(self):
         return pd.read_csv(self.label_path)['data_path'].values.tolist()
 
     def Data_check(self):
@@ -67,8 +45,23 @@ class DataFiles:
 
 
 class Image_Dataset(ImageDataset):
-    def __init__(self,image_files,labels,transform_methods=None,data_aug=True,label_name=None,padding_size=(368,368,64),*args,**kwargs):
-
+    def __init__(self,
+                 image_files: list,
+                 labels: list,
+                 transform_methods=None,
+                 data_aug: bool = True,
+                 label_name: str = None,
+                 padding_size: tuple=(256,256,64),
+                 *args,**kwargs):
+        """
+        Args:
+            image_files: list of image files
+            labels: list of labels
+            transform_methods: list of transform methods
+            data_aug: bool, whether to do data augmentation
+            label_name: name of the label
+            padding_size: tuple, the size of padding. For models that require fixed size
+        """
         if data_aug:
             transform = Compose(transform_methods)
         else:
@@ -79,17 +72,12 @@ class Image_Dataset(ImageDataset):
 
     def __getitem__(self,index,*args,**kwargs):
         output = super().__getitem__(index,*args,**kwargs)
-        print(len(output))
-        #print(f"this is image {output[0][index]}")
-        #print(f"this is image shape {output[0].shape}")
-        #print('this is image and labels',self.image_files[index],self.labels[index])
         im,label = output[0],output[1]
-
+        img_name = self.image_files[index]
         if self.padding_size:
             padder = SpatialPad(self.padding_size)
             im = padder(im)
-        output = (im,label)
-        print(im.shape,label)
+        output = (im,label,img_name)
         return output
 
 

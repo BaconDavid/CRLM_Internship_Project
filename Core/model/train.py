@@ -16,8 +16,6 @@ from ema_pytorch import EMA
 
 
 
-
-
 def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None):
     """
     args:
@@ -31,13 +29,10 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         scheduler: scheduler
         
     """
-    print(ema,"ema!!")
     #prepare data for training
     train_bar = tqdm(dataloader)
     average_loss = 0
     print(len(train_bar),'length of train_bar')
-
-
     #set metrics record
     y_pred = []
     y_true = []
@@ -45,7 +40,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     print(f"epoch {epoch_num+1}")
     print("##################")
     #model = model.to(device)
-    for i,(im,label) in enumerate(train_bar):
+    for i,(im,label,_) in enumerate(train_bar):
  
 
         #rotate and flip

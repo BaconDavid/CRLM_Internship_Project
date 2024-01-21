@@ -14,9 +14,4 @@ class Loss:
     def build_loss(self):
         return self.losses
     
-    def calculate_loss(self,*args):
-        self.losses += self.args[0].item()
 
-
-def EAMLoss():
-    pass

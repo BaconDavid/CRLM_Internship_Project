@@ -320,53 +320,30 @@ class NNunetFormat:
         shutil.rmtree(file_path)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Download and format data for nnU-Net from XNAT")
+    parser.add_argument('--url', type=str, required=False, default='https://bigr-rad-xnat.erasmusmc.nl',help='The URL of the XNAT instance')
+    parser.add_argument('--user', type=str, required=False, default='yliu',help='Username for XNAT')
+    parser.add_argument('--passwd', type=str, required=False, default='x37vnp78',help='Password for XNAT')
+    parser.add_argument('--project', type=str, required=True, help='The project name in XNAT')
+    parser.add_argument('--Download_Data',action='store_true',help='Whether to download data')
+    parser.add_argument('--store_out_path', type=str, required=False, help='The path where the downloaded data will be stored')
+    parser.add_argument('--data_csv', type=str, default=None,help='CSV file containing data to be downloaded')
+    parser.add_argument('--task_name', type=str, required=False, help='The task name for the nnU-Net dataset')
+    parser.add_argument('--nnUnet_path',type=str,default=False,help='nnUnet path')
+    parser.add_argument('--Xnat_path',type=str,default=None,help='The path to the XNAT data')
+    parser.add_argument('--extract_out_path',type=str,default=None,help='The path to extract the data from XNAT')
+    parser.add_argument('--format',default='NIFTI',help='Data format to download')
+    parser.add_argument('--upload_path',type=str,default=None,help='The path to upload the data to XNAT')
+    # Add more arguments as needed
 
+    return parser.parse_args()
 
     
 
 
 if __name__ == "__main__":
-    # out_path = '/data/scratch/r098986/CT_Phase/Data/Raw_Phase_Data/'
-    # xnat_session = XnatSession('https://bigr-rad-xnat.erasmusmc.nl','yliu','x37vnp78')
-    # extract_data = DataExtract('/data/scratch/r098986/CT_Phase/Data/Raw_Phase_Data/')
-    # extract_data.extract_data('CILM',out_path)
-    # xnat_proj = xnat_session.start_xnat_session('CILM')
-    # data_download = Data_Download(xnat_project=xnat_proj,data='/data/scratch/r098986/CT_Phase/Data/True_Label/Phase_label_all.csv')
-    # data_download.download_from_data(out_path)
-
-    # nnunet_format = NNunetFormat(out_path,'/data/scratch/r098986/nnUnet_Seg/nnUNet_raw_data_base/nnUNet_raw_data/','Task_503_HGCSorafenib_Data')
-    # nnunet_format.make_file_name('CILM')
-    # nnunet_format.make_json_file()
-    #nnunet_format.delete_file()
-
-    # out_path = './data/scratch/r098986/nnUnet_Seg/nnUNet_raw_data_base/nnUNet_raw_data/Task501_CILM_Liver_Samuel/'
-    # xnat_session = XnatSession('https://bigr-rad-xnat.erasmusmc.nl','yliu','x37vnp78')
-    # xnat_proj = xnat_session.start_xnat_session('CILM')
-    # xnat_session.download_data(out_path,xnat_proj,earliest=False,required_data='/trinity/home/r098986/CRLM_Yizhou/Test_Data/scans_used_all_info.csv)
-    # nnunet_format = NNunetFormat(out_path,/data/scratch/r098986/nnUnet_Seg/nnUNet_raw_data_base/nnUNet_raw_data/,'Task501_CILM_Liver_Samuel')
-    # nnunet_format.make_file_name('CILM')
-    # nnunet_format.make_json_file()
-
-
-    def parse_args():
-        parser = argparse.ArgumentParser(description="Download and format data for nnU-Net from XNAT")
-        parser.add_argument('--url', type=str, required=False, default='https://bigr-rad-xnat.erasmusmc.nl',help='The URL of the XNAT instance')
-        parser.add_argument('--user', type=str, required=False, default='yliu',help='Username for XNAT')
-        parser.add_argument('--passwd', type=str, required=False, default='x37vnp78',help='Password for XNAT')
-        parser.add_argument('--project', type=str, required=True, help='The project name in XNAT')
-        parser.add_argument('--Download_Data',action='store_true',help='Whether to download data')
-        parser.add_argument('--store_out_path', type=str, required=False, help='The path where the downloaded data will be stored')
-        parser.add_argument('--data_csv', type=str, default=None,help='CSV file containing data to be downloaded')
-        parser.add_argument('--task_name', type=str, required=False, help='The task name for the nnU-Net dataset')
-        parser.add_argument('--nnUnet_path',type=str,default=False,help='nnUnet path')
-        parser.add_argument('--Xnat_path',type=str,default=None,help='The path to the XNAT data')
-        parser.add_argument('--extract_out_path',type=str,default=None,help='The path to extract the data from XNAT')
-        parser.add_argument('--format',default='NIFTI',help='Data format to download')
-        parser.add_argument('--upload_path',type=str,default=None,help='The path to upload the data to XNAT')
-        # Add more arguments as needed
-
-        return parser.parse_args()
-
+ 
     def main():
         args = parse_args()
         # Now you can use args.url, args.user, args.passwd, etc., in your script.
@@ -374,8 +351,7 @@ if __name__ == "__main__":
         # Establish the connection to XNAT and see whether we need to download data
 
         if args.Download_Data:
-            print(args.Download_Data,'shit')
-            #print(args.Download_Data,'fuck')
+            print(args.Download_Data,'download data')
             xnat_session = XnatSession(args.url, args.user, args.passwd)
             project = xnat_session.start_xnat_session(args.project)
             if args.data_csv:
@@ -385,7 +361,6 @@ if __name__ == "__main__":
             else:
                 # Download all data from XNAT
                 data_download = Data_Download(xnat_project=project)
-                print(666666)
                 data_download.down_load_from_xnat(args.store_out_path,args.format)
         
         # Format the data for nnU-Net
@@ -406,7 +381,5 @@ if __name__ == "__main__":
             data_upload.upload_data(args.upload_path)
     main()
 
-    # Use other classes and functions with the provided arguments
-    # ...
 
 

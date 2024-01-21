@@ -35,7 +35,7 @@ def Validation_loop(cfg,model,dataloader,criterion):
     #predict
 
 
-    for i,(im,label) in enumerate(vali_bar):       
+    for i,(im,label,_) in enumerate(vali_bar):       
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))
         im = torch.flip(im,[3])

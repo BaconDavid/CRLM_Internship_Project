@@ -1,24 +1,8 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+import torch
 import monai
-
-from Core.Utils.Models import build_model
-from Core.Utils import args
-from Core.Utils.Metrics import Metrics
-from Core.Utils.Utility import SaveResults
-from Core.model.checkpoint import save_checkpoint,load_checkpoint
-
-from Core.Utils import Swin_Transformer_Classification
-
-from Core.model import optimizer,scheduler
-from Core.model.loss import Loss
-from Core.model.train import train_loop
-from Core.model.Validation import Validation_loop
-from Core.Utils.Utility import Balanced_sampler
-from Core.Config.config import get_cfg_defaults
-from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
-
 from torch.utils.data import Subset
 from torch.utils.data import WeightedRandomSampler
 from monai.transforms import (
@@ -35,12 +19,25 @@ from monai.transforms import (
     ScaleIntensityRange,
     CenterSpatialCrop,
     Resize,
-    NormalizeIntensity
+    NormalizeIntensity,
+    ResizeWithPadOrCrop
     )
 from monai.data import ImageDataset,DataLoader
 
-import os
-import torch
+from Core.Utils.Models import build_model
+from Core.Utils import args
+from Core.Utils.Metrics import Metrics
+from Core.Utils.Utility import SaveResults
+from Core.model.checkpoint import save_checkpoint,load_checkpoint
+from Core.Utils import Swin_Transformer_Classification
+from Core.model import optimizer,scheduler
+from Core.model.loss import Loss
+from Core.model.train import train_loop
+from Core.model.Validation import Validation_loop
+from Core.Utils.Utility import Balanced_sampler, visual_input
+from Core.Config.config import get_cfg_defaults
+from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
+
 import numpy as np
 import datetime
 from sklearn.model_selection import StratifiedKFold
@@ -93,13 +90,11 @@ def main(cfg,mode='train'):
 
             
         if cfg.TRAIN.Debug:
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+            #how many data for subset
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
-            vali_labels = [val_dataset[i][1] for i in range(len(val_dataset_sub))]
-            train_images = [tr_dataset[i][0] for i in range(len(tr_dataset_sub))]
-            vali_images = [val_dataset[i][0] for i in range(len(val_dataset_sub))]
             
             #sampler
             if cfg.DATASET.WeightedRandomSampler:
@@ -163,6 +158,9 @@ def main(cfg,mode='train'):
         val_loss_values, val_loss_epoch_x_axis = [], []
         
          
+        #visualize input
+        for im,label,im_name in tr_dataloader:
+            visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
 
         for epoch in range(cfg.TRAIN.num_epochs):
             model.train()

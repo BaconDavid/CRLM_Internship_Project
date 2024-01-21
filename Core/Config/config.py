@@ -52,10 +52,13 @@ _C.DATASET.num_channels = 3
 _C.MODEL = CN()
 _C.MODEL.name = 'Resnet10'
 _C.MODEL.pretrained = False
+_C.MODEL.freeze_layers = None
+_C.MODEL.pretrained_path = None
 _C.MODEL.num_class = 2
 _C.MODEL.num_in_channels = 1
 _C.MODEL.dropout = 0.5
 _C.MODEL.num_out_channels = 1
+
 
 _C.LOG = CN()
 _C.LOG.log_dir = None

@@ -141,7 +141,7 @@ def main(cfg,mode='train'):
         ema = EMA(
         model,
         beta = 0.999,              # exponential moving average factor
-        update_after_step = 100,    # only after this number of .update() calls will it start updating
+        update_after_step = 50,    # only after this number of .update() calls will it start updating
         update_every = 10, 
         power =3/4 )
         #print(ema.step,"ema step!!")

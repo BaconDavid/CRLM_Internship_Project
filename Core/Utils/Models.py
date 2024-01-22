@@ -9,7 +9,7 @@ def build_model(cfg,**kwargs):
 
 
     if cfg.MODEL.name == "Resnet10":
-        return resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=True,**kwargs)
+        return resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,**kwargs)
     elif cfg.MODEL.name == "SwingTransformer":
             if cfg.MODEL.pretrained:
                 freezing_layers = cfg.MODEL.freeze_layers

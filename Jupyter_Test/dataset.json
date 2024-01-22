@@ -1,0 +1,293 @@
+{
+  "name": "Task503_HGCSorafenib_Data_5",
+  "description": "Task503_HGCSorafenib_Data_5",
+  "reference": "Erasmus Medical Centre",
+  "licence": "Not applicable",
+  "release": "Not applicable",
+  "tensorImageSize": "3D",
+  "modality": {
+    "0": "3D"
+  },
+  "labels": {
+    "0": "background",
+    "1": "organ",
+    "2": "tumor"
+  },
+  "numTraining": 10,
+  "numTest": 0,
+  "training": [
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812340_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812340_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8123410_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8123410_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812341_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812341_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8123411_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8123411_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8123412_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8123412_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812342_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812342_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812343_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812343_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812344_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812344_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812345_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812345_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812346_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812346_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812347_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812347_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812348_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812348_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_812349_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_812349_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813130_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813130_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131310_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131310_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813131_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813131_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131311_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131311_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131312_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131312_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131313_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131313_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131314_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131314_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8131315_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8131315_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813132_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813132_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813133_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813133_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813134_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813134_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813135_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813135_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813136_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813136_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813137_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813137_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813138_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813138_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_813139_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_813139_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818580_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818580_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8185810_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8185810_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818581_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818581_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8185811_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8185811_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818582_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818582_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818583_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818583_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818584_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818584_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818585_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818585_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818586_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818586_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818587_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818587_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818588_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818588_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_818589_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_818589_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842870_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842870_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842871_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842871_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842872_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842872_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842873_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842873_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842874_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842874_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842875_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842875_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842876_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842876_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_842877_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_842877_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_864140_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_864140_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_864141_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_864141_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_864142_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_864142_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_864143_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_864143_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882140_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882140_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8821410_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8821410_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882141_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882141_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8821411_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8821411_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8821412_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8821412_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8821413_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8821413_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_8821414_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_8821414_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882142_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882142_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882143_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882143_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882144_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882144_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882145_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882145_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882146_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882146_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882147_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882147_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882148_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882148_0000.nii.gz"
+    },
+    {
+      "image": "./imagesTr/HCCSorafenib_CT_882149_0000.nii.gz",
+      "label": "./labelsTr/HCCSorafenib_CT_882149_0000.nii.gz"
+    }
+  ],
+  "test": []
+}

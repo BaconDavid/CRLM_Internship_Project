@@ -65,7 +65,7 @@ def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
 
     # layout
         plt.tight_layout()
-        plt.savefig(image_visual_path + 'Batch_Visualization.png')
+        plt.savefig(image_visual_path + im_name_ + '.png')
         plt.close()  
 
 def apply_window_to_volume(batched_volumes, window_center, window_width):

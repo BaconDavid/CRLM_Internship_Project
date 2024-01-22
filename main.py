@@ -98,8 +98,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -173,7 +173,6 @@ def main(cfg,mode='train'):
                 im = torch.flip(im,[3])
                 #permute to [B,C,D,H,W]
                 im = im.permute(0,1,4,2,3)
-                print('fuck',im.shape)
                 visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
 
         for epoch in range(cfg.TRAIN.num_epochs):
@@ -184,7 +183,7 @@ def main(cfg,mode='train'):
             ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,scheduler=scheduler_fun,ema=ema)
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
-            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
+            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
             metrics.calculate_metrics()
             singel_metric = metrics.generate_metrics_df(epoch+1)
@@ -208,11 +207,11 @@ def main(cfg,mode='train'):
             ema_model.eval()
             print(ema.step,'this is ema step')
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
-            print('this is fucking average loss',ave_loss)
+            print('this is average loss',ave_loss)
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score(),metrics.get_four_rate()
+            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
             metrics.calculate_metrics()
             singel_metric = metrics.generate_metrics_df(epoch+1)
             print(singel_metric,666666)

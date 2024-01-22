@@ -47,7 +47,7 @@ class Metrics():
 
     def get_roc(self,average='binary'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        self.y_pred_ = np.stack(self.y_pred,axis=0)[:,:,1].reshape(-1,)
+        self.y_pred_ = np.stack(self.y_pred,axis=0)[:,:,1].reshape(-1,)#(N,B,C) -> (N,1) get the prob of class 1
         return roc_auc_score(self.y_true_label,self.y_pred_)
 
     def get_four_rate(self) -> tensor:
@@ -75,7 +75,7 @@ class Metrics():
         return accuracy
     
     def get_f1_score(self,average='binary') -> float:
-        return f1_score(self.y_pred_label,self.y_true_label,average=average)
+        return f1_score(self.y_true_label,self.y_pred_label,average=average)
     
 
     def generate_metrics_df(self, epoch):

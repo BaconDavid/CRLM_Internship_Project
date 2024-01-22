@@ -45,12 +45,8 @@ def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
     if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
     batch_size = im.shape[0]
     if if_show:
-        #print("this is visual image shape",im.shape)
         rows = math.ceil(batch_size/2)
         fig, axes = plt.subplots(rows, 2, figsize=(10, rows * 5))
-       
-
-
 
         for i in range(batch_size):
             col = i % 2
@@ -58,14 +54,19 @@ def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
    
             ax = axes[col]
             ax.imshow(im[i, 0, 32, :, :], cmap='gray')  # which slice to show
-            im_name_ = im_name[i].split('/')[-1]
+            im_name_ = im_name[i].split('/')[-1]# for linux
+            ax.set_title(f'Label: {im_name_} {label[i]}')
             ax.set_title(f'Label: {im_name_} {label[i]}')
             
             ax.axis('off')  # close axias
 
     # layout
         plt.tight_layout()
-        plt.savefig(image_visual_path + im_name_ + '.png')
+        try:
+            plt.savefig(image_visual_path + im_name_ + '.png')
+        except:
+            im_name_ = im_name[i].split('\\')[-1]#for windows
+            plt.savefig(image_visual_path + im_name_ + '.png')
         plt.close()  
 
 def apply_window_to_volume(batched_volumes, window_center, window_width):
@@ -94,7 +95,7 @@ class Balanced_sampler(WeightedRandomSampler):
         labels = np.asarray(labels).astype(int)
         class_freq = [len(np.where(labels==i)[0]) for i in range(num_class)]
         weights = [1.0/class_freq[label] for label in labels]
-        print(len(class_freq),len(weights))
+        #print(len(class_freq),len(weights))
         super().__init__(weights=weights,num_samples=len(weights),replacement=True,*args,**kwargs)
 
 

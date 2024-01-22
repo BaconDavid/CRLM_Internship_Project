@@ -42,11 +42,6 @@ def Validation_loop(cfg,model,dataloader,criterion):
         #permute to [B,C,D,H,W]
         im = im.permute(0,1,4,2,3)
 
-        if cfg.visual_im.visual_im:
-            # visualize input
-            visual_input(im,label,cfg.visual_im.visual_out_path)
-
-
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         #print('validation',im.shape,label)
 

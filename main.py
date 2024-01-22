@@ -20,7 +20,8 @@ from monai.transforms import (
     CenterSpatialCrop,
     Resize,
     NormalizeIntensity,
-    ResizeWithPadOrCrop
+    ResizeWithPadOrCrop,
+    SpatialPad
     )
 from monai.data import ImageDataset,DataLoader
 
@@ -66,7 +67,9 @@ def main(cfg,mode='train'):
 
         #save results
         tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train')
+        padding = cfg.Preprocess.padding_size
         #transform methods
+
         transform_param_train = {"transform_methods":[
                                 EnsureChannelFirst(),
                                 # Data augmentation
@@ -74,6 +77,8 @@ def main(cfg,mode='train'):
                                 RandRotate(range_z = 0.3, prob = 0.5),
                                 RandFlip(prob = 0.3),
                                 Resize((256,256,-1)),
+                                CenterSpatialCrop((256,256,64)),
+                                SpatialPad(padding),
                                 NormalizeIntensity(),
                                 # To tensor
                                 ToTensor()
@@ -83,7 +88,7 @@ def main(cfg,mode='train'):
                                                     Resize((256,256,-1)),
                                                     NormalizeIntensity(),
                                                     ToTensor()]}
-        padding = cfg.Preprocess.padding_size
+      
 
         tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_param_train['transform_methods'],data_aug=cfg.TRAIN.data_aug,padding_size=padding)
         val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_param_val['transform_methods'],data_aug=cfg.VALID.data_aug,padding_size=padding)
@@ -159,8 +164,9 @@ def main(cfg,mode='train'):
         
          
         #visualize input
-        for im,label,im_name in tr_dataloader:
-            visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
+        if cfg.visual_im.visual_im:
+            for im,label,im_name in tr_dataloader:
+                visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
 
         for epoch in range(cfg.TRAIN.num_epochs):
             model.train()

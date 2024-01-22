@@ -48,11 +48,6 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         im = torch.flip(im,[3])
         #permute to [B,C,D,H,W]
         im = im.permute(0,1,4,2,3)
-        #print('this is im',im.shape)
-        if cfg.visual_im.visual_im:
-            # visualize input
-            visual_input(im,label+i,cfg.visual_im.visual_out_path)
-
 
 
 

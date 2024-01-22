@@ -24,7 +24,7 @@ import numpy as np
 
 def path_check(func):
     def wrapper(*args,**kwargs):
-        print(args,'fuck args')
+        #print(args,'fuck args')
         if not os.path.exists(args[-1]):
             os.makedirs(args[-1])
             print(f'Create the {args[-1]} directory')

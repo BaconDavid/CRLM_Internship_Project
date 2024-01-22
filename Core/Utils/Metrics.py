@@ -15,6 +15,7 @@ class Metrics():
             targets: dicts of targets and their labels
         """
         self.num_class = num_class
+        self.y_pred = [y.detach().cpu().numpy() for y in y_pred]
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
         self.y_true_label = np.array(y_true_label)
         self.y_pred_label = [torch.argmax(y_pre,dim=1).detach().cpu().numpy().tolist() for y_pre in y_pred]
@@ -44,9 +45,10 @@ class Metrics():
 
 
 
-    def get_roc(self,average='macro'):
-        return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        
+    def get_roc(self,average='binary'):
+        #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
+        self.y_pred_ = np.stack(self.y_pred,axis=0)[:,:,1].reshape(-1,)
+        return roc_auc_score(self.y_true_label,self.y_pred_)
 
     def get_four_rate(self) -> tensor:
         """
@@ -72,7 +74,7 @@ class Metrics():
         accuracy = accuracy_score(self.y_pred_label,self.y_true_label)
         return accuracy
     
-    def get_f1_score(self,average='macro') -> float:
+    def get_f1_score(self,average='binary') -> float:
         return f1_score(self.y_pred_label,self.y_true_label,average=average)
     
 
@@ -91,3 +93,4 @@ class Metrics():
         #self.metrics_df = pd.concat([self.metrics_df, new_df], ignore_index=True)
 
         return new_df
+

@@ -52,7 +52,7 @@ LOG:
   log_file: log.txt
 
 Preprocess:
-  resize_shape: (256,256,30)
+  padding_size: (256,256,64)
   normalize: 'NormalizeIntensity'
 
 

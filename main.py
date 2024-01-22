@@ -86,8 +86,8 @@ def main(cfg,mode='train'):
         
         transform_param_val = {"transform_methods":[EnsureChannelFirst(),
                                                     Resize((256,256,-1)),
-                                                    #CenterSpatialCrop((256,256,64)),
-                                                    #SpatialPad(padding),
+                                                    SpatialPad(padding),
+                                                    CenterSpatialCrop((256,256,64)),
                                                     NormalizeIntensity(),
                                                     ToTensor()]}
       

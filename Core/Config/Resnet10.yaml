@@ -59,7 +59,7 @@ Preprocess:
 SAVE:
   save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/'
   save_name: 'Resnet_10_raw_0'
-
+  fold : '01'
 WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Weight/'
 

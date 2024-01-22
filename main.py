@@ -77,8 +77,8 @@ def main(cfg,mode='train'):
                                 RandRotate(range_z = 0.3, prob = 0.5),
                                 RandFlip(prob = 0.3),
                                 Resize((256,256,-1)),
-                                CenterSpatialCrop((256,256,64)),
                                 SpatialPad(padding),
+                                CenterSpatialCrop(roi_size=(256,256,64)),
                                 NormalizeIntensity(),
                                 # To tensor
                                 ToTensor()
@@ -86,6 +86,8 @@ def main(cfg,mode='train'):
         
         transform_param_val = {"transform_methods":[EnsureChannelFirst(),
                                                     Resize((256,256,-1)),
+                                                    #CenterSpatialCrop((256,256,64)),
+                                                    #SpatialPad(padding),
                                                     NormalizeIntensity(),
                                                     ToTensor()]}
       
@@ -166,6 +168,12 @@ def main(cfg,mode='train'):
         #visualize input
         if cfg.visual_im.visual_im:
             for im,label,im_name in tr_dataloader:
+                #rotate and flip
+                im = torch.rot90(im,k=3,dims=(2,3))
+                im = torch.flip(im,[3])
+                #permute to [B,C,D,H,W]
+                im = im.permute(0,1,4,2,3)
+                print('fuck',im.shape)
                 visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
 
         for epoch in range(cfg.TRAIN.num_epochs):

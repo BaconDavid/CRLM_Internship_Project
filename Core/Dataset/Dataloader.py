@@ -74,9 +74,10 @@ class Image_Dataset(ImageDataset):
         output = super().__getitem__(index,*args,**kwargs)
         im,label = output[0],output[1]
         img_name = self.image_files[index]
-        if self.padding_size:
-            padder = SpatialPad(self.padding_size)
-            im = padder(im)
+        print(im.shape)
+        #if self.padding_size:
+        #    padder = SpatialPad(self.padding_size)
+        #    im = padder(im)
         output = (im,label,img_name)
         return output
 

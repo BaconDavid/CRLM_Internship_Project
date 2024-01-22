@@ -6,7 +6,7 @@ SYSTEM:
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\tm_slices_lv_region_+3_07073_windowed'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\tm_slices_lv_region_+3_07073_clipped'
   Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\train_cv_0.csv'
   Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\val_cv_0.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
@@ -21,7 +21,7 @@ TRAIN:
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
-  Debug: True
+  Debug: False
   #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
   data_aug: True
 

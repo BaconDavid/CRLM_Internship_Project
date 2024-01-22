@@ -224,7 +224,7 @@ def main(cfg,mode='train'):
             val_loss_values.append(ave_loss)
 
             #save best metric
-            if ave_loss <= best_metric:
+            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1):
                 save_dict = {
                             'epoch':epoch+1,
                             'model':ema_model.state_dict(),

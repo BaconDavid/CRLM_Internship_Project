@@ -15,7 +15,7 @@ class Metrics():
             targets: dicts of targets and their labels
         """
         self.num_class = num_class
-        self.y_pred = [y.detach().cpu().numpy() for y in y_pred]
+        self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)[:,:,1]#(N,B,C) -> (N,1) get the prob of class 1
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
         self.y_true_label = np.array(y_true_label)
         self.y_pred_label = [torch.argmax(y_pre,dim=1).detach().cpu().numpy().tolist() for y_pre in y_pred]
@@ -25,7 +25,7 @@ class Metrics():
         self.y_pred_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_pred_label,dtype=torch.int64),num_classes=self.num_class)
         self.y_true_one_hot = torch.nn.functional.one_hot(torch.tensor(self.y_true_label.tolist(),dtype=torch.int64),num_classes=self.num_class)
         self.metrics_df = pd.DataFrame()
-        
+
     def calculate_metrics(self):
         self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0} for i in range(self.num_class)}
 
@@ -48,7 +48,6 @@ class Metrics():
 
     def get_roc(self,average='binary'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        self.y_pred_ = np.stack(self.y_pred,axis=0)[:,:,1].reshape(-1,)#(N,B,C) -> (N,1) get the prob of class 1
         return roc_auc_score(self.y_true_label,self.y_pred_)
 
     def get_four_rate(self) -> tensor:

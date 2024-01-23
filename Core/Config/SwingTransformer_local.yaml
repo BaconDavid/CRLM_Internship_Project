@@ -18,7 +18,7 @@ LABEL:
 TRAIN:
   lr: 0.00001
   batch_size: 2
-  num_epochs: 200
+  num_epochs: 50
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: True
@@ -26,7 +26,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 1
+  batch_size: 2
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -36,7 +36,7 @@ TEST:
 
 DATASET:
   WeightedRandomSampler: True
-  num_classes: 2
+  num_classes: 1
   num_channels: 1
 
 MODEL:
@@ -45,7 +45,7 @@ MODEL:
   freeze_layers: ('layers1','layers2')  
   pretrained_path: 'c:\Users\098986\Intership_CILM\Pre_trained\model_swinvit.pt'
   
-  num_class: 2
+  num_class: 1
   num_in_channels: 1
   dropout: 0.5
   num_out_channels: 1

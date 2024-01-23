@@ -98,8 +98,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.1)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.1)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -182,7 +182,7 @@ def main(cfg,mode='train'):
             val_loss_epoch_x_axis.append(epoch+1)
             ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,scheduler=scheduler_fun,ema=ema)
 
-            metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
+            metrics = Metrics(2,y_pred,y_true)
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
             metrics.calculate_metrics()
@@ -209,9 +209,9 @@ def main(cfg,mode='train'):
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
 
-            metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
+            metrics = Metrics(2,y_pred,y_true)
             print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-            
+
             #save pred_label
             with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'pred_label_{epoch+1}.txt','a') as f:
                 f.write(str(metrics.y_pred_label))

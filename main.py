@@ -208,6 +208,10 @@ def main(cfg,mode='train'):
             print(ema.step,'this is ema step')
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
+            #save prediction of validation
+            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','w') as f:
+                for i in range(len(y_pred)):
+                    f.write(str(y_pred[i])+'\n')
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')

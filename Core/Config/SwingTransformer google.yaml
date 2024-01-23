@@ -6,10 +6,10 @@
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
-  NUM_WORKERS: 6
+  NUM_WORKERS: 8
     
 DATA:
-  Data_dir: '/data/scratch/r098986/tm_slices_lv_region_07073_windowed/'
+  Data_dir: '/data/scratch/r098986/tm_slices_lv_region_07073_clipped/'
   Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_0.csv'
   Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_0.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
@@ -20,7 +20,7 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
+  batch_size: 2
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
@@ -29,7 +29,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 1
+  batch_size: 2
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -39,13 +39,13 @@ TEST:
 
 DATASET:
   WeightedRandomSampler: True
-  num_classes: 2
+  num_classes: 10
   num_channels: 5
 
 MODEL:
   name: 'SwingTransformer'
   pretrained: False
-  num_class: 5
+  num_class: 10
   num_in_channels: 1
   dropout: 0.5
   num_out_channels: 1
@@ -61,13 +61,13 @@ Preprocess:
 
 
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/'
+  save_dir: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/Test_03/'
   save_name: 'SwingTransformer'
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Weight/'
+  weight_dir: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/Test_03/Weight/'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Visual/'
+  visual_out_path: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/Test_03/Visual/'
 

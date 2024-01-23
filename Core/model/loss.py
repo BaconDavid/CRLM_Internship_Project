@@ -1,8 +1,8 @@
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCELoss
 
 
 class Loss:
-    def __init__(self,losses=CrossEntropyLoss(),*args):
+    def __init__(self,losses=BCELoss(),*args):
         """
         args:
             args only have one loss function

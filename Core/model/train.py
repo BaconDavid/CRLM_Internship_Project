@@ -4,6 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
 from tqdm import tqdm
 import torch
+import torch.nn as nn
 
 from torch.utils.data import Subset
 
@@ -55,11 +56,12 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         optimizer.zero_grad()
 
         output = (model(im))
-        loss = criterion(output,label)
+        output = nn.Sigmoid()(output).squeeze(-1)
+        loss = criterion(output,label.float())
         loss.backward()
 
         average_loss += loss.item()
-        output = torch.nn.functional.softmax(output,dim=1)
+        #output = torch.nn.functional.softmax(output,dim=1)
 
         #softmax probability
         y_pred.append(output.cpu())

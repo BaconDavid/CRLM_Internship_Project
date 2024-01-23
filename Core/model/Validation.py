@@ -47,12 +47,13 @@ def Validation_loop(cfg,model,dataloader,criterion):
 
         with torch.no_grad():
             output = (model(im))
+            output = torch.sigmoid(output).squeeze(-1)
 
-            loss = criterion(output,label)
+            loss = criterion(output,label.float())
             average_loss += loss.item()
 
             #softmax probability
-            output = torch.nn.functional.softmax(output,dim=1)
+            #output = torch.nn.functional.softmax(output,dim=1)
             #print('this is output',output)
 
     

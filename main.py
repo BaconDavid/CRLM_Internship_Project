@@ -119,7 +119,7 @@ def main(cfg,mode='train'):
         else:           
             #sampler
             if cfg.DATASET.WeightedRandomSampler:
-                sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+                sampler = Balanced_sampler(train_labels,num_class=2)
             else:
                 sampler = None
             

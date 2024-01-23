@@ -27,7 +27,7 @@ def build_model(cfg,**kwargs):
                 model = freeze_layers(model,freezing_layers)
                 return model
             else:
-                return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),in_channels=1, num_classes=cfg.MODEL.num_class, num_heads=[3, 6, 12, 24],out_channels=1,drop_rate=0.2,dropout_path_rate=0.2,attn_drop_rate=0.2,**kwargs)
+                return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),in_channels=1, num_classes=cfg.MODEL.num_class, num_heads=[3, 6, 12, 24],out_channels=1,**kwargs)
     elif cfg.MODEL.name == "SACNN":
         return SACNN.resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=True,**kwargs)
     elif cfg.MODEL.name == 'SwingTransformerSparse':

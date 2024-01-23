@@ -47,7 +47,7 @@ def Validation_loop(cfg,model,dataloader,criterion):
 
         with torch.no_grad():
             output = (model(im))
-            output = torch.sigmoid(output).squeeze(-1)
+            output = torch.sigmoid(output).reshape(-1)
 
             loss = criterion(output,label.float())
             average_loss += loss.item()

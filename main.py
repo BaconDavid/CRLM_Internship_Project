@@ -105,7 +105,7 @@ def main(cfg,mode='train'):
             
             #sampler
             if cfg.DATASET.WeightedRandomSampler:
-                sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+                sampler = Balanced_sampler(train_labels,num_class=2)
             else:
                 sampler = None
 
@@ -123,7 +123,7 @@ def main(cfg,mode='train'):
             else:
                 sampler = None
             
-            sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+            sampler = Balanced_sampler(train_labels,num_class=2)
             tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size,shuffle=False).build_train_loader() 
             val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
@@ -211,6 +211,11 @@ def main(cfg,mode='train'):
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
+            
+            #save pred_label
+            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'pred_label_{epoch+1}.txt','a') as f:
+                f.write(str(metrics.y_pred_label))
+                f.write('\n')
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
             metrics.calculate_metrics()
             singel_metric = metrics.generate_metrics_df(epoch+1)
@@ -242,8 +247,7 @@ def main(cfg,mode='train'):
 
 
     elif mode == 'test':
-        test_loop(model,dataloader,device,loss_fun,visual_input=True,visual_out_path=args.visual_out_path)
-
+        pass
 
 
 if __name__ == "__main__":

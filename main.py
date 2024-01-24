@@ -123,7 +123,6 @@ def main(cfg,mode='train'):
             else:
                 sampler = None
             
-            sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
             tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size,shuffle=False).build_train_loader() 
             val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
@@ -208,10 +207,7 @@ def main(cfg,mode='train'):
             print(ema.step,'this is ema step')
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
-            #save prediction of validation
-            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','w') as f:
-                for i in range(len(y_pred)):
-                    f.write(str(y_pred[i])+'\n')
+
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
@@ -219,7 +215,10 @@ def main(cfg,mode='train'):
             metrics.calculate_metrics()
             singel_metric = metrics.generate_metrics_df(epoch+1)
             print(singel_metric,666666)
-            
+            #save prediction of validation
+            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','w') as f:
+                for i in range(len(metrics.y_pred_label)):
+                    f.write(str(metrics.y_pred_label[i])+'\n')
             #store metrics and loss
             val_results.store_results(val_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch+1),'metrics')
             #store four rates

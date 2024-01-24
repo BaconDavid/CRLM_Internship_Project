@@ -7,8 +7,8 @@ SYSTEM:
     
 DATA:
   Data_dir: '/data/scratch/r098986/MIXED_HGP/tm_slices_lv_region_+3_07073_windowed/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_0.csv'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_0.csv'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_3.csv'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_3.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
@@ -17,7 +17,7 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
+  batch_size: 2
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
@@ -26,7 +26,7 @@ TRAIN:
   data_aug: True
 
 VALID:
-  batch_size: 1
+  batch_size: 2
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -59,7 +59,7 @@ Preprocess:
 SAVE:
   save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/'
   save_name: 'Resnet_10_raw_0'
-  fold : '01'
+  fold : '04'
 WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resnet_10_raw_0/Weight/'
 

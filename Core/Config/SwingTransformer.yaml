@@ -20,13 +20,14 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 1
+  batch_size: 2
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: False
   scheduler: False
   data_aug: True
+  drop_out: 0.5
 
 VALID:
   batch_size: 1

@@ -15,7 +15,7 @@ class Metrics():
             targets: dicts of targets and their labels
         """
         self.num_class = num_class
-        self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)[:,:,1]#(N,B,C) -> (N,1) get the prob of class 1
+        self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)#Prob of samples
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
         self.y_true_label = np.array(y_true_label)
         self.y_pred_label = [torch.argmax(y_pre,dim=1).detach().cpu().numpy().tolist() for y_pre in y_pred]
@@ -30,6 +30,7 @@ class Metrics():
         self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0} for i in range(self.num_class)}
 
         for i in range(self.num_class):
+            #make target class as positive class
             true_binary = (self.y_true_label == i).astype(int)
             pred_binary = (self.y_pred_label == i).astype(int)
 
@@ -38,7 +39,7 @@ class Metrics():
             self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
 
             if len(np.unique(true_binary)) > 1:
-                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred_one_hot[:, i])
+                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))#error here should be prob of class 1
 
             self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
 
@@ -48,6 +49,7 @@ class Metrics():
 
     def get_roc(self,average='binary'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
+        y_pred_1 = self.y_pred[:,:,1].reshape(-1)
         return roc_auc_score(self.y_true_label,self.y_pred)
 
     def get_four_rate(self) -> tensor:
@@ -79,18 +81,17 @@ class Metrics():
     
 
     def generate_metrics_df(self, epoch):
-        # 存储度量数据
+        # 
         metrics_data = []
         for class_id, class_metrics in self.metrics.items():
-            data_row = {"epoch": epoch}  # 首先添加 epoch
-            data_row.update({"class_id": class_id})  # 然后添加 class_id
-            data_row.update(class_metrics)  # 最后添加其他指标
+            data_row = {"epoch": epoch}  # addepoch
+            data_row.update({"class_id": class_id})  # add class_id
+            data_row.update(class_metrics)  # add metrics
             metrics_data.append(data_row)
 
-        # 将新数据添加到现有的DataFrame中
+        # Create new df
         new_df = pd.DataFrame(metrics_data)
     # Using concat instead of append
         #self.metrics_df = pd.concat([self.metrics_df, new_df], ignore_index=True)
 
         return new_df
-

@@ -44,7 +44,7 @@ MODEL:
   pretrained: True
   freeze_layers: ('layers1','layers2')  
   pretrained_path: 'c:\Users\098986\Intership_CILM\Pre_trained\model_swinvit.pt'
-  
+  weight_decay: 0.001
   num_class: 2
   num_in_channels: 1
   dropout: 0.5

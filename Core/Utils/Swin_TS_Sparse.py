@@ -66,7 +66,7 @@ class SwinSparseTransformer(nn.Module):
         img_size: Sequence[int] | int,
         in_channels: int,
         out_channels: int,
-        depths: Sequence[int] = (3, 3, 3, 3),
+        depths: Sequence[int] = (2, 2, 6, 2),
         num_heads: Sequence[int] = (3, 6, 12, 24),
         feature_size: int = 24,
         norm_name: tuple | str = "instance",
@@ -247,20 +247,6 @@ class SwinSparseTransformer(nn.Module):
         hidden_states_out = self.swinViT(x_in, self.normalize)
         #print('hidden states out',hidden_states_out.shape)
         
-        """
-        enc0 = self.encoder1(x_in)
-        enc1 = self.encoder2(hidden_states_out[0])
-        enc2 = self.encoder3(hidden_states_out[1])
-        enc3 = self.encoder4(hidden_states_out[2])
-        dec4 = self.encoder10(hidden_states_out[4])
-        dec3 = self.decoder5(dec4, hidden_states_out[3])
-        dec2 = self.decoder4(dec3, enc3)
-        dec1 = self.decoder3(dec2, enc2)
-        dec0 = self.decoder2(dec1, enc1)
-        out = self.decoder1(dec0, enc0)
-        logits = self.out(out)
-        return logits
-        """
         x = self.avgpool(hidden_states_out)
         #print('avgpool',x.shape)
         x = torch.flatten(x, 1)

@@ -66,7 +66,7 @@ class Swintransformer(nn.Module):
         img_size: Sequence[int] | int,
         in_channels: int,
         out_channels: int,
-        depths: Sequence[int] = (2, 2, 2, 2),
+        depths: Sequence[int] = (2, 2, 6, 2),
         num_heads: Sequence[int] = (3, 6, 12, 24),
         feature_size: int = 24,
         norm_name: tuple | str = "instance",

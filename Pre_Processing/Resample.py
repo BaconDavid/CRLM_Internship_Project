@@ -34,7 +34,7 @@ class Resampler:
         self.out_image = {}
         self.out_path = out_path
     
-    def resample(self,label=False,out_spacing=[0.7421875, 0.7421875, 3.0]):
+    def resample(self,label=False,out_spacing=[0.7421875, 0.7421875, 1.0]):
         resample = sitk.ResampleImageFilter()
         resample.SetOutputSpacing(out_spacing)
         print('here!')
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # 添加参数
     parser.add_argument('--input_path', required=True, type=str, help='Directory containing input images.')
     parser.add_argument('--output_path', required=True, type=str, help='Directory to save output images.')
-    parser.add_argument('--out_spacing', nargs=3, default=[0.7421875, 0.7421875, 3.0], type=float, help='Output spacing for resampling.')
+    parser.add_argument('--out_spacing', nargs=3, default=[0.7421875, 0.7421875, 1.0], type=float, help='Output spacing for resampling.')
     parser.add_argument('--interpolator', default='bspline', type=str, choices=['bspline', 'nearest'], help='Interpolator for resampling.')
 
     args = parser.parse_args()

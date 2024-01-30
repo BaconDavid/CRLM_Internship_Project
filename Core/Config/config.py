@@ -58,6 +58,7 @@ _C.MODEL.num_class = 2
 _C.MODEL.num_in_channels = 1
 _C.MODEL.dropout = 0.5
 _C.MODEL.num_out_channels = 1
+_C.MODEL.weight_decay = 0.0001
 
 
 _C.LOG = CN()

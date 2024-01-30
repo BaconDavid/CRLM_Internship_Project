@@ -72,13 +72,14 @@ def main(cfg,mode='train'):
 
         transform_param_train = {"transform_methods":[
                                 EnsureChannelFirst(),
+                                Resize((256,256,-1)),
+                                SpatialPad(padding),
+                                CenterSpatialCrop(roi_size=(256,256,64)),
                                 # Data augmentation
                                 RandZoom(prob = 0.3, min_zoom=1.0, max_zoom=1.2),
                                 RandRotate(range_z = 0.3, prob = 0.5),
                                 RandFlip(prob = 0.3),
-                                Resize((256,256,-1)),
-                                SpatialPad(padding),
-                                CenterSpatialCrop(roi_size=(256,256,64)),
+                                
                                 NormalizeIntensity(),
                                 # To tensor
                                 ToTensor()
@@ -115,7 +116,6 @@ def main(cfg,mode='train'):
 
             tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size).build_train_loader() 
             val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
-            print(len(tr_dataloader),'shit')
         else:           
             #sampler
             if cfg.DATASET.WeightedRandomSampler:
@@ -150,7 +150,7 @@ def main(cfg,mode='train'):
         #set scheduler,optimizer parameters
 
         loss_fun = Loss().build_loss()
-        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
+        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=0.001)
 
         if cfg.TRAIN.scheduler:
             scheduler_param = {'step_size':2000,'gamma':0.1}
@@ -204,7 +204,6 @@ def main(cfg,mode='train'):
             #model.eval()
             ema_model = ema.ema_model
             ema_model.eval()
-            print(ema.step,'this is ema step')
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
 
@@ -227,7 +226,7 @@ def main(cfg,mode='train'):
             val_loss_values.append(ave_loss)
 
             #save best metric
-            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1):
+            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1) or ((epoch % 20) == 0):
                 save_dict = {
                             'epoch':epoch+1,
                             'model':ema_model.state_dict(),

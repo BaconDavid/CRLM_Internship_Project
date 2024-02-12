@@ -30,7 +30,9 @@ _C.TRAIN.loss = 'CrossEntropy'
 _C.TRAIN.data_aug = True
 _C.TRAIN.Debug = False
 _C.TRAIN.scheduler = False
-#_C.TRAIN.scheduler_param = {'step_size':2000,'gamma':0.1}
+_C.TRAIN.scheduler_param = False
+_C.TRAIN.drop_out = 0.5
+_C.TRAIN.weight_decay = 0.001
 
 
 _C.VALID = CN()
@@ -80,6 +82,7 @@ _C.LABEL.label_name = None
 _C.visual_im = CN()
 _C.visual_im.visual_im = True
 _C.visual_im.visual_out_path = None
+_C.visual_im.slice = 5
 
 _C.WEIGHT = CN()
 _C.WEIGHT.weight_dir = None
@@ -89,6 +92,15 @@ _C.SAVE.save_dir = None
 _C.SAVE.save_name = None
 _C.SAVE.fold = None
 
+_C.Augmentation = CN()
+_C.Augmentation.RandZoom = 'True'
+_C.Augmentation.RandRotate = 'True'
+_C.Augmentation.RandFlip = 'True'
+_C.Augmentation.Resize = (256,256,64)
+_C.Augmentation.NormalizeIntensity = True
+_C.Augmentation.ToTensor = True
+_C.Augmentation.CenterSpatialCrop = (256,256,64)
+_C.Augmentation.SpatialPad = (256,256,64)
 
 
 

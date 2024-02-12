@@ -100,7 +100,6 @@ class Data_Download:
             else:
                 for experiment in subject.experiments.values():
                     for num,scan in enumerate(experiment.scans.values()):
-                        print('fuck')
                         try:
                             print(f"this is experiment:{experiment.label}, scan:{scan.id}")
                             self._download_single_image(experiment,scan,output_path,format)

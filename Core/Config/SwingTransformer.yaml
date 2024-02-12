@@ -1,7 +1,4 @@
 
-
-
-
 # my_project/experiment.yaml
 SYSTEM:
   NUM_GPUS: None
@@ -10,8 +7,8 @@ SYSTEM:
     
 DATA:
   Data_dir: '/data/scratch/r098986/tm_slices_lv_region_07073_windowed/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_0.csv'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_0.csv'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_3.csv'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_3.csv'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
@@ -41,14 +38,13 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
-  num_channels: 5
+
 
 MODEL:
   name: 'SwingTransformer'
   pretrained: False
   num_class: 5
   num_in_channels: 1
-  dropout: 0.5
   num_out_channels: 1
 
 LOG:
@@ -57,18 +53,29 @@ LOG:
 
 Preprocess:
   padding_size: (256,256,64)
+
   normalize: 'NormalizeIntensity'
 
 
+Augmentation:
+  SpatialPad: (256,256,64)
+  CenterSpatialCrop: (256,256,64)
+  Resize: (256,256,64)
+  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandRotate: (range_z = 0.3, prob = 0.5)
+  RandFlip: (prob = 0.3)
 
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/'
+#need to change if exp changes
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/'
   save_name: 'SwingTransformer'
+  fold : '04'
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/04/Weight/'
 
+#need to change if fold changes
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_raw_3/Visual/'
-
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/04/Visual/'
+  slice: 32

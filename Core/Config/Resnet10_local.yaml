@@ -17,16 +17,17 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 2
+  batch_size: 1
   num_epochs: 200
   optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: False
   #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
   data_aug: True
+  weight_decay: 0.001
 
 VALID:
-  batch_size: 2
+  batch_size: 1
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -55,7 +56,10 @@ Preprocess:
   padding_size: (368,368,64)
   normalize: 'NormalizeIntensity'
 
-
+Augmentation:
+  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandRotate: (range_z = 0.3, prob = 0.5)
+  RandFlip: (prob = 0.3)
 SAVE:
   save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\'
   save_name: 'Resnet_10_raw_0\'
@@ -67,4 +71,4 @@ WEIGHT:
 visual_im:
   visual_im: True
   visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Visual\'
-
+  slice: 5

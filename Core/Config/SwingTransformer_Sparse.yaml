@@ -69,4 +69,4 @@ WEIGHT:
 visual_im:
   visual_im: True
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer_sparse/SWTS_sparse_raw_2/Visual/'
-
+  slice: 5

@@ -38,6 +38,7 @@ from Core.model.Validation import Validation_loop
 from Core.Utils.Utility import Balanced_sampler, visual_input
 from Core.Config.config import get_cfg_defaults
 from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
+from Core.Utils.Data_Aug import data_aug
 
 import numpy as np
 import datetime
@@ -68,33 +69,12 @@ def main(cfg,mode='train'):
         #save results
         tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train')
         padding = cfg.Preprocess.padding_size
-        #transform methods
 
-        transform_param_train = {"transform_methods":[
-                                EnsureChannelFirst(),
-                                Resize((256,256,-1)),
-                                SpatialPad(padding),
-                                CenterSpatialCrop(roi_size=(256,256,64)),
-                                # Data augmentation
-                                RandZoom(prob = 0.3, min_zoom=1.0, max_zoom=1.2),
-                                RandRotate(range_z = 0.3, prob = 0.5),
-                                RandFlip(prob = 0.3),
-                                
-                                NormalizeIntensity(),
-                                # To tensor
-                                ToTensor()
-                                ]}
-        
-        transform_param_val = {"transform_methods":[EnsureChannelFirst(),
-                                                    Resize((256,256,-1)),
-                                                    SpatialPad(padding),
-                                                    CenterSpatialCrop((256,256,64)),
-                                                    NormalizeIntensity(),
-                                                    ToTensor()]}
-      
 
-        tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_param_train['transform_methods'],data_aug=cfg.TRAIN.data_aug,padding_size=padding)
-        val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_param_val['transform_methods'],data_aug=cfg.VALID.data_aug,padding_size=padding)
+        transform_train,transform_val = data_aug(cfg)
+
+        tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug,padding_size=padding)
+        val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug,padding_size=padding)
 
             
         if cfg.TRAIN.Debug:
@@ -150,7 +130,7 @@ def main(cfg,mode='train'):
         #set scheduler,optimizer parameters
 
         loss_fun = Loss().build_loss()
-        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=0.001)
+        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=cfg.TRAIN.weight_decay)
 
         if cfg.TRAIN.scheduler:
             scheduler_param = {'step_size':2000,'gamma':0.1}
@@ -172,7 +152,7 @@ def main(cfg,mode='train'):
                 im = torch.flip(im,[3])
                 #permute to [B,C,D,H,W]
                 im = im.permute(0,1,4,2,3)
-                visual_input(im,label,im_name,cfg.visual_im.visual_out_path)
+                visual_input(cfg,im,label,im_name)
 
         for epoch in range(cfg.TRAIN.num_epochs):
             model.train()

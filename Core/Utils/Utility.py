@@ -24,10 +24,11 @@ import numpy as np
 
 def path_check(func):
     def wrapper(*args,**kwargs):
-        #print(args,'fuck args')
-        if not os.path.exists(args[-1]):
-            os.makedirs(args[-1])
-            print(f'Create the {args[-1]} directory')
+        cfg = args[0]
+        path = cfg.visual_im.visual_out_path
+        if not os.path.exists(path):
+            os.makedirs(path)
+            print(f'Create the {path} directory')
         return func(*args,**kwargs)
     return wrapper
 
@@ -35,7 +36,7 @@ def path_check(func):
 
 
 @path_check
-def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
+def visual_input(cfg,im,label,im_name, percentage_image=1):
     """
     args:
         percentage_image: random show the percentage of image
@@ -53,7 +54,7 @@ def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
  
    
             ax = axes[col]
-            ax.imshow(im[i, 0, 32, :, :], cmap='gray')  # which slice to show
+            ax.imshow(im[i, 0, cfg.visual_im.slice, :, :], cmap='gray')  # which slice to show
             im_name_ = im_name[i].split('/')[-1]# for linux
             ax.set_title(f'Label: {im_name_} {label[i]}')
             ax.set_title(f'Label: {im_name_} {label[i]}')
@@ -63,10 +64,10 @@ def visual_input(im,label,im_name,image_visual_path, percentage_image=1):
     # layout
         plt.tight_layout()
         try:
-            plt.savefig(image_visual_path + im_name_ + '.png')
+            plt.savefig(cfg.visual_im.visual_out_path  + im_name_ + '.png')
         except:
             im_name_ = im_name[i].split('\\')[-1]#for windows
-            plt.savefig(image_visual_path + im_name_ + '.png')
+            plt.savefig(cfg.visual_im.visual_out_path + im_name_ + '.png')
         plt.close()  
 
 def apply_window_to_volume(batched_volumes, window_center, window_width):

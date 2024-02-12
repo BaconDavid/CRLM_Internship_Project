@@ -33,7 +33,7 @@ _C.TRAIN.scheduler = False
 _C.TRAIN.scheduler_param = False
 _C.TRAIN.drop_out = 0.5
 _C.TRAIN.weight_decay = 0.001
-
+_C.TRAIN.Drop_block = True
 
 _C.VALID = CN()
 _C.VALID.batch_size = 16
@@ -61,6 +61,7 @@ _C.MODEL.num_in_channels = 1
 _C.MODEL.dropout = 0.5
 _C.MODEL.num_out_channels = 1
 _C.MODEL.weight_decay = 0.0001
+_C.MODEL.drop_block = True
 
 
 _C.LOG = CN()

@@ -1,0 +1,2 @@
+epoch,class_0_tp,class_0_fp,class_0_tn,class_0_fn,class_1_tp,class_1_fp,class_1_tn,class_1_fn,accuracy,roc_auc,f1_score,loss
+200,39.0,10.0,0.0,0.0,0.0,0.0,39.0,10.0,0.7959183673469388,0.4256410256410257,0.0,0.6560498117991932

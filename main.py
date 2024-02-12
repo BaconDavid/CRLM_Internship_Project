@@ -79,8 +79,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -231,10 +231,19 @@ def main(cfg,mode='train'):
 if __name__ == "__main__":
 
     args = args.parse_args()
+    train_file = 'train_cv_' + args.fold + '.csv'
+    vali_file = 'val_cv_' + args.fold + '.csv'
 
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.config_file)
+    #which fold 
+    cfg.SAVE.fold = args.fold
+    #set train file and vali file
+    cfg.DATA.Train_dir += train_file
+    cfg.DATA.Valid_dir += vali_file 
+    cfg.visual_im.visual_out_path = os.path.join(cfg.visual_im.visual_out_path,cfg.SAVE.fold) + '//'
+    print(cfg.visual_im.visual_out_path)
     cfg.freeze()
-    print(cfg.TRAIN.lr,type(cfg.Preprocess.padding_size))
+    print(cfg.DATA.Train_dir)
     print('successfully load the config file !')
     main(cfg,mode=args.mode)

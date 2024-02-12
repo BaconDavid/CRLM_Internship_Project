@@ -974,7 +974,7 @@ class SwinTransformer(nn.Module):
         if self.use_v2:
             x0 = self.layers1c[0](x0.contiguous())
         x1 = self.layers1[0](x0.contiguous())
-        print(x1.shape,'this is x1 shape')
+        #print(x1.shape,'this is x1 shape')
         x1_out = self.proj_out(x1, normalize)
         if self.use_v2:
             x1 = self.layers2c[0](x1.contiguous())

@@ -4,6 +4,10 @@ import os
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import argparse
+import sys
+sys.setrecursionlimit(10**6)
+import threading
+threading.stack_size(2**26)
 
 
 class ImageLoad:
@@ -43,21 +47,27 @@ class Resampler:
             original_spacing = image.GetSpacing()
             new_size = [int(round(image.GetSize()[i] * original_spacing[i] / out_spacing[i])) for i in range(3)]
             #set resample parameters
-            resample.SetSize(new_size)
-            resample.SetOutputDirection(image.GetDirection())
+            #print(resample.SetOutputOrigin,'resample version')
             resample.SetOutputOrigin(image.GetOrigin())
+            #print(image.GetOrigin(),'after resample version')
+            resample.SetSize((new_size))
+           
+            resample.SetOutputDirection(image.GetDirection())
+
             resample.SetTransform(sitk.Transform())
             resample.SetDefaultPixelValue(image.GetPixelIDValue())
 
             #set interpolator
-            if label:
+            if args.label:
+                print('resample label image!')
                 resample.SetInterpolator(sitk.sitkNearestNeighbor)
             else:
                 print('here!')
                 resample.SetInterpolator(sitk.sitkBSpline)
+
             out_image = resample.Execute(image)
-            print(out_image.GetSize(),'image size:',name)
             self.image_save(out_image,name)
+            print('out_image size!',out_image.GetSize(),name)
 
     def image_save(self,out_image,name):
         sitk.WriteImage(out_image, self.out_path + name)
@@ -71,6 +81,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', required=True, type=str, help='Directory to save output images.')
     parser.add_argument('--out_spacing', nargs=3, default=[0.7421875, 0.7421875, 1.0], type=float, help='Output spacing for resampling.')
     parser.add_argument('--interpolator', default='bspline', type=str, choices=['bspline', 'nearest'], help='Interpolator for resampling.')
+    parser.add_argument('--label', default=False, help='Resample label images.',type=bool)
 
     args = parser.parse_args()
 
@@ -83,6 +94,7 @@ if __name__ == "__main__":
     image_load = ImageLoad(args.input_path)
     images_sitk = image_load.image_load()
     resampler = Resampler(images_sitk,args.output_path)
+
     resampler.resample(out_spacing=args.out_spacing)
 
 

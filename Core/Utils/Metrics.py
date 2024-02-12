@@ -50,7 +50,7 @@ class Metrics():
     def get_roc(self,average='binary'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
         y_pred_1 = self.y_pred[:,:,1].reshape(-1)
-        return roc_auc_score(self.y_true_label,self.y_pred)
+        return roc_auc_score(self.y_true_label,y_pred_1)
 
     def get_four_rate(self) -> tensor:
         """

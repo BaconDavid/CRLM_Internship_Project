@@ -9,7 +9,7 @@ from monai.networks.nets import resnet10,ResNet,ResNetBlock,ResNetBottleneck
 from Source_Code import SACNN
 
 from dropblock import DropBlock3D, LinearScheduler
-from torch import Tensor
+from torch import Tensor, dropout
 from typing import Union
 def get_inplanes():
     return [64,128,256,512]
@@ -20,10 +20,13 @@ def build_model(cfg,**kwargs):
 
 
     if cfg.MODEL.name == "Resnet10":
+        if cfg.MODEL.Drop_block:
+            print(f'Model {cfg.MODEL.name} with dropblock!')
+            return resnet10_Drop(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,drop_prob=0.9,block_size=5,**kwargs)
         return resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,**kwargs)
-    elif cfg.MODEL.drop_block:
-        return resnet10_Drop(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,**kwargs)
+        
     elif cfg.MODEL.name == "SwingTransformer":
+            print('load model',cfg.MODEL.name)
             if cfg.MODEL.pretrained:
                 freezing_layers = cfg.MODEL.freeze_layers
 
@@ -34,13 +37,14 @@ def build_model(cfg,**kwargs):
                                                                            num_heads=[3, 6, 12, 24],
                                                                            out_channels=1,
                                                                            feature_size=48,
+                                                                           drop_rate=cfg.TRAIN.drop_out,
                                                                            **kwargs)
                 model_pretrained = torch.load(cfg.MODEL.pretrained_path)
                 model.load_from(weights=model_pretrained)
                 model = freeze_layers(model,freezing_layers)
                 return model
             else:
-                return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),in_channels=1, num_classes=cfg.MODEL.num_class, num_heads=[3, 6, 12, 24],out_channels=1,**kwargs)
+                return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),in_channels=1, num_classes=cfg.MODEL.num_class, num_heads=[3, 6, 12, 24],out_channels=1,drop_rate=cfg.TRAIN.drop_out,**kwargs)
     elif cfg.MODEL.name == "SACNN":
         return SACNN.resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=True,**kwargs)
     elif cfg.MODEL.name == 'SwingTransformerSparse':

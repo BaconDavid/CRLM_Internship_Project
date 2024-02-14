@@ -21,7 +21,8 @@ from monai.transforms import (
     Resize,
     NormalizeIntensity,
     ResizeWithPadOrCrop,
-    SpatialPad
+    SpatialPad,
+    RandSpatialCrop
     )
 
 def data_aug(cfg):
@@ -48,9 +49,10 @@ def data_aug(cfg):
     elif cfg.MODEL.name == 'SwingTransformer':
         data_aug_dict_train = {
             'EnsureChannelFirst':EnsureChannelFirst(),
-             'Resize':Resize(cfg.Augmentation.Resize),
+            #'Resize':Resize(cfg.Augmentation.Resize),
              'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
-             'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
+            # 'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
+            'RandSpatialCrop':RandSpatialCrop((256,256,64),random_size=False,random_center=True),
             'RandZoom':RandZoom(prob=0.3, min_zoom=1.0, max_zoom=1.2),
             'RandRotate':RandRotate(range_z=0.3,prob=0.5),
             'RandFlip':RandFlip(prob=0.3),

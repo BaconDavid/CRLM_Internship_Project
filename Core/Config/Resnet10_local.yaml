@@ -46,7 +46,9 @@ MODEL:
   num_class: 2
   num_in_channels: 1
   dropout: 0.5
-  drop_block: True
+  Drop_block: True
+  block_size: 5
+  drop_prob: 0.9
   num_out_channels: 1
 
 LOG:
@@ -62,14 +64,14 @@ Augmentation:
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
   save_name: 'Resnet_10_raw_0\'
   fold: '01'
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\fold_0\'
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\Test_local\Visual\'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
   slice: 5

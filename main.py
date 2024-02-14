@@ -79,8 +79,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -186,6 +186,8 @@ def main(cfg,mode='train'):
             ema_model.eval()
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
+            #save predict probability
+            y_pred_array = np.array().stack(y_pred)
 
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
@@ -195,7 +197,7 @@ def main(cfg,mode='train'):
             singel_metric = metrics.generate_metrics_df(epoch+1)
             print(singel_metric,666666)
             #save prediction of validation
-            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','w') as f:
+            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','a') as f:
                 for i in range(len(metrics.y_pred_label)):
                     f.write(str(metrics.y_pred_label[i])+'\n')
             #store metrics and loss
@@ -206,6 +208,7 @@ def main(cfg,mode='train'):
             val_loss_values.append(ave_loss)
 
             #save best metric
+            """
             if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1) or ((epoch % 20) == 0):
                 save_dict = {
                             'epoch':epoch+1,
@@ -214,8 +217,9 @@ def main(cfg,mode='train'):
                             'loss':loss_fun.state_dict(),
                             'arch': cfg.MODEL.name
                         }
-                save_checkpoint(cfg.SAVE.save_dir +  cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
+                save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
                 best_metric = ave_loss
+            """
             #plot loss
             #Plot_Loss(train_loss_epoch_x_axis,epoch_loss_values,val_loss_epoch_x_axis,val_loss_values,tr_results.result_path,epoch+1)
 
@@ -241,8 +245,10 @@ if __name__ == "__main__":
     #set train file and vali file
     cfg.DATA.Train_dir += train_file
     cfg.DATA.Valid_dir += vali_file 
-    cfg.visual_im.visual_out_path = os.path.join(cfg.visual_im.visual_out_path,cfg.SAVE.fold) + '//'
+    cfg.visual_im.visual_out_path = os.path.join(cfg.visual_im.visual_out_path,args.exp_name,'Visual',cfg.SAVE.fold) + '//'
     print(cfg.visual_im.visual_out_path)
+    #set experiment name
+    cfg.SAVE.save_dir = os.path.join(cfg.SAVE.save_dir,args.exp_name) + '//'
     cfg.freeze()
     print(cfg.DATA.Train_dir)
     print('successfully load the config file !')

@@ -46,6 +46,7 @@ MODEL:
   num_class: 5
   num_in_channels: 1
   num_out_channels: 1
+  v2: True
 
 LOG:
   log_dir: ./logs

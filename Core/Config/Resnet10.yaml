@@ -46,9 +46,9 @@ MODEL:
   num_class: 2
   num_in_channels: 1
   num_out_channels: 1
-  Drop_block: True
-    blcok_size: 5
-    drop_prob: 0.9
+  Drop_block: False
+  blcok_size: 5
+  drop_prob: 0.9
 
 LOG:
   log_dir: ./logs

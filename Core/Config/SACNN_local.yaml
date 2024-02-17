@@ -24,6 +24,7 @@ TRAIN:
   loss: 'CrossEntropyLoss'
   Debug: False 
   #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
+  sceduler_name: 'WarmupCosineSchedule'
   data_aug: True
 
 VALID:

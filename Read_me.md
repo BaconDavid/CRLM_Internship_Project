@@ -36,3 +36,12 @@ If you want to run the model simply and directly , Here below are the steps:
 
 the rest of other you can keep the same. However, you can change build model, dataloader,...etc, if you want to add more model or functions.
 
+
+
+# Experiments 
+## All tumors
+## Largest tumor
+1. 20 extra slices
+## Per tumor
+1. only per tumor 
+2. per tumor bounding box

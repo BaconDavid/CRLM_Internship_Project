@@ -30,7 +30,7 @@ _C.TRAIN.loss = 'CrossEntropy'
 _C.TRAIN.data_aug = True
 _C.TRAIN.Debug = False
 _C.TRAIN.scheduler = False
-_C.TRAIN.scheduler_param = False
+_C.TRAIN.scheduler_name = 'WarmupCosineSchedule'
 _C.TRAIN.drop_out = 0.5
 _C.TRAIN.weight_decay = 0.001
 

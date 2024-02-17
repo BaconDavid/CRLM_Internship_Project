@@ -54,6 +54,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         optimizer.zero_grad()
 
+
         output = (model(im))
         loss = criterion(output,label)
         loss.backward()
@@ -65,9 +66,12 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         y_pred.append(output.cpu())
         y_true.extend(label.cpu().numpy().tolist())
         #set description for tqdm
-        train_bar.set_description(f"label:{label},step_loss:{loss},out_put_prob:{output}")
+        train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},step_loss:{loss},out_put_prob:{output}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
         optimizer.step()
+        if scheduler:
+            print('scheduler stepup')
+            scheduler.step()
         ema.update()
 
 

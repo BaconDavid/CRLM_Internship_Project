@@ -133,8 +133,9 @@ def main(cfg,mode='train'):
         optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=cfg.TRAIN.weight_decay)
 
         if cfg.TRAIN.scheduler:
-            scheduler_param = {'step_size':2000,'gamma':0.1}
-            scheduler_fun = scheduler.build_scheduler(optimizer_fun,**scheduler_param) 
+            print('scheduler is on:',cfg.TRAIN.scheduler_name)
+            scheduler_fun = scheduler.build_scheduler(cfg,optimizer_fun) 
+            print(scheduler_fun,"this is scheduler_fun")
         else:
             scheduler_fun = None
 
@@ -159,7 +160,7 @@ def main(cfg,mode='train'):
             
             train_loss_epoch_x_axis.append(epoch+1)
             val_loss_epoch_x_axis.append(epoch+1)
-            ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,scheduler=scheduler_fun,ema=ema)
+            ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
@@ -187,7 +188,6 @@ def main(cfg,mode='train'):
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
             print('this is average loss',ave_loss)
             #save predict probability
-            y_pred_array = np.array().stack(y_pred)
 
 
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)

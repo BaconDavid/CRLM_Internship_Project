@@ -52,6 +52,8 @@ class Image_Dataset(ImageDataset):
                  data_aug: bool = True,
                  label_name: str = None,
                  padding_size: tuple=(256,256,64),
+                 seg_files: bool = False,
+                 seg_transform: list = None,
                  *args,**kwargs):
         """
         Args:

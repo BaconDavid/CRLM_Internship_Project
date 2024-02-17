@@ -23,6 +23,7 @@ def build_model(cfg,**kwargs):
         if cfg.MODEL.Drop_block:
             print(f'Model {cfg.MODEL.name} with dropblock!')
             return resnet10_Drop(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,drop_prob=0.9,block_size=5,**kwargs)
+        print('load model',cfg.MODEL.name)
         return resnet10(n_input_channels=cfg.MODEL.num_in_channels, num_classes=cfg.MODEL.num_class, widen_factor=1,no_max_pool=False,**kwargs)
         
     elif cfg.MODEL.name == "SwingTransformer":

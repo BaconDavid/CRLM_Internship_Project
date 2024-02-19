@@ -105,6 +105,7 @@ _C.Augmentation.NormalizeIntensity = True
 _C.Augmentation.ToTensor = True
 _C.Augmentation.CenterSpatialCrop = (256,256,64)
 _C.Augmentation.SpatialPad = (256,256,64)
+_C.Augmentation.RandSpatialCrop = (256,256,64)
 
 
 

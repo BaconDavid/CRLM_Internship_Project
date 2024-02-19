@@ -18,11 +18,13 @@ LABEL:
 TRAIN:
   lr: 0.00001
   batch_size: 2
-  num_epochs: 200
-  optimizer: 'Adam'
+  num_epochs: 300
+  optimizer: 'SGD'
   loss: 'CrossEntropyLoss'
   Debug: False
-  scheduler: False
+  scheduler: True
+  scheduler_name: 'WarmupCosineSchedule'
+
   data_aug: True
   drop_out: 0.5
 
@@ -43,7 +45,7 @@ DATASET:
 MODEL:
   name: 'SwingTransformer'
   pretrained: False
-  num_class: 5
+  num_class: 2
   num_in_channels: 1
   num_out_channels: 1
   v2: True
@@ -65,6 +67,7 @@ Augmentation:
   RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
+  RandSpatialCrop: (256,256,64)
 
 SAVE:
 #need to change if exp changes

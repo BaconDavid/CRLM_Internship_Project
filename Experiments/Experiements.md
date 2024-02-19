@@ -35,4 +35,46 @@ No window imaging
 Data Aug
 
 
-## Exp4
+# Per tumor
+## Exp1 
+### Model
+Resnet10
+### Input
+per tumor with 20% bording for width and height, 5% slices. 
+filter tumor size < 25% quantile
+
+## Exp2
+### Model
+Resnet10
+### Input
+per tumor with bounding 64,64,32 if smaller than this bounding, otherwise keep original size.
+
+## Exp3
+### Model
+Swin-TS
+### Input
+per tumor with bounding 64,64,32 if smaller than this bounding, otherwise keep original size. filter tumor size < 25 % quantile.
+
+## Exp4 
+### Model
+Resnet10
+### Input
+Per tumor with pure HGPs Resnet
+
+## Exp5
+### Model
+Swin-TS
+### Input
+per tumor with bounding 64,64,32, padding 64,64,32
+
+## Exp6
+Per tumor bounding 64,64,32
+
+# Largest tumor
+## Exp1
+largest tumor
+## Exp2 
+### Model
+Resnet10
+### Input
+largest+pure HGPs

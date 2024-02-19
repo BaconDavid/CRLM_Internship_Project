@@ -17,18 +17,19 @@ LABEL:
   
 TRAIN:
   lr: 0.00001
-  batch_size: 2
+  batch_size: 1
   num_epochs: 200
-  optimizer: 'Adam'
+  optimizer: 'SGD'
   loss: 'CrossEntropyLoss'
   Debug: False
-  scheduler_param: False
+  scheduler: True
+  scheduler_name: 'WarmupCosineSchedule'
   data_aug: True
   drop_out: 0.5
   weight_decay: 0.0001
 
 VALID:
-  batch_size: 2
+  batch_size: 1
   loss: 'CrossEntropyLoss'
   data_aug: True
 
@@ -47,7 +48,7 @@ MODEL:
   num_in_channels: 1
   num_out_channels: 1
   Drop_block: False
-  blcok_size: 5
+  block_size: 5
   drop_prob: 0.9
 
 LOG:
@@ -62,22 +63,23 @@ Augmentation:
   RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
+  SpatialPad: (17,17,-1)
 
 
 #need to change if fold changes
 
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resize_Exp/'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   save_name: 'Resnet_10_raw_0'
   fold : '01'
 
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resize_Exp/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 #need to change if fold changes
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/Resize_Exp/Visual/'
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5
     

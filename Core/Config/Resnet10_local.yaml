@@ -6,9 +6,9 @@ SYSTEM:
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\tm_slices_lv_region_+3_07073_clipped'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\'
-  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_07071_+20/'
+  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
+  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
@@ -18,7 +18,7 @@ LABEL:
 TRAIN:
   lr: 0.00001
   batch_size: 1
-  num_epochs: 200
+  num_epochs: 3
   optimizer: 'SGD'
   loss: 'CrossEntropyLoss'
   Debug: True

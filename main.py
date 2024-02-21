@@ -63,6 +63,8 @@ def main(cfg,mode='train'):
     vali_labels = vali_data.get_labels()
     train_data.Data_check()
     vali_data.Data_check()
+    y_pred_array = np.array([])
+    y_true_array = np.array([])
     
     if mode == 'train':
 
@@ -79,8 +81,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -161,7 +163,11 @@ def main(cfg,mode='train'):
             train_loss_epoch_x_axis.append(epoch+1)
             val_loss_epoch_x_axis.append(epoch+1)
             ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-
+            #stack y_pred and y_true
+            y_pred_array_epoch = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
+            y_pred_array = np.vstack([y_pred_array,y_pred_array_epoch]) if y_pred_array.size else y_pred_array_epoch
+            y_pred_array = y_pred_array.reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
+        
             metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
             AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
@@ -186,6 +192,9 @@ def main(cfg,mode='train'):
             ema_model = ema.ema_model
             ema_model.eval()
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
+            y_pred_array = np.array(y_pred)
+            y_true_array = np.array(y_true)
+
             print('this is average loss',ave_loss)
             #save predict probability
 
@@ -220,13 +229,18 @@ def main(cfg,mode='train'):
                 save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
                 best_metric = ave_loss
             """
-            #plot loss
-            #Plot_Loss(train_loss_epoch_x_axis,epoch_loss_values,val_loss_epoch_x_axis,val_loss_values,tr_results.result_path,epoch+1)
+            #save pred numpy array
+
+            np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
 
         
 
 
-
+        #save y_pred
+        y_pred_array = y_pred_array.reshape(-1,cfg.TRAIN.num_epochs,cfg.MODEL.num_class)
+        y_true_array = y_true_array.reshape(-1,cfg.TRAIN.num_epochs,-1)
+        np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
+            
     elif mode == 'test':
         test_loop(model,dataloader,device,loss_fun,visual_input=True,visual_out_path=args.visual_out_path)
 

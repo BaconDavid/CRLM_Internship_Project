@@ -26,7 +26,7 @@ class Evaluation:
         val_accuracy= self.val_df['accuracy'].values
         plt.plot(tr_loss,label='train')
         plt.plot(val_loss,label='val')
-        plt.plot(val_accuracy,label='accuracy')
+        plt.plot(val_accuracy,label='val-accuracy')
         plt.legend()
         plt.xlabel('epoch')
         plt.ylabel('loss')

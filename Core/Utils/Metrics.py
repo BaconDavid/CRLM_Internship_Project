@@ -15,6 +15,7 @@ class Metrics():
             targets: dicts of targets and their labels
         """
         self.num_class = num_class
+        #turn into (steps,batch,out_class) prob
         self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)#Prob of samples
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
         self.y_true_label = np.array(y_true_label)
@@ -37,7 +38,8 @@ class Metrics():
             self.metrics[str(i)]['f1'] = f1_score(true_binary, pred_binary)
             self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
             self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
-
+            
+            #if have more at least 0,1 in the true_binary
             if len(np.unique(true_binary)) > 1:
                 self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))#error here should be prob of class 1
 
@@ -49,8 +51,14 @@ class Metrics():
 
     def get_roc(self,average='binary'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        y_pred_1 = self.y_pred[:,:,1].reshape(-1)
-        return roc_auc_score(self.y_true_label,y_pred_1)
+        #y_pred_1 = self.y_pred[:,:,1].reshape(-1)
+        y_pred = []
+        for i in self.num_class:
+            y_pred_i = self.y_pred[:,:,i].reshape(-1)
+            y_pred.append(y_pred_i)
+        y_pred_class = np.stack(y_pred,axis=1)
+
+        return roc_auc_score(self.y_true_label,y_pred_class,average=average)
 
     def get_four_rate(self) -> tensor:
         """

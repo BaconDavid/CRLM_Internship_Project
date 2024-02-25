@@ -26,8 +26,7 @@ from monai.transforms import (
     )
 
 def data_aug(cfg):
-    if cfg.MODEL.name == 'Resnet10':
-        
+    if cfg.MODEL.startswith('Resnet'):
         data_aug_dict_train = {
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
@@ -56,8 +55,8 @@ def data_aug(cfg):
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'Resize':Resize(cfg.Augmentation.Resize),
              'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
-            # 'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
-            'RandSpatialCrop':RandSpatialCrop(cfg.RandSpatialCrop,random_size=False,random_center=False),
+            'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
+            #'RandSpatialCrop':RandSpatialCrop(cfg.RandSpatialCrop,random_size=False,random_center=False),
             'RandZoom':RandZoom(prob=0.3, min_zoom=1.0, max_zoom=1.2),
             'RandRotate':RandRotate(range_z=0.3,prob=0.5),
             'RandFlip':RandFlip(prob=0.3),

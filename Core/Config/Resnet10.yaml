@@ -1,5 +1,11 @@
 
 # my_project/experiment.yaml
+
+###Experiment description:
+
+
+
+
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
@@ -82,4 +88,8 @@ visual_im:
   visual_im: True
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5
-    
+  
+
+WarmupCosineSchedule:
+  warmup_steps: 600
+  t_total: 2000

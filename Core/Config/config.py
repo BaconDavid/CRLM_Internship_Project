@@ -108,7 +108,9 @@ _C.Augmentation.SpatialPad = (256,256,64)
 _C.Augmentation.RandSpatialCrop = (256,256,64)
 
 
-
+_C.WarmupCosineSchedule = CN()
+_C.WarmupCosineSchedule.warmup_steps = 500
+_C.WarmupCosineSchedule.t_total = 1000
 
 
 

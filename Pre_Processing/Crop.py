@@ -15,9 +15,9 @@ import pandas as pd
 
 
 def components_to_array(components):
-    # 假设所有组件的形状都是相同的
+    #
     component_shapes = list(components.values())[0].shape
-    # 创建一个新的数组，其第一个维度是键的数量
+    
     num_components = len(components)
     new_array = np.zeros((num_components,) + component_shapes, dtype=int)
 
@@ -29,7 +29,7 @@ def components_to_array(components):
 class ImageLoad:
     def __init__(self,input_path):
         """
-        The path should only contain images
+        The path should only contain images in the same format
         """
         self.input_path = input_path
 
@@ -49,59 +49,135 @@ class ImageLoad:
         
     #def image_get_float(self):
 
-class BoundBox:
-    def __init__(self,
-                 liver_mask,
-                 liver_orig,
-                 out_path_box=None,
-                 file_name=None):
-        
-        """
-        args:
-            liver_mask: the liver mask|nib or sitk
-            original_image: the original image|nib or sitk
-        """
-    @classmethod
-    def extract(cls):
-        pass
 
-    @classmethod
-    def get_bound_box(cls):
-        pass
 
-class LiverBoundingBox(BoundBox):
+class LiverBoundingBox():
     def __init__(self, liver_mask, liver_orig, out_path_box=None, file_name=None):
-        super().__init__(liver_mask, liver_orig, out_path_box, file_name)
+        self.liver_mask = liver_mask
+        self.liver_orig = liver_orig
+        self.out_path_box = out_path_box
+        self.file_name = file_name
 
-    def extract(self):
+
+    def extract(self,largest=True):
         mask = self._get_array(self.liver_seg)
         mask = mask.astype(int)
         print(mask.shape)
         mask[mask == 2] = 0
-
+        if largest:
+            mask = self.__get_largest_part(mask)
+            return mask
+        
         return mask
     
-class TumorBoundingBox(BoundBox):
-    def __init__(self, tumor_mask, tumor_orig, out_path_box=None, file_name=None):
-        super().__init__(tumor_mask, tumor_orig, out_path_box, file_name)
-        self.mask = self.extract()
+    def get_liver_bounding_box(self):
+        image_probs = skimage.measure.regionprops((self.liver_mask))
 
-    def extract(self):
-        mask = self._get_array(self.tumor_seg)
+        # get the bounding box of the liver
+
+        if len(image_probs) == 0:
+            print(f'[WARNING] {self.file_name} no liver found')
+
+        ## find the adjacent box that contains the liver
+        for props in image_probs:
+            bbox = props.bbox
+            print(bbox)
+            min_slice, min_col, min_row, max_slice, max_col, max_row = bbox 
+            print("this is range",min_slice, min_col, min_row, max_slice, max_col, max_row)
+        return [min_slice, min_col, min_row, max_slice, max_col, max_row]
+    
+    def __get_largest_part(self,mask):
+        max_label = 0
+        max_size = 0
+        labeled,num_features = skimage.measure.label(mask, connectivity=2,return_num=True)
+
+        for label in range(1, num_features + 1):
+            label_size = np.sum(labeled == label)
+            if label_size > max_size:
+                max_label = label
+                max_size = label_size
+
+        # keep only the largest connected component
+        mask = np.where(labeled == max_label, 1, 0)
+        mask.astype(int)
+        return mask
+
+class TumorBoundingBox():
+    def __init__(self, tumor_seg_mask,file_name=None,largest=True):
+        self.seg_mask = tumor_seg_mask
+        self.file_name = file_name
+        self.tumor_mask = self.extract(largest)
+        self.largest = largest
+        
+
+    def extract(self,largest=True):
+        mask = self.seg_mask
         mask = mask.astype(int)
         mask[mask == 1] = 0
         mask[mask == 2] = 1
+        if largest:
+            mask = self.__get_largest_part(mask)
+            return mask
+        
         mask = mask.astype(int)
 
         return mask
 
-    def largest_tumor(self):
-        pass
 
     def get_bound_box(self,choice='pertumor'):
-        choices = {'per_tumor':self._get_tumor_bound_box,
-                   'all_tumor':self._get_all_tumor_bound_box,
-                   'largest_tumor':self._get_largest_tumor_bound_box}
+        choices = {'per_tumor':self.__get_per_tumor_bound_box(),}
+                   #'all_tumor':self._get_all_tumor_bound_box,
+                   #'largest_tumor':self._get_largest_tumor_bound_box}
+        return choices[choice]
+
+        
+
+    def __get_per_tumor_bound_box(self):
+        """"
+        extract a bounding box of each tumor, return a np.arrary with shape (n,min_slice,min_col,min_row,max_slice,max_col,max_row,tumor_size) for each patient
+
+        mask: mask that contains all tumors
+        
+        """
+        if self.largest:
+            raise ValueError("The mask is the largest tumor mask, cannot extract per tumor bounding box")
+        per_tumor_mask_lst = []
+        tumor_boduning_lst = []
+        labeled,num_features = skimage.measure.label(self.tumor_mask, connectivity=2,return_num=True)
+
+        for label in range(1, num_features + 1):
+            component_mask = np.where(labeled == label, 1, 0)
+            per_tumor_mask_lst.append(component_mask)
+        
+        #get tumor slices (n,d,h,w)
+        per_tumor_mask_array = np.stack(per_tumor_mask_lst)
+         # check each tumor
+        for i in range(per_tumor_mask_array.shape[0]):  # how many slices
+            tumor_slice = []
+            # get the mask of each tumor
+            tumor_mask_i = per_tumor_mask_array[i, :, :,:]
+            # check each tumor slice
+            for j in range(tumor_mask_i.shape[0]):
+                slice = tumor_mask_i[j, :, :]
+                if np.any(slice):
+                    tumor_slice.append(j)
+            # check tumor's bounding box
+            
+            ones_indices = np.argwhere(tumor_mask_i == 1)
+            if ones_indices.size > 0:
+                # max and min of the indices
+                min_z, min_y, min_x = ones_indices.min(axis=0)
+                max_z, max_y, max_x = ones_indices.max(axis=0)
+
+            #calculate tumor size
+            tumor_size = tumor_mask_i.sum()
+            
+            tumor_slice_lower = tumor_slice[0]
+            tumor_slice_upper = tumor_slice[-1]
+            tumor_boduning_lst.append((tumor_slice_lower, min_y,min_x,tumor_slice_upper,max_y,max_x,tumor_size))
+            tumor_bounding_bbx_array = np.stack(tumor_boduning_lst)
+        return tumor_bounding_bbx_array
+
 
     def __per_tumor_components(self):
         """
@@ -121,6 +197,24 @@ class TumorBoundingBox(BoundBox):
             component_mask = np.where(labeled == label, 1, 0)
             components[label] = component_mask
         return components
+
+
+    def __get_largest_part(self,mask):
+        max_label = 0
+        max_size = 0
+        labeled,num_features = skimage.measure.label(mask, connectivity=2,return_num=True)
+
+        for label in range(1, num_features + 1):
+            label_size = np.sum(labeled == label)
+            if label_size > max_size:
+                max_label = label
+                max_size = label_size
+
+        # keep only the largest connected component
+        mask = np.where(labeled == max_label, 1, 0)
+        mask.astype(int)
+        return mask
+
     
     def __per_tumor_size(self):
         pertumor_components = self.__per_tumor_components()

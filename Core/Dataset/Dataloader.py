@@ -1,3 +1,4 @@
+from SimpleITK import Mask
 from monai.transforms import Compose,SpatialPad
 from monai.data import ImageDataset,DataLoader
 import torch
@@ -35,6 +36,9 @@ class DataFiles:
     
     def get_data_path(self):
         return pd.read_csv(self.label_path)['data_path'].values.tolist()
+    
+    def get_masks(self):
+        return pd.read_csv(self.label_path)['mask_path'].values.tolist()
 
     def Data_check(self):
         assert len(self.get_images()) == len(self.get_labels()) , 'The number of images and labels are not equal'
@@ -51,9 +55,10 @@ class Image_Dataset(ImageDataset):
                  transform_methods=None,
                  data_aug: bool = True,
                  label_name: str = None,
-                 padding_size: tuple=(256,256,64),
                  seg_files: bool = False,
                  seg_transform: list = None,
+                 
+                 
                  *args,**kwargs):
         """
         Args:
@@ -70,18 +75,19 @@ class Image_Dataset(ImageDataset):
             transform = None
 
         super().__init__(image_files=image_files,labels=labels,transform=transform,*args, **kwargs)
-        self.padding_size = padding_size
+    
 
     def __getitem__(self,index,*args,**kwargs):
         output = super().__getitem__(index,*args,**kwargs)
-        im,label = output[0],output[1]
+        #im,label,mask = output[0],output[1],output[2]
         img_name = self.image_files[index]
         #print(im.shape)
         #if self.padding_size:
         #    padder = SpatialPad(self.padding_size)
         #    im = padder(im)
-        output = (im,label,img_name)
-        return output
+        output = list(output).append(img_name)
+
+        return tuple(output)
 
 
 class Data_Loader(DataLoader):

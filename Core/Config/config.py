@@ -18,6 +18,7 @@ _C.DATA.Data_dir = None
 _C.DATA.Train_dir = None
 _C.DATA.Valid_dir = None
 _C.DATA.Test_dir = None
+_C.DATA.Data_mask_dir = None
 
 _C.TRAIN = CN()
 # A very important hyperparameter
@@ -49,7 +50,7 @@ _C.DATASET = CN()
 _C.DATASET.WeightedRandomSampler = False
 _C.DATASET.num_classes = 2
 _C.DATASET.num_channels = 3
-
+_C.DATASET.mask = True
 
 _C.MODEL = CN()
 _C.MODEL.name = 'Resnet10'

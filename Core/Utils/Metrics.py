@@ -49,16 +49,12 @@ class Metrics():
 
 
 
-    def get_roc(self,average='binary'):
+    def get_roc(self,average='weighted'):
         #return compute_roc_auc(self.y_pred_one_hot,self.y_true_one_hot,average)
-        #y_pred_1 = self.y_pred[:,:,1].reshape(-1)
-        y_pred = []
-        for i in self.num_class:
-            y_pred_i = self.y_pred[:,:,i].reshape(-1)
-            y_pred.append(y_pred_i)
-        y_pred_class = np.stack(y_pred,axis=1)
+        positive_class = self.num_class - 1
+        y_pred_pos = self.y_pred[:,:,positive_class].reshape(-1)
 
-        return roc_auc_score(self.y_true_label,y_pred_class,average=average)
+        return roc_auc_score(self.y_true_one_hot[:,positive_class],y_pred_pos,average=average)
 
     def get_four_rate(self) -> tensor:
         """

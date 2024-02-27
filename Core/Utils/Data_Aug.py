@@ -26,7 +26,7 @@ from monai.transforms import (
     )
 
 def data_aug(cfg):
-    if cfg.MODEL.startswith('Resnet'):
+    if cfg.MODEL.name.startswith('Resnet'):
         data_aug_dict_train = {
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
@@ -50,7 +50,7 @@ def data_aug(cfg):
 
 
 
-    elif cfg.MODEL.name == 'SwingTransformer':
+    elif cfg.MODEL.name.startswith('Swin'):
         data_aug_dict_train = {
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'Resize':Resize(cfg.Augmentation.Resize),

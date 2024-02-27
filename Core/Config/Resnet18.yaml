@@ -1,30 +1,26 @@
 
 # my_project/experiment.yaml
 
-###Experiment description:
 
-
-
-
-
+# largest tumor with extra 5 slices upper and down side. Only pure HGP types are used
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_07071_windowed_+20/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
-  Data_mask_dir: '.'
+
 
 LABEL:
   label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
   
 TRAIN:
-  lr: 0.00001
+  lr: 0.0001
   batch_size: 1
   num_epochs: 300
   optimizer: 'SGD'
@@ -34,7 +30,7 @@ TRAIN:
   scheduler_name: 'WarmupCosineSchedule'
   data_aug: True
   drop_out: 0.0
-  weight_decay: 0.0001
+  weight_decay: 0.001
 
 VALID:
   batch_size: 1
@@ -48,10 +44,9 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
-  mask: True
 
 MODEL:
-  name: 'Resnet10'
+  name: 'Resnet18'
   pretrained: False
   num_class: 2
   num_in_channels: 1
@@ -69,10 +64,10 @@ Preprocess:
   normalize: 'NormalizeIntensity'
 
 Augmentation:
-  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandZoom: (prob = 0.5, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
-  RandFlip: (prob = 0.3)
-  SpatialPad: (17,17,-1)
+  RandFlip: (prob = 0.5)
+  SpatialPad: None
 
 
 #need to change if fold changes
@@ -83,6 +78,10 @@ SAVE:
   fold : '01'
 
 
+WarmupCosineSchedule:
+  warmup_steps: 300
+  t_total: 18000
+
 WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 #need to change if fold changes
@@ -90,9 +89,5 @@ WEIGHT:
 visual_im:
   visual_im: True
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
-  slice: 5
-  
-
-WarmupCosineSchedule:
-  warmup_steps: 600
-  t_total: 2000
+  slice: 1
+    

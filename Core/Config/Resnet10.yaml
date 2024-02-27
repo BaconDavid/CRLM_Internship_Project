@@ -46,6 +46,7 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
+  mask: True
 
 MODEL:
   name: 'Resnet10'

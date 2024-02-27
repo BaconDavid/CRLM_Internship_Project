@@ -49,6 +49,7 @@ _C.DATASET = CN()
 _C.DATASET.WeightedRandomSampler = False
 _C.DATASET.num_classes = 2
 _C.DATASET.num_channels = 3
+_C.DATASET.mask = True
 
 
 _C.MODEL = CN()

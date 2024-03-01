@@ -57,6 +57,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
 
         output = (model(im))
         loss = criterion(output,label)
+        print(output.shape,label.shape,'shape')
         loss.backward()
 
         average_loss += loss.item()

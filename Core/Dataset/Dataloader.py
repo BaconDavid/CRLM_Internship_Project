@@ -79,15 +79,15 @@ class Image_Dataset(ImageDataset):
 
     def __getitem__(self,index,*args,**kwargs):
         output = super().__getitem__(index,*args,**kwargs)
-        #im,label,mask = output[0],output[1],output[2]
+        im,label = output[0],output[1]
         img_name = self.image_files[index]
         #print(im.shape)
         #if self.padding_size:
         #    padder = SpatialPad(self.padding_size)
         #    im = padder(im)
-        output = list(output).append(img_name)
+        
 
-        return tuple(output)
+        return im,label,img_name
 
 
 class Data_Loader(DataLoader):

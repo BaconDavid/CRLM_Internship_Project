@@ -4,11 +4,11 @@ SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cpu'
   NUM_WORKERS: 8
-    
+
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\train_cv_0.csv'
-  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\val_cv_0.csv'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_07071_+20/'
+  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
+  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
@@ -38,10 +38,11 @@ DATASET:
   WeightedRandomSampler: True
   num_classes: 2
   num_channels: 1
+  mask: False
 
 MODEL:
   name: 'SwingTransformer'
-  pretrained: True
+  pretrained: False
   freeze_layers: ('layers1','layers2')  
   pretrained_path: 'c:\Users\098986\Intership_CILM\Pre_trained\model_swinvit.pt'
   weight_decay: 0.001
@@ -60,15 +61,15 @@ Preprocess:
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\'
-  save_name: 'SwingTransformer\'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\'
+  save_name: 'SwingTransformer'
   fold: '01'
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\fold_0\'
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\Visual\'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\'
 
 

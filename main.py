@@ -63,18 +63,15 @@ def main(cfg,mode='train'):
 
 
     data_path = cfg.DATA.Data_dir
-    mask_path = cfg.DATA.Data_mask_dir
     train_data_label = cfg.DATA.Train_dir
     vali_data_label = cfg.DATA.Valid_dir
     label_name = cfg.LABEL.label_name
     train_data = DataFiles(data_path,train_data_label,label_name)
     vali_data = DataFiles(data_path,vali_data_label,label_name)
-    train_mask = DataFiles(mask_path,train_data_label,label_name)
-    vali_mask = DataFiles(mask_path,vali_data_label,label_name)
+    
     train_images = sorted(train_data.get_images())
     train_labels = train_data.get_labels()
-    train_masks = train_mask.get_masks()
-    vali_masks = vali_mask.get_masks()
+   
     vali_images = sorted(vali_data.get_images())
     vali_labels = vali_data.get_labels()
     train_data.Data_check()
@@ -90,6 +87,11 @@ def main(cfg,mode='train'):
 
         transform_train,transform_val = data_aug(cfg)
         if cfg.DATASET.mask:
+            mask_path = cfg.DATA.Data_mask_dir
+            train_mask = DataFiles(mask_path,train_data_label,label_name)
+            vali_mask = DataFiles(mask_path,vali_data_label,label_name)
+            train_masks = train_mask.get_masks()
+            vali_masks = vali_mask.get_masks()
             tr_dataset = Image_Dataset(image_files=train_images,seg_files=train_masks,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
             val_dataset = Image_Dataset(image_files=vali_images,seg_files=vali_masks,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
         else:

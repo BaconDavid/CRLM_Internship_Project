@@ -54,6 +54,7 @@ _C.DATASET.num_classes = 2
 _C.DATASET.num_channels = 3
 _C.DATASET.mask = True
 
+
 _C.MODEL = CN()
 _C.MODEL.name = 'Resnet10'
 _C.MODEL.pretrained = False

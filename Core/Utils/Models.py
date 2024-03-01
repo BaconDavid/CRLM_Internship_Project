@@ -1,3 +1,4 @@
+from asyncio import tasks
 import sys
 import os
 import torch
@@ -5,14 +6,92 @@ sys.path.append("..") # Adds higher directory to python modules path.
 import Swin_Transformer_Classification,Swin_TS_Sparse
 from typing import Any
 
-from monai.networks.nets import resnet10,ResNet,ResNetBlock,ResNetBottleneck,resnet18
+#from monai.networks.nets import resnet10,ResNet,ResNetBlock,ResNetBottleneck,resnet18
+from Resnet import resnet10,resnet18
 from Source_Code import SACNN
 
 from dropblock import DropBlock3D, LinearScheduler
 from torch import Tensor, dropout
 from typing import Union
 
+class Model:
+    def __init__(self,cfg) -> None:
+        """
+        cfg:config file
+        """
+        self.cfg = cfg
 
+   
+    def build_model(self):
+        if self.cfg.MODEL.name.startswith('Resnet'):
+            model = ResNet(self.cfg).build_model()
+            return model
+        elif self.cfg.MODEL.name.startswith('SwinTrans'):
+            model = SwinTransformer(self.cfg).build_model()
+            return model
+        else:
+            raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+        
+class ResNet(Model):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
+    
+    def build_model(self,**kwargs):
+        if self.cfg.MODEL.name == "Resnet10":
+            return resnet10(n_input_channels=self.cfg.MODEL.num_in_channels,
+                             num_classes=self.cfg.MODEL.num_class,
+                               widen_factor=1,
+                               no_max_pool=False,
+                               drop_rate = self.cfg.MODEL.drop_out,
+                               task = self.cfg.MODEL.task,
+                               **kwargs)
+        elif self.cfg.MODEL.name == "Resnet18":
+            return resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
+                            num_classes=self.cfg.MODEL.num_class, 
+                            widen_factor=1,
+                            no_max_pool=False,
+                            drop_rate = self.cfg.MODEL.drop_out,
+                            tasks = self.cfg.MODEL.task,
+                            **kwargs)
+    
+    #def __get_inplanes(self):
+        #return [64,128,256,512]
+
+
+
+
+
+
+class SwinTransformer(Model):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
+    
+    def build_model(self,**kwargs):
+        if self.cfg.MODEL.name == "SwinTransformer":
+            return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),
+                                                                   in_channels=self.cfg.MODEL.num_in_channels, 
+                                                                   num_classes=self.cfg.MODEL.num_class,
+                                                                     num_heads=[3, 6, 12, 24],
+                                                                     out_channels=1,
+                                                                     dropout = self.cfg.MODEL.dropout,
+                                                                     **kwargs)
+        elif self.cfg.MODEL.name == "SwinTransformerSparse":
+            return Swin_TS_Sparse.SwinSparseTransformer(in_channels=self.cfg.MODEL.num_in_channels,
+                                                          num_classes=self.cfg.MODEL.num_class,
+                                                          img_size=(64,256,256),
+                                                          num_heads=[3, 6, 12, 24],
+                                                          out_channels=1,
+                                                          dropout = self.cfg.MODEL.dropout,
+                                                          **kwargs)
+        else:
+            raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+    
+
+class ResnetAttention(ResNet):
+    pass
+
+class ResnetDrop(ResNet):
+    pass
 
 
 def get_inplanes():
@@ -68,7 +147,8 @@ def freeze_layers(model,freeze_layers):
     return model
 
 
-
+"""
+thi is dropblock implementation
 class ResNetCustom(ResNet):
 
     def __init__(self, block,layers, block_inplanes,drop_prob=0., block_size=5,*args,**kwargs):
@@ -123,7 +203,7 @@ def _resnet_drop(
             "here: https://github.com/Tencent/MedicalNet/tree/18c8bb6cd564eb1b964bffef1f4c2283f1ae6e7b#update20190730"
         )
     return model
-
+"""
 def resnet10_Drop(pretrained: bool = False, progress: bool = True, drop_prob=0,block_size=5,**kwargs: Any) -> ResNet:
     """ResNet-10 with optional pretrained support when `spatial_dims` is 3.
 

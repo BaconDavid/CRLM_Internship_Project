@@ -14,12 +14,16 @@ DATA:
 LABEL:
   label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
-  
+
+LOSS:
+  loss_mode: 'classification'
+  loss_name: 'CrossEntropyLoss'
+
 TRAIN:
   lr: 0.00001
   batch_size: 2
   num_epochs: 300
-  optimizer: 'SGD'
+  optimizer: 'Adam'
   loss: 'CrossEntropyLoss'
   Debug: False
   scheduler: True

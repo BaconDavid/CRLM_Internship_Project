@@ -41,7 +41,9 @@ _C.VALID.batch_size = 16
 _C.VALID.loss = 'CrossEntropy'
 _C.VALID.data_aug = False
 
-
+_C.LOSS = CN()
+_C.LOSS.loss_mode = 'classification'
+_C.LOSS.loss_name = 'CrossEntropy'
 _C.TEST = CN()
 _C.TEST.batch_size = 16
 _C.TEST.loss = 'CrossEntropy'
@@ -59,13 +61,14 @@ _C.MODEL.freeze_layers = None
 _C.MODEL.pretrained_path = None
 _C.MODEL.num_class = 2
 _C.MODEL.num_in_channels = 1
-_C.MODEL.dropout = 0.5
+_C.MODEL.drop_out = 0.5
 _C.MODEL.num_out_channels = 1
 _C.MODEL.weight_decay = 0.0001
 _C.MODEL.Drop_block = True
 _C.MODEL.block_size = 5
 _C.MODEL.drop_prob = 0.9
 _C.MODEL.v2 = False
+_C.MODEL.task = 'classification'
 
 
 _C.LOG = CN()
@@ -80,7 +83,6 @@ _C.Preprocess.normalize = 'NormalizeIntensity()'
 _C.Preprocess.padding_size = None
 
 _C.LABEL = CN()
-_C.LABEL.label_dir = None
 _C.LABEL.label_name = None
 
 

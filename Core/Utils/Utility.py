@@ -36,11 +36,49 @@ def path_check(func):
 
 
 @path_check
-def visual_input(cfg,im,label,im_name, percentage_image=1):
+def visual_input(cfg,data_loader, percentage_image=1):
     """
     args:
         percentage_image: random show the percentage of image
         image_visual_path: path to save the image
+    """
+    # get image,label,im_name
+   
+    for data in data_loader:
+        if cfg.DATASET.mask:
+            im,label,im_name,mask = data
+        else:
+            im,label,im_name = data
+        batch_size = im.shape[0]
+        #rotate and flip
+        im = torch.rot90(im,k=3,dims=(2,3))
+        im = torch.flip(im,[3])
+        #permute to [B,C,D,H,W]
+        im = im.permute(0,1,4,2,3)
+        rows = math.ceil(batch_size/2)
+        fig, axes = plt.subplots(rows, 2, figsize=(10, rows * 5))
+
+        for i in range(batch_size):
+            col = i % 2
+
+
+            ax = axes[col]
+            ax.imshow(im[i, 0, cfg.visual_im.slice, :, :], cmap='gray')  # which slice to show
+            im_name_ = im_name[i].split('/')[-1]# for linux
+            ax.set_title(f'Label: {im_name_} {label[i]}')
+            ax.set_title(f'Label: {im_name_} {label[i]}')
+            
+            ax.axis('off')  # close axias
+
+    # layout
+        plt.tight_layout()
+        try:
+            plt.savefig(cfg.visual_im.visual_out_path  + im_name_ + '.png')
+        except:
+            im_name_ = im_name[i].split('\\')[-1]#for windows
+            plt.savefig(cfg.visual_im.visual_out_path + im_name_ + '.png')
+        plt.close()  
+    
     """
     # save the image
     if_show = np.random.choice([True, False], p=[percentage_image, 1 - percentage_image])
@@ -69,7 +107,7 @@ def visual_input(cfg,im,label,im_name, percentage_image=1):
             im_name_ = im_name[i].split('\\')[-1]#for windows
             plt.savefig(cfg.visual_im.visual_out_path + im_name_ + '.png')
         plt.close()  
-
+    """
 def apply_window_to_volume(batched_volumes, window_center, window_width):
     """
     Apply windowing to a batch of 3D volumes.

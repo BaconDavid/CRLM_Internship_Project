@@ -31,13 +31,17 @@ class DataFiles:
         filenames = self.get_data_path()
         return [os.path.join(self.data_path, filename) for filename in filenames]
 
+    def get_masks(self):
+        filenames = self.get_mask_path()
+        return [os.path.join(self.data_path, filename) for filename in filenames]
+
     def get_labels(self):
         return pd.read_csv(self.label_path)[self.label_name].values.tolist()
     
     def get_data_path(self):
         return pd.read_csv(self.label_path)['data_path'].values.tolist()
     
-    def get_masks(self):
+    def get_mask_path(self):
         return pd.read_csv(self.label_path)['mask_path'].values.tolist()
 
     def Data_check(self):
@@ -54,19 +58,16 @@ class Image_Dataset(ImageDataset):
                  labels: list,
                  transform_methods=None,
                  data_aug: bool = True,
-                 label_name: str = None,
-                 seg_files: bool = False,
+                 seg_files: list = None,
                  seg_transform: list = None,
-                 
-                 
-                 *args,**kwargs):
+                 *args,
+                 **kwargs):
         """
         Args:
             image_files: list of image files
             labels: list of labels
             transform_methods: list of transform methods
             data_aug: bool, whether to do data augmentation
-            label_name: name of the label
             padding_size: tuple, the size of padding. For models that require fixed size
         """
         if data_aug:
@@ -74,20 +75,27 @@ class Image_Dataset(ImageDataset):
         else:
             transform = None
 
-        super().__init__(image_files=image_files,labels=labels,transform=transform,*args, **kwargs)
+        super().__init__(image_files=image_files,
+                            labels=labels,
+                            transform=transform,
+                            seg_files=seg_files,
+                            seg_transform=transform,
+                         *args,
+                           **kwargs)
     
 
     def __getitem__(self,index,*args,**kwargs):
         output = super().__getitem__(index,*args,**kwargs)
-        #im,label,mask = output[0],output[1],output[2]
         img_name = self.image_files[index]
-        #print(im.shape)
-        #if self.padding_size:
-        #    padder = SpatialPad(self.padding_size)
-        #    im = padder(im)
-        output = list(output).append(img_name)
 
-        return tuple(output)
+        if self.seg_files:
+            im,mask,label = output[0],output[1],output[2]
+            return im,label,img_name,mask
+        else:
+            im,label = output[0],output[1]
+            return im,label,img_name
+
+        
 
 
 class Data_Loader(DataLoader):

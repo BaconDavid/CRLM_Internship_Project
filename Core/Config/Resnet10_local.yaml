@@ -6,21 +6,25 @@ SYSTEM:
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_07071_+20/'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
-  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_window_+5\'
+  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
+  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
+  Data_mask_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_mask_+5\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
-  label_dir: 
-  label_name: 'HGP_Type'
-  
+  label_name: 'dHGP'
+
+LOSS:
+  loss_mode: 'regression'
+  loss_name: 'MSE'
+
 TRAIN:
   lr: 0.00001
   batch_size: 1
   num_epochs: 3
   optimizer: 'SGD'
-  loss: 'CrossEntropyLoss'
+  #loss: 'CrossEntropyLoss'
   Debug: True
   scheduler: True
   scheduler_name: 'WarmupCosineSchedule'
@@ -38,16 +42,17 @@ TEST:
   loss: 'CrossEntropyLoss'
 
 DATASET:
-  WeightedRandomSampler: True
+  WeightedRandomSampler: False
   num_classes: 2
   num_channels: 1
 
 MODEL:
   name: 'Resnet10'
+  task: 'regression'
   pretrained: False
-  num_class: 2
-  num_in_channels: 1
-  dropout: 0.5
+  num_class: 1
+  num_in_channels: 2
+  drop_out: 0.0
   Drop_block: False
   block_size: 5
   drop_prob: 0.9

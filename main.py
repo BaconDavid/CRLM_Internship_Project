@@ -25,7 +25,7 @@ from monai.transforms import (
     )
 from monai.data import ImageDataset,DataLoader
 
-from Core.Utils.Models import build_model
+from Core.Utils.Models import Model
 from Core.Utils import args
 from Core.Utils.Metrics import Metrics
 from Core.Utils.Utility import SaveResults
@@ -136,7 +136,7 @@ def main(cfg,mode='train'):
         
         #set model
      
-        model = build_model(cfg)
+        model = Model(cfg).build_model()
         model.to(cfg.SYSTEM.DEVICE)
         
         ## add exponential moving average
@@ -150,7 +150,7 @@ def main(cfg,mode='train'):
         
         #set scheduler,optimizer parameters
 
-        loss_fun = Loss().build_loss()
+        loss_fun = Loss(cfg).build_loss()
         optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=cfg.TRAIN.weight_decay)
 
         if cfg.TRAIN.scheduler:
@@ -168,13 +168,8 @@ def main(cfg,mode='train'):
          
         #visualize input
         if cfg.visual_im.visual_im:
-            for im,label,im_name in tr_dataloader:
-                #rotate and flip
-                im = torch.rot90(im,k=3,dims=(2,3))
-                im = torch.flip(im,[3])
-                #permute to [B,C,D,H,W]
-                im = im.permute(0,1,4,2,3)
-                visual_input(cfg,im,label,im_name)
+           
+            visual_input(cfg,tr_dataloader)
 
         for epoch in range(cfg.TRAIN.num_epochs):
             model.train()

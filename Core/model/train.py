@@ -1,5 +1,6 @@
 import sys
 import os
+from numpy import mask_indices
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
 from tqdm import tqdm
@@ -40,8 +41,16 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     print(f"epoch {epoch_num+1}")
     print("##################")
     #model = model.to(device)
-    for i,(im,label,_) in enumerate(train_bar):
- 
+    for i,data in enumerate(train_bar):
+        if cfg.DATASET.mask:
+            im,label,_,mask = data
+            #stack channel
+            im = torch.cat((im,mask),dim=1)
+        else:
+            im,label,_ = data
+            #make the same as the model output
+            
+        label = label.unsqueeze(1)
 
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))
@@ -52,16 +61,21 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
 
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
+        im,label = im.float(),label.float()
         optimizer.zero_grad()
-
+        
 
         output = (model(im))
+        print('output',output.shape,label.shape)
         loss = criterion(output,label)
         loss.backward()
 
-        average_loss += loss.item()
-        output = torch.nn.functional.softmax(output,dim=1)
 
+        average_loss += loss.item()
+        if cfg.MODEL.task == 'classification':
+            output = torch.nn.functional.softmax(output,dim=1)
+        else:
+            output = torch.nn.functional.sigmoid(output)
         #softmax probability
         y_pred.append(output.cpu())
         y_true.extend(label.cpu().numpy().tolist())

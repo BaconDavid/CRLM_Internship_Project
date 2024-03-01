@@ -23,6 +23,10 @@ LABEL:
   label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
   
+LOSS:
+  loss_mode: 'classification'
+  loss_name: 'CrossEntropyLoss'
+
 TRAIN:
   lr: 0.00001
   batch_size: 1

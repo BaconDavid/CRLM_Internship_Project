@@ -48,9 +48,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             im = torch.cat((im,mask),dim=1)
         else:
             im,label,_ = data
-            #make the same as the model output
-            
-        label = label.unsqueeze(1)
+    
+        
+        #make the same as the model output
+        if cfg.MODEL.task == 'regression':
+            label = label.unsqueeze(1)
 
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))

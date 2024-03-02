@@ -13,14 +13,13 @@ SYSTEM:
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_07071_windowed_+20/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
-  Data_mask_dir: '.'
+  Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
 
 LABEL:
-  label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
   
 LOSS:
@@ -56,13 +55,14 @@ DATASET:
 
 MODEL:
   name: 'Resnet10'
+  task: 'classification'
   pretrained: False
   num_class: 2
-  num_in_channels: 1
+  num_in_channels: 2
   num_out_channels: 1
   Drop_block: False
-  block_size: 5
-  drop_prob: 0.9
+  #block_size: 5
+ # drop_prob: 0.9
 
 LOG:
   log_dir: ./logs
@@ -76,7 +76,7 @@ Augmentation:
   RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
-  SpatialPad: (17,17,-1)
+  #SpatialPad: (17,17,-1)
 
 
 #need to change if fold changes
@@ -98,5 +98,5 @@ visual_im:
   
 
 WarmupCosineSchedule:
-  warmup_steps: 600
-  t_total: 2000
+  warmup_steps: 1000
+  t_total: 24000

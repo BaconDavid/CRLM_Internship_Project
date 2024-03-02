@@ -43,7 +43,7 @@ class ResNet(Model):
                             widen_factor=1,
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
-                            tasks = self.cfg.MODEL.task,
+                            task = self.cfg.MODEL.task,
                             **kwargs)
         elif self.cfg.MODEL.name == "Resnet18":
             return resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
@@ -51,7 +51,7 @@ class ResNet(Model):
                             widen_factor=1,
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
-                            tasks = self.cfg.MODEL.task,
+                            task = self.cfg.MODEL.task,
                             **kwargs)
     
     #def __get_inplanes(self):

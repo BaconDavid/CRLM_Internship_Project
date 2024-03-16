@@ -5,6 +5,9 @@ from monai.metrics import get_confusion_matrix,compute_roc_auc
 from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_score
 from torch import tensor
 from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+
 
 class Metrics():
     def __init__(self,num_class=2,y_pred=None,y_true_label=None,targets=None):
@@ -16,6 +19,7 @@ class Metrics():
         """
         self.num_class = num_class
         #turn into (steps,batch,out_class) prob
+        #[batch,sample,class]
         self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)#Prob of samples
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
         self.y_true_label = np.array(y_true_label)
@@ -81,7 +85,9 @@ class Metrics():
         return accuracy
     
     def get_f1_score(self,average='binary') -> float:
-        return f1_score(self.y_true_label,self.y_pred_label,average=average)
+        positive_class = self.num_class - 1
+        y_pred_pos = self.y_pred[:,:,positive_class].reshape(-1)
+        return f1_score(self.y_true_one_hot[:,positive_class],self.y_pred_one_hot[:,positive_class],average=average)
     
 
     def generate_metrics_df(self, epoch):
@@ -92,6 +98,53 @@ class Metrics():
             data_row.update({"class_id": class_id})  # add class_id
             data_row.update(class_metrics)  # add metrics
             metrics_data.append(data_row)
+
+        # Create new df
+        new_df = pd.DataFrame(metrics_data)
+    # Using concat instead of append
+        #self.metrics_df = pd.concat([self.metrics_df, new_df], ignore_index=True)
+
+        return new_df
+    #for regression
+
+class Metrics_regression:
+    def __init__(self,y_pred,y_true) -> None:
+        self.y_pred = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)#Prob of samples
+        self.y_pred = self.y_pred.reshape(-1)
+        self.y_true = np.array(y_true)
+
+    def calculate_metrics(self):
+        # Calculate Mean Squared Error
+        mse = mean_squared_error(self.y_true, self.y_pred)
+        
+        # Calculate Root Mean Squared Error
+        rmse = np.sqrt(mse)
+        
+        # Calculate Mean Absolute Error
+        mae = mean_absolute_error(self.y_true, self.y_pred)
+        
+        # Calculate R^2 Score
+        r2 = r2_score(self.y_true, self.y_pred)
+
+        # Store the metrics in a dictionary
+        self.metrics = {
+            'MSE': mse,
+            'RMSE': rmse,
+            'MAE': mae,
+            'R2': r2
+        }
+
+        return self.metrics
+    
+    
+    def generate_metrics_df(self, epoch):
+        # 
+        metrics_data = []
+        data_row = {"epoch": epoch}
+        for class_metrics,value in self.metrics.items():
+              # addepoch
+            data_row[class_metrics] = value  # add class_id  # add metrics
+        metrics_data.append(data_row)
 
         # Create new df
         new_df = pd.DataFrame(metrics_data)

@@ -52,7 +52,10 @@ def Validation_loop(cfg,model,dataloader,criterion):
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         #print('validation',im.shape,label)
-
+        if cfg.MODEL.task == 'classification':
+            label = label.long()
+        else:
+            label = label.float()
         with torch.no_grad():
             output = (model(im))
 
@@ -60,9 +63,12 @@ def Validation_loop(cfg,model,dataloader,criterion):
             average_loss += loss.item()
 
             #softmax probability
-            output = torch.nn.functional.softmax(output,dim=1)
-            #print('this is output',output)
+            if cfg.MODEL.task == 'classification':
 
+                output = torch.nn.functional.softmax(output,dim=1)
+            #print('this is output',output)
+            else:
+                pass
     
 
         #softmax probability

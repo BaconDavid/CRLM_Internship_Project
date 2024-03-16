@@ -203,7 +203,8 @@ class ResNet(nn.Module):
         feed_forward: bool = True,
         bias_downsample: bool = True,
         drop_rate: float = 0.5,
-        task: str = 'classification' # for backwards compatibility (also see PR #5477)
+        task: str = 'classification', # for backwards compatibility (also see PR #5477)
+        selective: bool = False,
     ) -> None:
         super().__init__()
 
@@ -228,7 +229,8 @@ class ResNet(nn.Module):
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
         self.bias_downsample = bias_downsample
-
+        self.drop_rate = drop_rate
+        self.selective = selective
         conv1_kernel_size = ensure_tuple_rep(conv1_t_size, spatial_dims)
         conv1_stride = ensure_tuple_rep(conv1_t_stride, spatial_dims)
 
@@ -320,19 +322,23 @@ class ResNet(nn.Module):
             x = self.maxpool(x)
 
         x = self.layer1(x)
-        print(x.shape)
+        #print(x.shape)
         x = self.layer2(x)
-        print(x.shape)
+        #print(x.shape)
         x = self.layer3(x)
-        print(x.shape)
+       # print(x.shape)
         x = self.layer4(x)
-        print(x.shape)
+       # print(x.shape)
 
         x = self.avgpool(x)
+        if self.selective:
+            return x
+        else:
+            x = x.view(x.size(0), -1)
+            if self.fc is not None:
+                x = nn.Dropout(self.drop_rate)(x)
+                x = self.fc(x)
 
-        x = x.view(x.size(0), -1)
-        if self.fc is not None:
-            x = self.fc(x)
 
         return x
 

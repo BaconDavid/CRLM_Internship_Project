@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import sys
 import os
 from numpy import mask_indices
@@ -14,7 +15,7 @@ from Utils.Metrics import Metrics
 from Utils.Utility import apply_window_to_volume
 from ema_pytorch import EMA
 
-
+import numpy as np
 
 def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None):
     """
@@ -45,6 +46,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             im,label,_,mask = data
             #stack channel
             im = torch.cat((im,mask),dim=1)
+            
         else:
             im,label,_ = data
     
@@ -62,23 +64,44 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
 
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
-        im,label = im.float(),label.float()
+        if cfg.MODEL.task == 'classification':
+            label = label.long()
+        else:
+            label = label.float()
         optimizer.zero_grad()
         
+        if cfg.MODEL.task == 'selective':
+            output = model(im)
+            out_class,out_select,out_aux = output
+            loss_dict = OrderedDict()
+            # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
+            selective_loss, loss_dict = criterion(out_class, out_select, label)
+            selective_loss *= cfg.LOSS.alpha
+            loss_dict['selective_loss'] = selective_loss.detach().cpu().item()
+            # compute standard cross entropy loss
+            ce_loss = torch.nn.CrossEntropyLoss()(out_aux, label)
+            ce_loss *= (1.0 - cfg.LOSS.alpha)
 
-        output = (model(im))
-        print('output',output.shape,label.shape)
-        loss = criterion(output,label)
-        loss.backward()
-
-
-        average_loss += loss.item()
-        if cfg.MODEL.task == 'classification':
+            loss_dict['ce_loss'] = ce_loss.detach().cpu().item()
+            
+            # total loss
+            loss = selective_loss + ce_loss
+            loss_dict['loss'] = loss.detach().cpu().item()
+            average_loss += loss_dict['loss']
+            loss.backward()
+        else:
+            output = model(im)
+        #print('output',output.shape,label.shape)
+            loss = criterion(output,label)
+            loss.backward()
+            average_loss += loss.item()
+        if cfg.MODEL.task == 'classification' or cfg.MODEL.task == 'selective':
             output = torch.nn.functional.softmax(output,dim=1)
         else:
-            output = torch.nn.functional.sigmoid(output)
+            #output = torch.nn.functional.sigmoid(output)
+            pass
         #softmax probability
-        y_pred.append(output.cpu())
+        y_pred.append(i for i in output.cpu())
         y_true.extend(label.cpu().numpy().tolist())
         #set description for tqdm
         train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},step_loss:{loss},out_put_prob:{output}")

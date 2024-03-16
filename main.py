@@ -1,4 +1,5 @@
 import os
+from cv2 import sort
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import torch
@@ -27,7 +28,7 @@ from monai.data import ImageDataset,DataLoader
 
 from Core.Utils.Models import Model
 from Core.Utils import args
-from Core.Utils.Metrics import Metrics
+from Core.Utils.Metrics import Metrics,Metrics_regression
 from Core.Utils.Utility import SaveResults
 from Core.model.checkpoint import save_checkpoint,load_checkpoint
 from Core.Utils import Swin_Transformer_Classification
@@ -83,7 +84,6 @@ def main(cfg,mode='train'):
 
         #save results
         tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train')
-        padding = cfg.Preprocess.padding_size
 
 
         transform_train,transform_val = data_aug(cfg)
@@ -92,6 +92,8 @@ def main(cfg,mode='train'):
             vali_mask = DataFiles(mask_path,vali_data_label,label_name)
             train_masks = train_mask.get_masks()
             vali_masks = vali_mask.get_masks()
+            train_masks = sorted(train_masks)
+            vali_masks = sorted(vali_masks)
             tr_dataset = Image_Dataset(image_files=train_images,seg_files=train_masks,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
             val_dataset = Image_Dataset(image_files=vali_images,seg_files=vali_masks,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
         else:
@@ -182,17 +184,26 @@ def main(cfg,mode='train'):
             #stack y_pred and y_true
             
           
-        
-            metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
-            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
+            if cfg.MODEL.task == 'classification':
+                metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
+                AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
-            metrics.calculate_metrics()
-            singel_metric = metrics.generate_metrics_df(epoch+1)
+                metrics.calculate_metrics()
+                singel_metric = metrics.generate_metrics_df(epoch+1)
 
-            #save loss and metrics
-            tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
-            tr_results.store_results(singel_metric,'Four_rate')
-            epoch_loss_values.append(ave_loss)
+                #save loss and metrics
+                tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
+                tr_results.store_results(singel_metric,'Four_rate')
+                epoch_loss_values.append(ave_loss)
+            elif cfg.MODEL.task == 'regression':
+                metrics = Metrics_regression(y_pred,y_true)
+                metrics.calculate_metrics()
+                singel_metric = metrics.generate_metrics_df(epoch+1)
+                tr_results.store_results(singel_metric,'metrics')
+            elif cfg.MODEL.task == 'selective':
+                pass
+                #metrcis = Metrics_Reg(cfg.MODEL.num_class,y_pred,y_true)
+
 
     ###########validation##############
             #save results
@@ -216,23 +227,30 @@ def main(cfg,mode='train'):
             print('this is average loss',ave_loss)
             #save predict probability
 
+            if cfg.MODEL.task == 'classification':
+                metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
+                print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
+                AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
+                metrics.calculate_metrics()
+                singel_metric = metrics.generate_metrics_df(epoch+1)
+                print(singel_metric,666666)
+                #save prediction of validation
+                with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','a') as f:
+                    for i in range(len(metrics.y_pred_label)):
+                        f.write(str(metrics.y_pred_label[i])+'\n')
+                #store metrics and loss
+                val_results.store_results(val_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch+1),'metrics')
+                #store four rates
+                val_results.store_results(singel_metric,'four rates')
 
-            metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
-            print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-            AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
-            metrics.calculate_metrics()
-            singel_metric = metrics.generate_metrics_df(epoch+1)
-            print(singel_metric,666666)
-            #save prediction of validation
-            with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','a') as f:
-                for i in range(len(metrics.y_pred_label)):
-                    f.write(str(metrics.y_pred_label[i])+'\n')
-            #store metrics and loss
-            val_results.store_results(val_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch+1),'metrics')
-            #store four rates
-            val_results.store_results(singel_metric,'four rates')
+                val_loss_values.append(ave_loss)
+            else:
+                metrics = Metrics_regression(y_pred,y_true)
+                metrics.calculate_metrics()
+                singel_metric = metrics.generate_metrics_df(epoch+1)
+                val_results.store_results(singel_metric,'metrics')
 
-            val_loss_values.append(ave_loss)
+                
 
             #save best metric
             """

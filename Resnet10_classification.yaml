@@ -3,7 +3,7 @@
 
 ###Experiment description:
 
-
+#Train:Val 0.75:0.25
 
 
 
@@ -14,10 +14,10 @@ SYSTEM:
     
 DATA:
   Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/largest_tumor_quantile_25_dHGP_lower_50/'
+  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/largest_tumor_quantile_25_dHGP_lower_50/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
-  Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
+  Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_mask_+5/'
 
 LABEL:
   label_name: 'HGP_Type'
@@ -27,7 +27,7 @@ LOSS:
   loss_name: 'CrossEntropyLoss'
 
 TRAIN:
-  lr: 0.00001
+  lr: 0.0001
   batch_size: 1
   num_epochs: 300
   optimizer: 'SGD'
@@ -51,14 +51,14 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
-  mask: True
+  mask: False
 
 MODEL:
   name: 'Resnet10'
   task: 'classification'
   pretrained: False
   num_class: 2
-  num_in_channels: 2
+  num_in_channels: 1
   num_out_channels: 1
   Drop_block: False
   #block_size: 5
@@ -74,7 +74,7 @@ Preprocess:
 
 Augmentation:
   RandZoom: (prob = 0.5, min_zoom=1.0, max_zoom=1.2)
-  RandRotate: (range_z = 0.5, prob = 0.5)
+  RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.5)
   #SpatialPad: (17,17,-1)
 
@@ -98,5 +98,5 @@ visual_im:
   
 
 WarmupCosineSchedule:
-  warmup_steps: 1000
-  t_total: 24000
+  warmup_steps: 2000
+  t_total: 60000

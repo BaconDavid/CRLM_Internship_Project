@@ -3,7 +3,7 @@ import sys
 import os
 import torch
 sys.path.append("..") # Adds higher directory to python modules path.
-import Swin_Transformer_Classification,Swin_TS_Sparse
+import Swin_Transformer_Classification,Swin_TS_Sparse,SelectiveNet
 from typing import Any
 
 #from monai.networks.nets import resnet10,ResNet,ResNetBlock,ResNetBottleneck,resnet18
@@ -13,6 +13,7 @@ from Source_Code import SACNN
 from dropblock import DropBlock3D, LinearScheduler
 from torch import Tensor, dropout
 from typing import Union
+
 
 class Model:
     def __init__(self,cfg) -> None:
@@ -25,12 +26,17 @@ class Model:
     def build_model(self):
         if self.cfg.MODEL.name.startswith('Resnet'):
             model = ResNet(self.cfg).build_model()
-            return model
+            
         elif self.cfg.MODEL.name.startswith('SwinTrans'):
             model = SwinTransformer(self.cfg).build_model()
-            return model
+            
+        elif self.cfg.MODEL.name.startswith('SelectiveNet'):
+            if self.cfg.MODEL.feature_model.startswith('Resnet'):
+                feature_model = ResNet(self.cfg).build_model()
+                model = SelectiveModel(self.cfg,feature_model).build_model()
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+        return model
         
 class ResNet(Model):
     def __init__(self,cfg) -> None:
@@ -91,6 +97,17 @@ class ResnetAttention(ResNet):
 
 class ResnetDrop(ResNet):
     pass
+
+class SelectiveModel(Model):
+    def __init__(self,cfg,feature_model) -> None:
+        super().__init__(cfg,feature_model)
+    
+    def build_model(self):
+        if self.cfg.MODEL.name.startswith('SelectiveNet'):
+            return SelectiveNet(self.feature_model,self.cfg.MODEL.num_class,self.MODEL.feature_dims)
+        else:
+            raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+
 
 """
 

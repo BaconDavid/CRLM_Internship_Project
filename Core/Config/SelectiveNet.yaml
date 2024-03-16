@@ -23,8 +23,11 @@ LABEL:
   label_name: 'HGP_Type'
   
 LOSS:
-  loss_mode: 'classification'
+  loss_mode: 'SelectiveLoss'
   loss_name: 'CrossEntropyLoss'
+  loss_lm : 32
+  loss_coverage: 0.5
+  alpha: 0.5
 
 TRAIN:
   lr: 0.00001
@@ -54,13 +57,16 @@ DATASET:
   mask: True
 
 MODEL:
-  name: 'Resnet10'
-  task: 'classification'
+  name: 'SelectiveNet'
+  #which main body block
+  feature_model: 'Resnet10'
+  task: 'selective'
   pretrained: False
   num_class: 2
   num_in_channels: 2
   num_out_channels: 1
   Drop_block: False
+  feature_dims: 512
   #block_size: 5
  # drop_prob: 0.9
 

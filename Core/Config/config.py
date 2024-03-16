@@ -44,9 +44,15 @@ _C.VALID.data_aug = False
 _C.LOSS = CN()
 _C.LOSS.loss_mode = 'classification'
 _C.LOSS.loss_name = 'CrossEntropy'
+_C.LOSS.loss_lm = 32
+_C.LOSS.loss_coverage = 0.5
+_C.LOSS.alpha = 0.5
+
+
 _C.TEST = CN()
 _C.TEST.batch_size = 16
 _C.TEST.loss = 'CrossEntropy'
+
 
 _C.DATASET = CN()
 _C.DATASET.WeightedRandomSampler = False
@@ -70,6 +76,8 @@ _C.MODEL.block_size = 5
 _C.MODEL.drop_prob = 0.9
 _C.MODEL.v2 = False
 _C.MODEL.task = 'classification'
+_C.MODEL.feature_model = 'Resnet10'
+_C.MODEL.feature_dims = 512
 
 
 _C.LOG = CN()

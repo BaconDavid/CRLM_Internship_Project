@@ -7,34 +7,59 @@ SYSTEM:
     
 DATA:
   Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_window_+5\'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
-  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
+  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
+  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
   Data_mask_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_mask_+5\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   
 LABEL:
-  label_name: 'dHGP'
+  label_name: 'HGP_Type'
 
+#LOSS's task should be classification, selective, regression
 LOSS:
-  loss_mode: 'regression'
-  loss_name: 'MSE'
+  task: 'selective'
+
+  RegressionLoss:
+    loss: 'MSE'
+
+#loss should be GamblerLoss or SelectiveLoss
+  SelectiveLoss:
+    loss: 'SelectiveLoss'
+
+    GamblerLoss:
+      
+      reward: 1.2
+      
+    SelectiveNetLoss:
+      loss: 'SelectiveLoss'
+
+  ClassificationLoss:
+    loss: 'CrossEntropyLoss'
 
 TRAIN:
-  lr: 0.00001
   batch_size: 1
-  num_epochs: 3
-  optimizer: 'SGD'
-  #loss: 'CrossEntropyLoss'
-  Debug: True
+  num_epochs: 2
+  Debug: False
+  data_aug: True
+  
+Scheduler:
   scheduler: True
   scheduler_name: 'WarmupCosineSchedule'
-  #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
-  data_aug: True
+
+  WarmupCosineScheduler:
+    warmup_steps: 2000
+    t_total: 20000
+
+Optimizer:
+  name: 'SGD'
+  lr: 0.00001
   weight_decay: 0.001
+  
+  SGD:
+    momentum: 0.9
 
 VALID:
   batch_size: 1
-  loss: 'CrossEntropyLoss'
   data_aug: True
 
 TEST:
@@ -47,17 +72,29 @@ DATASET:
   num_channels: 1
   mask: True
 
+## task should be claaification, selective, regression
 MODEL:
+  task: 'selective'
   name: 'Resnet10'
-  task: 'regression'
   pretrained: False
-  num_class: 1
+  num_class: 2
   num_in_channels: 2
   drop_out: 0.0
+  #only for dropblock
   Drop_block: False
   block_size: 5
   drop_prob: 0.9
+  ###
   num_out_channels: 1
+  # output of last layer
+  feature_dims: 512
+
+  Gambler:
+    pretrain_epochs: 30
+  
+  SelectiveNet:
+    alpha: 0.5
+    coverage: 0.5
 
 LOG:
   log_dir: ./logs
@@ -71,10 +108,11 @@ Augmentation:
   RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
+  
 SAVE:
   save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
-  save_name: 'Resnet_10_raw_0\'
-  fold: '01'
+  save_name: ''
+  fold: ''
 
 WEIGHT:
   weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'

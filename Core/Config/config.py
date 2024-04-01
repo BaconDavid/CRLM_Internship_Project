@@ -1,4 +1,5 @@
 # my_project/config.py
+from re import T
 from yacs.config import CfgNode as CN
 
 
@@ -15,10 +16,13 @@ _C.SYSTEM.DEVICE = 'cuda'
 _C.DATA = CN()
 # The path to the data directory
 _C.DATA.Data_dir = None
-_C.DATA.Train_dir = None
-_C.DATA.Valid_dir = None
-_C.DATA.Test_dir = None
+# The path to the label directory
 _C.DATA.Data_mask_dir = None
+# Train and vali csv file
+_C.DATA.Train_file = None
+_C.DATA.Valid_file = None
+_C.DATA.Test_dir = None
+
 
 _C.TRAIN = CN()
 # A very important hyperparameter
@@ -26,14 +30,27 @@ _C.TRAIN.lr = 0.001
 # The all important scales for the stuff
 _C.TRAIN.batch_size = 16
 _C.TRAIN.num_epochs = 20
-_C.TRAIN.optimizer = 'Adam'
-_C.TRAIN.loss = 'CrossEntropy'
+
 _C.TRAIN.data_aug = True
 _C.TRAIN.Debug = False
-_C.TRAIN.scheduler = False
-_C.TRAIN.scheduler_name = 'WarmupCosineSchedule'
 _C.TRAIN.drop_out = 0.5
-_C.TRAIN.weight_decay = 0.001
+
+
+_C.Optimizer = CN()
+_C.Optimizer.name = 'SGD'
+_C.Optimizer.lr = 0.001
+_C.Optimizer.weight_decay = 0.0001
+_C.Optimizer.SGD = CN()
+_C.Optimizer.SGD.momentum = 0.9
+
+
+_C.Scheduler = CN()
+_C.Scheduler.scheduler = True
+_C.Scheduler.scheduler_name = 'WarmupCosineSchedule'
+_C.Scheduler.WarmupCosineScheduler = CN()
+_C.Scheduler.WarmupCosineScheduler.warmup_steps = 500
+_C.Scheduler.WarmupCosineScheduler.t_total = 1000
+
 
 
 _C.VALID = CN()
@@ -42,11 +59,21 @@ _C.VALID.loss = 'CrossEntropy'
 _C.VALID.data_aug = False
 
 _C.LOSS = CN()
-_C.LOSS.loss_mode = 'classification'
-_C.LOSS.loss_name = 'CrossEntropy'
-_C.LOSS.loss_lm = 32
-_C.LOSS.loss_coverage = 0.5
-_C.LOSS.alpha = 0.5
+_C.LOSS.task = 'classification'
+
+_C.LOSS.RegressionLoss = CN()
+_C.LOSS.RegressionLoss.loss = 'MSE'
+
+_C.LOSS.ClassificationLoss = CN()
+_C.LOSS.ClassificationLoss.loss = 'CrossEntropy'
+_C.LOSS.SelectiveLoss = CN()
+_C.LOSS.SelectiveLoss.loss = 'GamblersLoss'
+_C.LOSS.SelectiveLoss.GamblerLoss = CN()
+_C.LOSS.SelectiveLoss.GamblerLoss.reward = 1.2
+
+_C.LOSS.SelectiveLoss.SelectiveNetLoss = CN()
+_C.LOSS.SelectiveLoss.SelectiveNetLoss.loss = 'SelectiveLoss'
+
 
 
 _C.TEST = CN()
@@ -78,6 +105,11 @@ _C.MODEL.v2 = False
 _C.MODEL.task = 'classification'
 _C.MODEL.feature_model = 'Resnet10'
 _C.MODEL.feature_dims = 512
+_C.MODEL.Gambler = CN()
+_C.MODEL.Gambler.pretrain_epochs = 30
+_C.MODEL.SelectiveNet = CN()
+_C.MODEL.SelectiveNet.alpha = 0.5
+_C.MODEL.SelectiveNet.coverage = 0.5
 
 
 _C.LOG = CN()

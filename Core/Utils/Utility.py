@@ -1,5 +1,6 @@
 
 from collections import OrderedDict
+from typing import ChainMap
 import torch
 from torch import tensor
 from torch.utils.data import WeightedRandomSampler
@@ -45,41 +46,63 @@ def visual_input(cfg,data_loader, percentage_image=1):
     """
     # get image,label,im_name
    
+    # Iterate through each batch in the data loader
     for data in data_loader:
         if cfg.DATASET.mask:
-            im,label,im_name,mask = data
+            # Masks are included in the dataset
+            print("yes!")
+            # Unpack the batch to obtain the image, label, image name, and mask
+            im, label, im_name, mask = data
+            # Concatenate the image and mask for visualization
+            im = torch.cat((im, mask), dim=1)
+            # Note: No need to concatenate along the channel dimension if visualizing side by side
         else:
-            im,label,im_name = data
+            # Unpack the batch without masks
+            im, label, im_name = data
+
         batch_size = im.shape[0]
+        # Determine the number of columns for the subplot
+        num_columns = 2 if cfg.DATASET.mask else 1
+        # Calculate the number of rows needed for subplots based on the batch size and presence of masks
+        rows = batch_size
+          
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))
         im = torch.flip(im,[3])
         #permute to [B,C,D,H,W]
         im = im.permute(0,1,4,2,3)
-        rows = math.ceil(batch_size/2)
-        fig, axes = plt.subplots(rows, 2, figsize=(10, rows * 5))
 
+        # Create subplots
+
+   
+        
         for i in range(batch_size):
-            col = i % 2
+            fig, axs = plt.subplots(1, 2 if cfg.DATASET.mask else 1, figsize=(10, 5))
 
+            # Original Image
+            ax = axs[0] if isinstance(axs, np.ndarray) else axs  # 兼容只有一列时的情况
+            ax.imshow(im[i, 0, cfg.visual_im.slice, :, :], cmap='gray')
+            ax.set_title(f'Original: {im_name[i]}')
+            ax.axis('off')
 
-            ax = axes[col]
-            ax.imshow(im[i, 0, cfg.visual_im.slice, :, :], cmap='gray')  # which slice to show
-            im_name_ = im_name[i].split('/')[-1]# for linux
-            ax.set_title(f'Label: {im_name_} {label[i]}')
-            ax.set_title(f'Label: {im_name_} {label[i]}')
-            
-            ax.axis('off')  # close axias
+            if cfg.DATASET.mask:
+                # Mask Image
+                ax = axs[1] if isinstance(axs, np.ndarray) else axs  # 这里不需要更改，只是为了说明
+                ax.imshow(im[i, 1, cfg.visual_im.slice, :, :], cmap='gray')
+                ax.set_title(f'Mask: {im_name[i]}')
+                ax.axis('off')
 
-    # layout
-        plt.tight_layout()
-        try:
-            plt.savefig(cfg.visual_im.visual_out_path  + im_name_ + '.png')
-        except:
-            im_name_ = im_name[i].split('\\')[-1]#for windows
-            plt.savefig(cfg.visual_im.visual_out_path + im_name_ + '.png')
-        plt.close()  
-    
+            plt.tight_layout()
+
+            # 使用os.path来处理文件路径，确保兼容性
+            # 从im_name[i]获取文件名，支持不同操作系统的路径分隔符
+            file_name = os.path.basename(im_name[i])
+            # 构建完整的文件保存路径
+            save_path = os.path.join(cfg.visual_im.visual_out_path, file_name + '.png')
+            # 保存图像
+            plt.savefig(save_path)
+            plt.close(fig)  # 关闭当前图表
+
    
 def apply_window_to_volume(batched_volumes, window_center, window_width):
     """
@@ -163,8 +186,10 @@ class SaveResults:
             os.makedirs(self.result_path)
             print(f'Create the {self.result_path} directory')
 
+class Metric_Gambler:
+    pass
 
-class Evaluator(object):
+class Metric_SENet(object):
     def __init__(self, prediction_out, t, selection_out=None, selection_threshold:float=0.5):
         """
         Args:

@@ -1,8 +1,10 @@
 from asyncio import tasks
+import re
 import sys
 import os
 import torch
 sys.path.append("..") # Adds higher directory to python modules path.
+from Core.Utils import Resnet
 import Swin_Transformer_Classification,Swin_TS_Sparse,SelectiveNet
 from typing import Any
 
@@ -23,21 +25,45 @@ class Model:
         self.cfg = cfg
 
    
-    def build_model(self):
-        if self.cfg.MODEL.name.startswith('Resnet'):
-            model = ResNet(self.cfg).build_model()
+    def build_model(self,**kwargs):
+        if self.cfg.MODEL.task == 'classification':
+            return ClassificationModel(self.cfg).build_model(**kwargs)
+        
+        #elif self.cfg.MODEL.name.startswith('SwinTrans'):
+        #    model = SwinTransformer(self.cfg).build_model(**kwargs)
             
-        elif self.cfg.MODEL.name.startswith('SwinTrans'):
-            model = SwinTransformer(self.cfg).build_model()
-            
-        elif self.cfg.MODEL.name.startswith('SelectiveNet'):
-            if self.cfg.MODEL.feature_model.startswith('Resnet'):
-                feature_model = ResNet(self.cfg).build_model()
-                model = SelectiveModel(self.cfg,feature_model).build_model()
+        elif self.cfg.MODEL.task == 'selective':
+            return SelectiveModel(self.cfg).build_model(**kwargs)
+
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
         return model
-        
+
+class ClassificationModel(Model):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
+    
+    def build_model(self):
+        if self.cfg.MODEL.name.startswith('Resnet'):
+            model = ResNet(self.cfg).build_model()
+        elif self.cfg.MODEL.name.startswith('SwinTrans'):
+            model = SwinTransformer(self.cfg).build_model()
+        else:
+            raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+        return model
+    
+class SelectiveModel(Model):
+    def __init__(self, cfg) -> None:
+        super().__init__(cfg)
+    
+    def build_model(self,**kwargs):
+        #check which selectivenet
+        if self.cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+            return GamblerNet(self.cfg).build_model(**kwargs)
+        elif self.cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+            return SelectiveNet(self.cfg).build_model(**kwargs)
+
+
 class ResNet(Model):
     def __init__(self,cfg) -> None:
         super().__init__(cfg)
@@ -50,6 +76,7 @@ class ResNet(Model):
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
                             task = self.cfg.MODEL.task,
+                            selectivenet = self.cfg.LOSS.SelectiveLoss.loss,
                             **kwargs)
         elif self.cfg.MODEL.name == "Resnet18":
             return resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
@@ -58,6 +85,7 @@ class ResNet(Model):
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
                             task = self.cfg.MODEL.task,
+                            selectivenet = self.cfg.LOSS.SelectiveLoss.loss,
                             **kwargs)
     
     #def __get_inplanes(self):
@@ -98,16 +126,44 @@ class ResnetAttention(ResNet):
 class ResnetDrop(ResNet):
     pass
 
-class SelectiveModel(Model):
-    def __init__(self,cfg,feature_model) -> None:
-        super().__init__(cfg,feature_model)
+class SelectiveNet(Model):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
     
-    def build_model(self):
-        if self.cfg.MODEL.name.startswith('SelectiveNet'):
-            return SelectiveNet(self.feature_model,self.cfg.MODEL.num_class,self.MODEL.feature_dims)
+    def build_model(self,**kwargs):
+        if self.cfg.MODEL.name.startswith('Resnet'):
+            if self.cfg.MODEL.name.startswith('Resnet'): # choose main body of the model
+                model = ResNet(self.cfg).build_model()
+                return model
+                
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
 
+class GamblerNet(Model):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
+    
+    def build_model(self,**kwargs):
+        if self.cfg.MODEL.name.startswith('Resnet'):
+            if self.cfg.MODEL.name == "Resnet10":
+                model = resnet10(n_input_channels=self.cfg.MODEL.num_in_channels,
+                                num_classes=self.cfg.MODEL.num_class + 1,
+                                widen_factor=1,
+                                no_max_pool=False,
+                                drop_rate=self.cfg.MODEL.drop_out,
+                                task=self.cfg.MODEL.task,
+                                **kwargs)
+            elif self.cfg.MODEL.name == "Resnet18":
+                model = resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
+                            num_classes=self.cfg.MODEL.num_class + 1, 
+                            widen_factor=1,
+                            no_max_pool=False,
+                            drop_rate=self.cfg.MODEL.drop_out,
+                            task=self.cfg.MODEL.task,
+                            **kwargs)
+        return model
+    
+      
 
 """
 

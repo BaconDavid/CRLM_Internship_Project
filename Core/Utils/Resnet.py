@@ -204,7 +204,8 @@ class ResNet(nn.Module):
         bias_downsample: bool = True,
         drop_rate: float = 0.5,
         task: str = 'classification', # for backwards compatibility (also see PR #5477)
-        selective: bool = False,
+        selectivenet: bool = False,
+        
     ) -> None:
         super().__init__()
 
@@ -230,7 +231,7 @@ class ResNet(nn.Module):
         self.no_max_pool = no_max_pool
         self.bias_downsample = bias_downsample
         self.drop_rate = drop_rate
-        self.selective = selective
+        self.selectivenet = selectivenet
         conv1_kernel_size = ensure_tuple_rep(conv1_t_size, spatial_dims)
         conv1_stride = ensure_tuple_rep(conv1_t_stride, spatial_dims)
 
@@ -250,7 +251,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2)
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
-        if task == "classification":
+        if task == "classification" or task == 'selective':
             self.fc = nn.Linear(block_inplanes[3] * block.expansion, num_classes) if feed_forward else None
         else:
             self.fc = nn.Linear(block_inplanes[3] * block.expansion, 1) if feed_forward else None
@@ -331,8 +332,27 @@ class ResNet(nn.Module):
        # print(x.shape)
 
         x = self.avgpool(x)
-        if self.selective:
-            return x
+
+        if self.selectivenet: 
+            x = x.view(x.size(0), -1)
+            print(x.size(),'xsize')
+            self.classifier = torch.nn.Sequential(self.fc)
+
+            self.selector = torch.nn.Sequential(
+            torch.nn.Linear(x.size(1), x.size(1)),
+            torch.nn.ReLU(True),
+            torch.nn.InstanceNorm1d(x.shape),
+            torch.nn.Linear(x.size(1), 1),
+            torch.nn.Sigmoid()
+        )
+            # represented as h() in the original paper
+            self.aux_classifier = torch.nn.Sequential(
+                self.fc
+            )
+            pre_out = self.classifier(x)
+            select_out = self.selector(x)
+            aux_out = self.aux_classifier(x)
+            return pre_out, select_out, aux_out
         else:
             x = x.view(x.size(0), -1)
             if self.fc is not None:
@@ -341,6 +361,8 @@ class ResNet(nn.Module):
 
 
         return x
+
+
 
 
 def _resnet(

@@ -28,7 +28,7 @@ from monai.data import ImageDataset,DataLoader
 
 from Core.Utils.Models import Model
 from Core.Utils import args
-from Core.Utils.Metrics import Metrics,Metrics_regression
+from Core.Utils.Metrics import ClassificationMetrics, Metrics,SelectiveMetrics
 from Core.Utils.Utility import SaveResults
 from Core.model.checkpoint import save_checkpoint,load_checkpoint
 from Core.Utils import Swin_Transformer_Classification
@@ -65,8 +65,8 @@ def main(cfg,mode='train'):
 
     data_path = cfg.DATA.Data_dir
     mask_path = cfg.DATA.Data_mask_dir
-    train_data_label = cfg.DATA.Train_dir
-    vali_data_label = cfg.DATA.Valid_dir
+    train_data_label = cfg.DATA.Train_file
+    vali_data_label = cfg.DATA.Valid_file
     label_name = cfg.LABEL.label_name
     train_data = DataFiles(data_path,train_data_label,label_name)
     vali_data = DataFiles(data_path,vali_data_label,label_name)
@@ -104,8 +104,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.02)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.02)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.1)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.1)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -155,10 +155,10 @@ def main(cfg,mode='train'):
         #set scheduler,optimizer parameters
 
         loss_fun = Loss(cfg).build_loss()
-        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters(),weight_decay=cfg.TRAIN.weight_decay)
+        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
 
-        if cfg.TRAIN.scheduler:
-            print('scheduler is on:',cfg.TRAIN.scheduler_name)
+        if cfg.Scheduler.scheduler:
+            print('scheduler is on:',cfg.Scheduler.scheduler_name)
             scheduler_fun = scheduler.build_scheduler(cfg,optimizer_fun) 
             print(scheduler_fun,"this is scheduler_fun")
         else:
@@ -180,28 +180,45 @@ def main(cfg,mode='train'):
             
             train_loss_epoch_x_axis.append(epoch+1)
             val_loss_epoch_x_axis.append(epoch+1)
-            ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
+            #average 
+            #ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
             #stack y_pred and y_true
             
           
             if cfg.MODEL.task == 'classification':
-                metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
-                AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
+                ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
+                print(y_pred)
+                metrics = ClassificationMetrics(y_true,y_pred,ave_loss,cfg.MODEL.num_class)
+                #AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
                 metrics.calculate_metrics()
+                metrics.get_four_rate()
                 singel_metric = metrics.generate_metrics_df(epoch+1)
+                four_rate_metric = metrics.generate_four_rate_df(epoch+1)
 
                 #save loss and metrics
-                tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
-                tr_results.store_results(singel_metric,'Four_rate')
-                epoch_loss_values.append(ave_loss)
+                #tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
+                tr_results.store_results(singel_metric,'metrics')
+                tr_results.store_results(four_rate_metric,'four rates')
+
             elif cfg.MODEL.task == 'regression':
                 metrics = Metrics_regression(y_pred,y_true)
                 metrics.calculate_metrics()
                 singel_metric = metrics.generate_metrics_df(epoch+1)
                 tr_results.store_results(singel_metric,'metrics')
+
             elif cfg.MODEL.task == 'selective':
-                pass
+                if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                    ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
+                    metrics = SelectiveMetrics(y_true,y_pred,ave_loss,num_class=cfg.MODEL.num_class,coverage=[(i+1)/10 for i in range(10)])
+                    metrics.calculate_selected_metrics()
+                    singel_metric = metrics.generate_metrics_df(epoch+1)
+                    tr_results.store_results(singel_metric,'metrics')
+                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                    pass
+            
+            epoch_loss_values.append(ave_loss)
+                
                 #metrcis = Metrics_Reg(cfg.MODEL.num_class,y_pred,y_true)
 
 
@@ -219,31 +236,43 @@ def main(cfg,mode='train'):
             ema_model.eval()
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
 
-            #get [samples,classes_prob]
-            y_pred_array = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
-            y_pred_lst.append(y_pred_array)
-
 
             print('this is average loss',ave_loss)
             #save predict probability
 
             if cfg.MODEL.task == 'classification':
-                metrics = Metrics(cfg.MODEL.num_class,y_pred,y_true)
-                print(f'this is y_true_lst:{metrics.y_true_label},this is y_pred_list{metrics.y_pred_label}')
-                AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
+                metrics = ClassificationMetrics(y_true,y_pred,ave_loss,cfg.MODEL.num_class)
+                print(f'this is y_true_lst:{metrics.y_true},this is y_pred_list{metrics.y_pred_label}')
+                #AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
                 metrics.calculate_metrics()
+                metrics.get_four_rate()
                 singel_metric = metrics.generate_metrics_df(epoch+1)
-                print(singel_metric,666666)
-                #save prediction of validation
-                with open(cfg.SAVE.save_dir + cfg.SAVE.fold +'/'+f'vali_pred_.txt','a') as f:
-                    for i in range(len(metrics.y_pred_label)):
-                        f.write(str(metrics.y_pred_label[i])+'\n')
-                #store metrics and loss
-                val_results.store_results(val_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch+1),'metrics')
+                four_rate_metric = metrics.generate_four_rate_df(epoch+1)
+
+                y_pred_array = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
+                y_pred_lst.append(y_pred_array)
+
+                
+                print(singel_metric)
+
+
                 #store four rates
-                val_results.store_results(singel_metric,'four rates')
+                val_results.store_results(singel_metric,'metrics')
+                val_results.store_results(four_rate_metric,'four rates')
 
                 val_loss_values.append(ave_loss)
+
+            elif cfg.MODEL.task == 'selective':
+                if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                    metrics = SelectiveMetrics(y_true,y_pred,ave_loss,num_class=cfg.MODEL.num_class,coverage=[(i+1)/10 for i in range(0,10,3)])
+                    metrics.calculate_selected_metrics()
+                    singel_metric = metrics.generate_metrics_df(epoch+1)
+                    val_results.store_results(singel_metric,'metrics')
+                    y_pred_array = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
+                    y_pred_lst.append(y_pred_array)
+                    val_loss_values.append(ave_loss)
+
+
             else:
                 metrics = Metrics_regression(y_pred,y_true)
                 metrics.calculate_metrics()
@@ -271,10 +300,17 @@ def main(cfg,mode='train'):
         
 
   
-        #stack y_pred_lst
-        y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
-        #y_true_array = y_true_array.reshape(-1,cfg.TRAIN.num_epochs,-1)
-        np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
+        #stack y_pred_lst except the selective loss
+        if cfg.MODEL.task == 'selective':
+            if cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                pass
+            elif cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class+1)
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
+                
+        else:
+            pass
+            
             
     elif mode == 'test':
         test_loop(model,dataloader,device,loss_fun,visual_input=True,visual_out_path=args.visual_out_path)
@@ -292,12 +328,12 @@ if __name__ == "__main__":
     #which fold 
     cfg.SAVE.fold = args.fold
     #set train file and vali file
-    cfg.DATA.Train_dir += train_file
-    cfg.DATA.Valid_dir += vali_file 
+    cfg.DATA.Train_file += train_file
+    cfg.DATA.Valid_file += vali_file 
     cfg.visual_im.visual_out_path = os.path.join(cfg.visual_im.visual_out_path,args.exp_name,'Visual',cfg.SAVE.fold) + '//'
     #set experiment name
     cfg.SAVE.save_dir = os.path.join(cfg.SAVE.save_dir,args.exp_name) + '//'
     cfg.freeze()
     print('successfully load the config file !')
-    print('config file info',cfg)
+
     main(cfg,mode=args.mode)

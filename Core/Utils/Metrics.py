@@ -6,17 +6,203 @@ from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_
 from torch import tensor
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-
-
-
 class Metrics():
-    def __init__(self,num_class=2,y_pred=None,y_true_label=None,targets=None):
+    def __init__(self,y_true,model_output,ave_loss,num_class=2,):
         """
         args:
-            y_pred: list of predicted tensor
+            model_output: list of model output 
             y_true_label: list of true labels
             targets: dicts of targets and their labels
         """
+        self.num_class = num_class
+        self.y_pred = model_output
+        self.ave_loss = ave_loss
+        self.y_true = y_true
+        
+        
+        
+
+        #turn into (steps,batch,out_class) prob
+        #[batch,sample,class]
+
+    
+    def calculate_metrics(self):
+        self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class)}
+
+        for i in range(self.num_class):
+            true_binary = (self.y_true == i).astype(int)
+            pred_binary = (self.y_pred_label == i).astype(int)
+            
+            self.metrics[str(i)]['f1'] = f1_score(true_binary, pred_binary)
+            self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
+            self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
+
+            if len(np.unique(true_binary)) > 1:
+                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))
+
+            self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
+
+        return self.metrics
+        
+    def get_four_rate(self):
+        y_pred_one_hot_tensor = torch.tensor(self.y_pred_one_hot)
+        y_true_one_hot_tensor = torch.tensor(self.y_true_one_hot)
+        confu_matrix = get_confusion_matrix(y_pred_one_hot_tensor,y_true_one_hot_tensor)
+        for i in range(self.num_class):
+            self.four_rate_dic[str(i)]['tp'] += confu_matrix[:,i,0].sum().item()
+            self.four_rate_dic[str(i)]['fp'] += confu_matrix[:,i,1].sum().item()
+            self.four_rate_dic[str(i)]['tn'] += confu_matrix[:,i,2].sum().item() 
+            self.four_rate_dic[str(i)]['fn'] += confu_matrix[:,i,3].sum().item()
+        return self.four_rate_dic
+
+
+    def generate_metrics_df(self, epoch):
+        # 存储度量数据
+        metrics_data = []
+        for class_id, class_metrics in self.metrics.items():
+            data_row = {"epoch": epoch}
+            data_row.update({"class_id": class_id})
+            data_row.update(class_metrics)
+            metrics_data.append(data_row)
+        
+        # 将新数据添加到现有的DataFrame中
+        new_df = pd.DataFrame(metrics_data)
+        # Using concat instead of append
+        return new_df
+
+    def generate_four_rate_df(self,epoch):
+        four_rate_data = []
+        for class_id, class_rate in self.four_rate_dic.items():
+            data_row = {"epoch": epoch}
+            data_row.update({"class_id": class_id})
+            data_row.update(class_rate)
+            four_rate_data.append(data_row)
+        new_df = pd.DataFrame(four_rate_data)
+        return new_df
+    
+    def _get_array(self):
+        # get y_pred numpy with shape (Sample, Batch, Class)
+        print(self.y_pred,'torch?')
+        self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
+        self.y_true = np.array(self.y_true)
+        return self.y_pred,self.y_true
+    
+
+
+
+class ClassificationMetrics(Metrics):
+    def __init__(self,y_true,model_output,ave_loss,num_class=2):
+        super().__init__(y_true,model_output,ave_loss,num_class=num_class)
+        self.y_true = np.array(y_true)
+        self.y_pred, self.y_true = self._get_array()
+        self.y_pred_label = np.argmax(self.y_pred,axis=2)
+        self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
+        print(self.y_pred_label)
+        self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label]
+        self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
+        self.y_pred, self.y_true = self._get_array()
+    def get_roc(self):
+        #always return AUC with dHGP even thought it is not a binary classification
+        positive_class = self.num_class - 1
+        return roc_auc_score(self.y_true_one_hot[:,positive_class],self.y_pred[:,:,positive_class].reshape(-1))
+    
+    def get_accuracy(self):
+        return accuracy_score(self.y_true,self.y_pred_label)
+    
+    def get_f1_score(self):
+        return f1_score(self.y_true,self.y_pred_label)
+
+
+
+
+
+class SelectiveMetrics(Metrics):
+    def __init__(self,y_true,model_output,ave_loss,num_class=2,coverage=None,loss_type='Gamblerloss'):
+        super().__init__(y_true,model_output,ave_loss,num_class=num_class)
+        #separate another extra class head!
+        self.y_pred, self.y_true = self._get_array()
+        print(self.y_pred,'init y_pred')
+        if loss_type == 'Gamblerloss':
+            self.y_pred,self.reservation = self.y_pred[:,:,:-1],self.y_pred[:,:,-1]
+
+        self.y_pred_label = np.argmax(self.y_pred,axis=2)
+        self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
+        self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
+        self.loss_type = loss_type
+        self.coverage = coverage
+        
+        
+        
+        
+        print(self.coverage)
+        #check if loss_type is Gambler or Selective
+        self.metrics = {f"{i}_coverage_{j}": {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class) for j in self.coverage}
+        if self.loss_type not in ['Gamblerloss','Selectiveloss']:
+            raise ValueError('loss_type should be Gamblerloss or Selectiveloss')
+        
+    def calculate_selected_metrics(self):
+        if self.loss_type == 'Gamblerloss':
+            self._calculate_gambler_metrics()
+        elif self.loss_type == 'Selectiveloss':
+            self._calculate_selective_metrics()
+        return self.metrics
+
+
+    def _calculate_gambler_metrics(self):
+        #for every coverage, calculate its corresponding metrics
+        for i in range(self.num_class):
+            for j in self.coverage:
+                #get each calculation metric
+                output_coverage, pred_label_coverage, true_label_coverage = self._gambler_selective_pred(j)
+                #print(output_coverage.shape,j,'length')
+                y_pred_coverage = output_coverage[:,:-1]
+                true_binary = (true_label_coverage == i).astype(int)
+                pred_binary = (pred_label_coverage == i).astype(int)
+                #print(true_binary,pred_binary)
+                self.metrics[f"{i}_coverage_{j}"]['f1'] = f1_score(true_binary, pred_binary)
+                self.metrics[f"{i}_coverage_{j}"]['precision'] = precision_score(true_binary, pred_binary)
+                self.metrics[f"{i}_coverage_{j}"]['recall'] = recall_score(true_binary, pred_binary)
+
+                if len(np.unique(true_binary)) > 1:
+                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, y_pred_coverage[:,i].reshape(-1))
+                    #some probelems here for roc
+                    print(roc_auc_score(true_binary, y_pred_coverage[:,i].reshape(-1)),'roc_auc_score',true_binary,y_pred_coverage[:,i].reshape(-1))
+                    
+                self.metrics[f"{i}_coverage_{j}"]['accuracy'] = accuracy_score(true_binary, pred_binary)
+
+        return self.metrics
+
+    def _gambler_selective_pred(self,coverage_rate):
+        #get the reservation
+        print(self.y_pred,'y_pred_shape')
+        output, reservation = self.y_pred.reshape(-1,self.num_class), self.reservation.reshape(-1)
+        #print(output)
+        predictions = np.argmax(output,axis=1).reshape(-1)#shape : [Sample,pre_prob]
+        coverage_rate = int(round(len(reservation)) * (1-coverage_rate))
+        print(coverage_rate,'coverage_rate')
+        #sorted by the reservation
+        sort_index = np.argsort(reservation)
+        output = output[sort_index,:][coverage_rate:]
+        predictions = predictions[sort_index][coverage_rate:]
+        true_labels = self.y_true[sort_index][coverage_rate:]
+        reservation = reservation[sort_index][coverage_rate:]
+        #cat with reservation
+        output = np.concatenate((output, reservation[:, np.newaxis]), axis=1)
+
+        return output,predictions,true_labels
+
+
+
+
+"""
+class Metrics():
+    def __init__(self,num_class=2,y_pred=None,y_true_label=None,targets=None):
+        
+        # args:
+        #     y_pred: list of predicted tensor
+        #     y_true_label: list of true labels
+        #     targets: dicts of targets and their labels
+        
         self.num_class = num_class
         #turn into (steps,batch,out_class) prob
         #[batch,sample,class]
@@ -61,11 +247,11 @@ class Metrics():
         return roc_auc_score(self.y_true_one_hot[:,positive_class],y_pred_pos,average=average)
 
     def get_four_rate(self) -> tensor:
-        """
-        args:
-            y_pred: (B,C) one-hot tensor
-            y_true: (B,C) one-hot tensor
-        """
+"""
+        # args:
+        #     y_pred: (B,C) one-hot tensor
+        #     y_true: (B,C) one-hot tensor
+"""
         confu_matrix = get_confusion_matrix(self.y_pred_one_hot,self.y_true_one_hot)
         #calculate tp,fp,tn,fn
         for i in range(self.num_class):
@@ -76,11 +262,11 @@ class Metrics():
         return self.four_rate_dic
     
     def get_accuracy(self) -> float:
-        """
+        """"""
         args:
             y_pred_label: list of predicted labels
             y_true_label: list of true labels
-        """
+        """"""""
         accuracy = accuracy_score(self.y_pred_label,self.y_true_label)
         return accuracy
     
@@ -152,3 +338,4 @@ class Metrics_regression:
         #self.metrics_df = pd.concat([self.metrics_df, new_df], ignore_index=True)
 
         return new_df
+"""

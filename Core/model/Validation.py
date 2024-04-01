@@ -52,20 +52,36 @@ def Validation_loop(cfg,model,dataloader,criterion):
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
         #print('validation',im.shape,label)
-        if cfg.MODEL.task == 'classification':
+        if cfg.MODEL.task == 'classification' or cfg.MODEL.task == 'selective':
             label = label.long()
         else:
             label = label.float()
         with torch.no_grad():
-            output = (model(im))
-
-            loss = criterion(output,label)
-            average_loss += loss.item()
-
-            #softmax probability
             if cfg.MODEL.task == 'classification':
-
+                output = (model(im))
+                loss = criterion(output,label)
+                average_loss += loss.item()
                 output = torch.nn.functional.softmax(output,dim=1)
+            elif cfg.MODEL.task == 'regression':
+                pass
+            elif cfg.MODEL.task == 'selective':
+                if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                    if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
+                        output = model(im)
+                        loss = torch.nn.CrossEntropyLoss()(output[:,:-1],label)
+                        average_loss += loss.item()
+                    else:
+                        output = model(im)
+                        loss = criterion(output,label)
+                        average_loss += loss.item()
+                    output = torch.nn.functional.softmax(output,dim=1) #softmax probability
+                    
+                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                    output = model(im)
+                    loss = criterion(output,label)
+                    average_loss += loss.item()
+
+         
             #print('this is output',output)
             else:
                 pass

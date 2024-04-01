@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
 from tqdm import tqdm
 import torch
+import torch.nn as nn
 
 from torch.utils.data import Subset
 
@@ -16,6 +17,7 @@ from Utils.Utility import apply_window_to_volume
 from ema_pytorch import EMA
 
 import numpy as np
+
 
 def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None):
     """
@@ -46,6 +48,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             im,label,_,mask = data
             #stack channel
             im = torch.cat((im,mask),dim=1)
+            print('im',im.shape)
             
         else:
             im,label,_ = data
@@ -64,44 +67,63 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
 
 
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
-        if cfg.MODEL.task == 'classification':
+
+        
+        if cfg.MODEL.task == 'classification' or cfg.MODEL.task == 'selective':
             label = label.long()
         else:
             label = label.float()
-        optimizer.zero_grad()
-        
-        if cfg.MODEL.task == 'selective':
-            output = model(im)
-            out_class,out_select,out_aux = output
-            loss_dict = OrderedDict()
-            # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
-            selective_loss, loss_dict = criterion(out_class, out_select, label)
-            selective_loss *= cfg.LOSS.alpha
-            loss_dict['selective_loss'] = selective_loss.detach().cpu().item()
-            # compute standard cross entropy loss
-            ce_loss = torch.nn.CrossEntropyLoss()(out_aux, label)
-            ce_loss *= (1.0 - cfg.LOSS.alpha)
 
-            loss_dict['ce_loss'] = ce_loss.detach().cpu().item()
-            
-            # total loss
-            loss = selective_loss + ce_loss
-            loss_dict['loss'] = loss.detach().cpu().item()
-            average_loss += loss_dict['loss']
-            loss.backward()
-        else:
+        ##TRAIN by task    
+        optimizer.zero_grad()
+        if cfg.MODEL.task == 'selective':
+            if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
+                    output = model(im)
+                    loss = nn.CrossEntropyLoss()(output[:,:-1],label)
+                    loss.backward()
+                    average_loss += loss.item()
+                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                    output = model(im)
+                    loss = criterion(output,label)
+                    loss.backward()
+                    average_loss += loss.item()
+                output = torch.nn.functional.softmax(output,dim=1)
+
+            elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                
+                output = model(im)
+                out_class,out_select,out_aux = output
+                loss_dict = OrderedDict()
+                # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
+                selective_loss, loss_dict = criterion(out_class, out_select, label)
+                selective_loss *= cfg.LOSS.alpha
+                loss_dict['selective_loss'] = selective_loss.detach().cpu().item()
+                # compute standard cross entropy loss
+                ce_loss = torch.nn.CrossEntropyLoss()(out_aux, label)
+                ce_loss *= (1.0 - cfg.LOSS.alpha)
+
+                loss_dict['ce_loss'] = ce_loss.detach().cpu().item()
+                
+                # total loss
+                loss = selective_loss + ce_loss
+                loss_dict['loss'] = loss.detach().cpu().item()
+                average_loss += loss_dict['loss']
+                loss.backward()
+            else:
+                raise ValueError('SelectiveLoss can only be GamblerLoss or SelectiveLoss')
+        elif cfg.MODEL.task == 'classification':
             output = model(im)
-        #print('output',output.shape,label.shape)
+            print('output',output.shape,label.shape)
             loss = criterion(output,label)
             loss.backward()
             average_loss += loss.item()
-        if cfg.MODEL.task == 'classification' or cfg.MODEL.task == 'selective':
             output = torch.nn.functional.softmax(output,dim=1)
-        else:
+        elif cfg.MODEL.task == 'regression':
             #output = torch.nn.functional.sigmoid(output)
             pass
         #softmax probability
-        y_pred.append(i for i in output.cpu())
+        y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
         #set description for tqdm
         train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},step_loss:{loss},out_put_prob:{output}")
@@ -123,5 +145,5 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
 
     average_loss /= len(train_bar)
     print('average_loss',average_loss)
-    return average_loss,y_pred,y_true
+    return average_loss,y_true,y_pred
 

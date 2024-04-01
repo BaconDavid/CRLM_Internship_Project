@@ -82,7 +82,6 @@ class Metrics():
     
     def _get_array(self):
         # get y_pred numpy with shape (Sample, Batch, Class)
-        print(self.y_pred,'torch?')
         self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
         self.y_true = np.array(self.y_true)
         return self.y_pred,self.y_true
@@ -124,12 +123,15 @@ class SelectiveMetrics(Metrics):
         print(self.y_pred,'init y_pred')
         if loss_type == 'Gamblerloss':
             self.y_pred,self.reservation = self.y_pred[:,:,:-1],self.y_pred[:,:,-1]
+        self.coverage = coverage # only for gambler input a list of coverage
 
         self.y_pred_label = np.argmax(self.y_pred,axis=2)
         self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
         self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
         self.loss_type = loss_type
-        self.coverage = coverage
+        
+        
+
         
         
         
@@ -171,6 +173,10 @@ class SelectiveMetrics(Metrics):
                 self.metrics[f"{i}_coverage_{j}"]['accuracy'] = accuracy_score(true_binary, pred_binary)
 
         return self.metrics
+    
+    def _calculate_selective_metrics(self,threshold=0.5):
+        #first filter out selective samples
+        pass
 
     def _gambler_selective_pred(self,coverage_rate):
         #get the reservation
@@ -190,7 +196,31 @@ class SelectiveMetrics(Metrics):
         output = np.concatenate((output, reservation[:, np.newaxis]), axis=1)
 
         return output,predictions,true_labels
+    
+    def _selectivenet_pred(self,coverage_rate):
+        #sort all output followed by selection output
+        y_select = self.y_select.reshape(-1) # (Sample,Batch,1) --> (Sample*Batch)
+        y_pred = self.y_pred.reshape(-1,self.num_class) # (Sample,Batch,Class) --> (Sample*Batch,Class)
+        y_aux = self.y_aux.reshape(-1,self.num_class) # (Sample,Batch,Class) --> (Sample*Batch,Class)
+        sort_index = np.argsort(y_select)
+        y_pred = y_pred[sort_index,:]
+        y_aux = y_aux[sort_index,:] 
+        #get select output that is larger than threshold and 
+        
 
+    def _get_array(self):
+        
+        assert self.loss_type in ['Gamblerloss','Selectiveloss']
+        # get y_pred numpy with shape (Sample, Batch, Class)
+        if self.loss_type == 'Gamblerloss':
+            self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
+            self.y_true = np.array(self.y_true)
+            return self.y_pred,self.y_true
+        elif self.loss_type == 'Selectiveloss':
+            self.y_pred,self.y_select,self.y_aux = self.y_pred
+            self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
+            self.y_select = np.stack([y.detach().cpu().numpy() for y in self.y_select],axis=0)
+            self.y_aux = np.stack([y.detach().cpu().numpy() for y in self.y_aux],axis=0)
 
 
 

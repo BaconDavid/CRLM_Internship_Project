@@ -73,6 +73,9 @@ _C.LOSS.SelectiveLoss.GamblerLoss.reward = 1.2
 
 _C.LOSS.SelectiveLoss.SelectiveNetLoss = CN()
 _C.LOSS.SelectiveLoss.SelectiveNetLoss.loss = 'SelectiveLoss'
+_C.LOSS.SelectiveLoss.SelectiveNetLoss.alpha = 0.5
+_C.LOSS.SelectiveLoss.SelectiveNetLoss.coverage = 0.5
+_C.LOSS.SelectiveLoss.SelectiveNetLoss.lm = 32
 
 
 
@@ -101,6 +104,7 @@ _C.MODEL.weight_decay = 0.0001
 _C.MODEL.Drop_block = True
 _C.MODEL.block_size = 5
 _C.MODEL.drop_prob = 0.9
+_C.MODEL.selectivenet = False
 _C.MODEL.v2 = False
 _C.MODEL.task = 'classification'
 _C.MODEL.feature_model = 'Resnet10'

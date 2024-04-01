@@ -353,6 +353,7 @@ class ResNet(nn.Module):
             select_out = self.selector(x)
             aux_out = self.aux_classifier(x)
             return pre_out, select_out, aux_out
+        
         else:
             x = x.view(x.size(0), -1)
             if self.fc is not None:

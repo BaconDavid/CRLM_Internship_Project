@@ -22,29 +22,7 @@ class Loss:
         
 
 
-class GamblerLoss(Loss):
-    def __init__(self,cfg) -> None:
-        super().__init__(cfg)
 
-    
-    def __call__(self,model_output, targets,*args, **kwds): 
-        return self.Gambler_loss(model_output, targets)
-    
-
-
-    def Gambler_loss(self,model_output, targets):
-        
-        outputs = torch.nn.functional.softmax(model_output, dim=1)
-        
-        outputs, reservation = outputs[:, :-1], outputs[:, -1]
-        
-        gain = torch.gather(outputs, dim=1, index=targets.unsqueeze(1)).squeeze()
-        
-        doubling_rate = (gain + reservation / self.cfg.LOSS.SelectiveLoss.GamblerLoss.reward).log()  # 假设reward为1
-        # 计算损失，即负的增益率的平均值
-        loss = -doubling_rate.mean()
-        return loss
-    
 
 
 class RegressionLoss(Loss):
@@ -72,12 +50,34 @@ class SELoss(Loss):
         if self.cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
             return GamblerLoss(self.cfg)
         if self.cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-            return SelectiveLoss(nn.CrossEntropyLoss(reduction='none'),self.cfg.LOSS.SelectiveLoss.coverage,self.cfg.LOSS.SelectiveLoss.lm)
+            return SelectiveLoss(self.cfg)
 
 
+class GamblerLoss(Loss):
+    def __init__(self,cfg) -> None:
+        super().__init__(cfg)
 
-class SelectiveLoss(nn.Module):
-    def __init__(self, loss_func, coverage:float, lm:float=32.0):
+    
+    def __call__(self,model_output, targets,*args, **kwds): 
+        return self.Gambler_loss(model_output, targets)
+    
+
+
+    def Gambler_loss(self,model_output, targets):
+        
+        outputs = torch.nn.functional.softmax(model_output, dim=1)
+        
+        outputs, reservation = outputs[:, :-1], outputs[:, -1]
+        
+        gain = torch.gather(outputs, dim=1, index=targets.unsqueeze(1)).squeeze()
+        
+        doubling_rate = (gain + reservation / self.cfg.LOSS.SelectiveLoss.GamblerLoss.reward).log()  # 假设reward为1
+        # 计算损失，即负的增益率的平均值
+        loss = -doubling_rate.mean()
+        return loss
+    
+class SelectiveLoss(Loss):
+    def __init__(self,cfg):
         """
         Args:
             loss_func: base loss function. the shape of loss_func(x, target) shoud be (B). 
@@ -85,15 +85,17 @@ class SelectiveLoss(nn.Module):
             coverage: target coverage.
             lm: Lagrange multiplier for coverage constraint. original experiment's value is 32. 
         """
-        super(SelectiveLoss, self).__init__()
-        assert 0.0 < coverage <= 1.0
-        assert 0.0 < lm
+        super().__init__(cfg)
 
-        self.loss_func = loss_func
-        self.coverage = coverage
-        self.lm = lm
+        assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage <= 1.0
+        assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
 
-    def forward(self, prediction_out, selection_out, target):
+        self.loss_func = nn.CrossEntropyLoss()
+        self.coverage = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage
+        self.lm = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
+        self.alpha = self.cfg.MODEL.SelectiveNet.alpha # combine coefficient of selective loss and aux loss
+
+    def __call__(self, prediction_out, selection_out, aux_out,target):
         """
         Args:
             prediction_out: (B,num_classes)
@@ -107,21 +109,21 @@ class SelectiveLoss(nn.Module):
         emprical_risk = emprical_risk / emprical_coverage
 
         # compute penulty (=psi)
-        coverage = torch.tensor([self.coverage], dtype=torch.float32, requires_grad=True, device='cuda')
-        penulty = torch.max(coverage-emprical_coverage, torch.tensor([0.0], dtype=torch.float32, requires_grad=True, device='cuda'))**2
+        coverage = torch.tensor([self.coverage], dtype=torch.float32, requires_grad=True, device=self.cfg.SYSTEM.DEVICE)
+        penulty = torch.max(coverage-emprical_coverage, torch.tensor([0.0], dtype=torch.float32, requires_grad=True, device=self.cfg.SYSTEM.DEVICE))**2
         penulty *= self.lm
 
-        selective_loss = emprical_risk + penulty
-
+        # compute aux loss
+        aux_loss = self.loss_func(aux_out, target)
         # loss information dict 
         loss_dict={}
         loss_dict['emprical_coverage'] = emprical_coverage.detach().cpu().item()
         loss_dict['emprical_risk'] = emprical_risk.detach().cpu().item()
         loss_dict['penulty'] = penulty.detach().cpu().item()
+        loss_dict['aux_loss'] = aux_loss.detach().cpu().item()
+        selective_loss = self.alpha*(emprical_risk + penulty) + (1-self.alpha)*aux_loss
 
         return selective_loss, loss_dict
     
-    def build_loss(self):
-        return self
     
    

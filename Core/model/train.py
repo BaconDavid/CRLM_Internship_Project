@@ -83,32 +83,16 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     loss = nn.CrossEntropyLoss()(output[:,:-1],label)
                     loss.backward()
                     average_loss += loss.item()
-                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-                    output = model(im)
-                    loss = criterion(output,label)
-                    loss.backward()
-                    average_loss += loss.item()
-                output = torch.nn.functional.softmax(output,dim=1)
+                    output = torch.nn.functional.softmax(output,dim=1)
+                
 
             elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                 
                 output = model(im)
+                print('output',output)
                 out_class,out_select,out_aux = output
-                loss_dict = OrderedDict()
                 # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
-                selective_loss, loss_dict = criterion(out_class, out_select, label)
-                selective_loss *= cfg.LOSS.alpha
-                loss_dict['selective_loss'] = selective_loss.detach().cpu().item()
-                # compute standard cross entropy loss
-                ce_loss = torch.nn.CrossEntropyLoss()(out_aux, label)
-                ce_loss *= (1.0 - cfg.LOSS.alpha)
-
-                loss_dict['ce_loss'] = ce_loss.detach().cpu().item()
-                
-                # total loss
-                loss = selective_loss + ce_loss
-                loss_dict['loss'] = loss.detach().cpu().item()
-                average_loss += loss_dict['loss']
+                loss, loss_dict = criterion(out_class, out_select,out_aux,label)
                 loss.backward()
             else:
                 raise ValueError('SelectiveLoss can only be GamblerLoss or SelectiveLoss')

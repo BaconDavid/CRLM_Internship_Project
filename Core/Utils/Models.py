@@ -76,7 +76,7 @@ class ResNet(Model):
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
                             task = self.cfg.MODEL.task,
-                            selectivenet = self.cfg.LOSS.SelectiveLoss.loss,
+                            selectivenet = self.cfg.MODEL.selectivenet,
                             **kwargs)
         elif self.cfg.MODEL.name == "Resnet18":
             return resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
@@ -85,7 +85,7 @@ class ResNet(Model):
                             no_max_pool=False,
                             drop_rate = self.cfg.MODEL.drop_out,
                             task = self.cfg.MODEL.task,
-                            selectivenet = self.cfg.LOSS.SelectiveLoss.loss,
+                            selectivenet = self.cfg.MODEL.selectivenet,
                             **kwargs)
     
     #def __get_inplanes(self):
@@ -132,9 +132,8 @@ class SelectiveNet(Model):
     
     def build_model(self,**kwargs):
         if self.cfg.MODEL.name.startswith('Resnet'):
-            if self.cfg.MODEL.name.startswith('Resnet'): # choose main body of the model
-                model = ResNet(self.cfg).build_model()
-                return model
+            model = ResNet(self.cfg).build_model(**kwargs)# choose main body of the model
+            return model
                 
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")

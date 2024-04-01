@@ -215,7 +215,7 @@ def main(cfg,mode='train'):
                     singel_metric = metrics.generate_metrics_df(epoch+1)
                     tr_results.store_results(singel_metric,'metrics')
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-                    pass
+                    ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
             
             epoch_loss_values.append(ave_loss)
                 

@@ -104,8 +104,8 @@ def main(cfg,mode='train'):
             
         if cfg.TRAIN.Debug:
             #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.1)))
-            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.1)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+            val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
@@ -187,7 +187,8 @@ def main(cfg,mode='train'):
           
             if cfg.MODEL.task == 'classification':
                 ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-                print(y_pred)
+                #
+                #print(y_pred)
                 metrics = ClassificationMetrics(y_true,y_pred,ave_loss,cfg.MODEL.num_class)
                 #AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
 
@@ -201,22 +202,53 @@ def main(cfg,mode='train'):
                 tr_results.store_results(singel_metric,'metrics')
                 tr_results.store_results(four_rate_metric,'four rates')
 
+
+
             elif cfg.MODEL.task == 'regression':
                 metrics = Metrics_regression(y_pred,y_true)
                 metrics.calculate_metrics()
                 singel_metric = metrics.generate_metrics_df(epoch+1)
                 tr_results.store_results(singel_metric,'metrics')
 
+
+
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                     ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-                    metrics = SelectiveMetrics(y_true,y_pred,ave_loss,num_class=cfg.MODEL.num_class,coverage=[(i+1)/10 for i in range(10)])
+                    metrics = SelectiveMetrics(y_true,
+                                               y_pred,
+                                               ave_loss,
+                                               num_class=cfg.MODEL.num_class,
+                                               coverage=[(i+1)/10 for i in range(10)])
                     metrics.calculate_selected_metrics()
                     singel_metric = metrics.generate_metrics_df(epoch+1)
                     tr_results.store_results(singel_metric,'metrics')
+
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-                    ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-            
+                    ave_loss,y_true,y_pred = train_loop(cfg,
+                                                        model,
+                                                        tr_dataloader,
+                                                        epoch,
+                                                        optimizer_fun,
+                                                        loss_fun,
+                                                        ema=ema,
+                                                        scheduler=scheduler_fun)
+                    
+                    metrics = SelectiveMetrics(y_true,
+                                               y_pred,
+                                               ave_loss,
+                                               num_class=cfg.MODEL.num_class,
+                                               coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
+                                               loss_type='Selectiveloss')
+                    
+                    metrics.calculate_selected_metrics()
+                    metrics.get_four_rate()
+                    singel_metric = metrics.generate_metrics_df(epoch+1)
+                    four_rate_metric = metrics.generate_four_rate_df(epoch+1)
+
+                    tr_results.store_results(singel_metric,'metrics')
+                    tr_results.store_results(four_rate_metric,'four rates')
+
             epoch_loss_values.append(ave_loss)
                 
                 #metrcis = Metrics_Reg(cfg.MODEL.num_class,y_pred,y_true)
@@ -234,7 +266,7 @@ def main(cfg,mode='train'):
             #model.eval()
             ema_model = ema.ema_model
             ema_model.eval()
-            ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun)
+            ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun,epoch)
 
 
             print('this is average loss',ave_loss)
@@ -271,6 +303,22 @@ def main(cfg,mode='train'):
                     y_pred_array = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
                     y_pred_lst.append(y_pred_array)
                     val_loss_values.append(ave_loss)
+                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+
+                    metrics = SelectiveMetrics(y_true,
+                                               y_pred,
+                                               ave_loss,
+                                               num_class=cfg.MODEL.num_class,
+                                               coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
+                                               loss_type='Selectiveloss')
+                    
+                    metrics.calculate_selected_metrics()
+                    metrics.get_four_rate()
+                    singel_metric = metrics.generate_metrics_df(epoch+1)
+                    four_rate_metric = metrics.generate_four_rate_df(epoch+1)
+
+                    val_results.store_results(singel_metric,'metrics')
+                    val_results.store_results(four_rate_metric,'four rates')
 
 
             else:

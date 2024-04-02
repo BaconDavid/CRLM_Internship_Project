@@ -1,3 +1,4 @@
+from re import L
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
@@ -13,7 +14,7 @@ from Utils.Metrics import Metrics
 CLASSIFICATION = {'blanco':0,'AP':1,"PVP":2}
 
 
-def Validation_loop(cfg,model,dataloader,criterion):
+def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     """
     args:
         model: model to be trained
@@ -70,40 +71,40 @@ def Validation_loop(cfg,model,dataloader,criterion):
                         output = model(im)
                         loss = torch.nn.CrossEntropyLoss()(output[:,:-1],label)
                         average_loss += loss.item()
+                        output = torch.nn.functional.softmax(output,dim=1) #softmax probability
+
                     else:
                         output = model(im)
                         loss = criterion(output,label)
                         average_loss += loss.item()
-                    output = torch.nn.functional.softmax(output,dim=1) #softmax probability
+                        #softmax probability for classification and auxiliary
+                        
                     
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                     output = model(im)
-                    loss = criterion(output,label)
-                    average_loss += loss.item()
+                    out_class,out_select,out_aux = output
+                    loss,loss_dict = criterion(out_class,out_select,out_aux,label)
+                    out_class = torch.nn.functional.softmax(out_class,dim=1)
+                    out_aux = torch.nn.functional.softmax(out_aux,dim=1)
 
-         
+                    output = (out_class,out_select,out_aux)
+                    average_loss += loss.item()
+             
             #print('this is output',output)
             else:
                 pass
     
 
         #softmax probability
-        y_pred.append(output.cpu())
+        y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
 
 
-        #print("this is y_pred",output,'and this is y_true',label)
-        #print("this is step loss",loss)
-        
         #set description for tqdm
 
 
         vali_bar.set_description(f"label{label},loss:{average_loss},out_put_prob:{output}")
 
-        #metrics
-    
-
-    
     average_loss = average_loss/len(vali_bar)
     print('this is average loss',average_loss)
     return average_loss,y_pred,y_true

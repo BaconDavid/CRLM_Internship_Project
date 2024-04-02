@@ -48,7 +48,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             im,label,_,mask = data
             #stack channel
             im = torch.cat((im,mask),dim=1)
-            print('im',im.shape)
+            #print('im',im.shape)
             
         else:
             im,label,_ = data
@@ -89,16 +89,23 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                 
                 output = model(im)
-                print('output',output)
+                
                 out_class,out_select,out_aux = output
                 # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
                 loss, loss_dict = criterion(out_class, out_select,out_aux,label)
+                average_loss += loss.item()
+                #softmax for class and aux
+                out_class = torch.nn.functional.softmax(out_class,dim=1)
+                out_aux = torch.nn.functional.softmax(out_aux,dim=1)
+
+                output = (out_class,out_select,out_aux)
+                #print('output',output)
                 loss.backward()
             else:
                 raise ValueError('SelectiveLoss can only be GamblerLoss or SelectiveLoss')
         elif cfg.MODEL.task == 'classification':
             output = model(im)
-            print('output',output.shape,label.shape)
+            #print('output',output.shape,label.shape)
             loss = criterion(output,label)
             loss.backward()
             average_loss += loss.item()

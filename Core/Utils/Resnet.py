@@ -226,7 +226,7 @@ class ResNet(nn.Module):
 
         block_avgpool = get_avgpool()
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
-
+        self.num_classes = num_classes
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
         self.bias_downsample = bias_downsample
@@ -336,7 +336,7 @@ class ResNet(nn.Module):
         if self.selectivenet: 
             x = x.view(x.size(0), -1)
             print(x.size(),'xsize')
-            self.classifier = torch.nn.Sequential(self.fc)
+            self.classifier = torch.nn.Sequential(nn.Linear(x.size(1), self.num_classes))
 
             self.selector = torch.nn.Sequential(
             torch.nn.Linear(x.size(1), x.size(1)),
@@ -347,7 +347,7 @@ class ResNet(nn.Module):
         )
             # represented as h() in the original paper
             self.aux_classifier = torch.nn.Sequential(
-                self.fc
+                nn.Linear(x.size(1), self.num_classes),
             )
             pre_out = self.classifier(x)
             select_out = self.selector(x)

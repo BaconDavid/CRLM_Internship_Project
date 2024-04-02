@@ -5,8 +5,6 @@
 
 
 
-
-
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
@@ -14,34 +12,61 @@ SYSTEM:
     
 DATA:
   Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
 
 LABEL:
   label_name: 'HGP_Type'
-  
+
+#LOSS's task should be classification, selective, regression
 LOSS:
-  loss_mode: 'classification'
-  loss_name: 'CrossEntropyLoss'
+  task: 'selective'
+
+  RegressionLoss:
+    loss: 'MSE'
+
+#loss should be GamblerLoss or SelectiveLoss
+  SelectiveLoss:
+    loss: 'SelectiveLoss'
+
+    GamblerLoss:
+      reward: 1.2
+      
+    SelectiveNetLoss:
+      loss: 'SelectiveLoss'
+      coverage: 0.5
+      lm: 32
+      alpha: 0.5
+
+  ClassificationLoss:
+    loss: 'CrossEntropyLoss'
 
 TRAIN:
-  lr: 0.00001
   batch_size: 1
-  num_epochs: 300
-  optimizer: 'SGD'
-  loss: 'CrossEntropyLoss'
-  Debug: False
+  num_epochs: 2
+  Debug: True
+  data_aug: True
+  
+Scheduler:
   scheduler: True
   scheduler_name: 'WarmupCosineSchedule'
-  data_aug: True
-  drop_out: 0.0
-  weight_decay: 0.0001
+
+  WarmupCosineScheduler:
+    warmup_steps: 0
+    t_total: 10
+
+Optimizer:
+  name: 'SGD'
+  lr: 0.00001
+  weight_decay: 0.001
+  
+  SGD:
+    momentum: 0.9
 
 VALID:
   batch_size: 1
-  loss: 'CrossEntropyLoss'
   data_aug: True
 
 TEST:
@@ -49,54 +74,56 @@ TEST:
   loss: 'CrossEntropyLoss'
 
 DATASET:
-  WeightedRandomSampler: True
+  WeightedRandomSampler: False
   num_classes: 2
+  num_channels: 1
   mask: True
 
+## task should be claaification, selective, regression
 MODEL:
-  name: 'Resnet10'
-  task: 'classification'
+  task: 'selective'
+  name: 'Resnet10' #model body for classification or selective
   pretrained: False
   num_class: 2
   num_in_channels: 2
-  num_out_channels: 1
+  drop_out: 0.0
+  #only for dropblock
   Drop_block: False
-  #block_size: 5
- # drop_prob: 0.9
+  block_size: 5
+  drop_prob: 0.9
+  ###
+  num_out_channels: 1
+  # output of last layer
+  feature_dims: 512
+  selectivenet: True # whether to use selectivenet or not
+
+  Gambler:
+    pretrain_epochs: 30
+  
+
 
 LOG:
   log_dir: ./logs
   log_file: log.txt
 
 Preprocess:
-  padding_size: (256,256,64)
+  padding_size: (368,368,64)
   normalize: 'NormalizeIntensity'
 
 Augmentation:
-  RandZoom: (prob = 0.5, min_zoom=1.0, max_zoom=1.2)
-  RandRotate: (range_z = 0.5, prob = 0.5)
-  RandFlip: (prob = 0.5)
-  #SpatialPad: (17,17,-1)
-
-
-#need to change if fold changes
-
+  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandRotate: (range_z = 0.3, prob = 0.5)
+  RandFlip: (prob = 0.3)
+  
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
-  save_name: 'Resnet_10_raw_0'
-  fold : '01'
-
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  save_name: ''
+  fold: ''
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
-#need to change if fold changes
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
   slice: 5
-  
-
-WarmupCosineSchedule:
-  warmup_steps: 1000
-  t_total: 24000

@@ -84,6 +84,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     loss.backward()
                     average_loss += loss.item()
                     output = torch.nn.functional.softmax(output,dim=1)
+                else:
+                    output = model(im)
+                    loss = criterion(output,label)
+                    average_loss += loss.item()
+                    output = torch.nn.functional.softmax(output,dim=1)
                 
 
             elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
@@ -103,6 +108,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                 loss.backward()
             else:
                 raise ValueError('SelectiveLoss can only be GamblerLoss or SelectiveLoss')
+            
         elif cfg.MODEL.task == 'classification':
             output = model(im)
             #print('output',output.shape,label.shape)

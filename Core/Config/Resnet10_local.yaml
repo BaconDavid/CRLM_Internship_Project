@@ -24,7 +24,7 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'SelectiveLoss'
+    loss: 'GamblerLoss' # GamblerLoss or SelectiveLoss
 
     GamblerLoss:
       reward: 1.2

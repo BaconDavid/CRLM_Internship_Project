@@ -226,12 +226,13 @@ class ResNet(nn.Module):
 
         block_avgpool = get_avgpool()
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
-        self.num_classes = num_classes
+        #self.num_classes = num_classes
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
         self.bias_downsample = bias_downsample
         self.drop_rate = drop_rate
         self.selectivenet = selectivenet
+        self.num_classes = num_classes
         conv1_kernel_size = ensure_tuple_rep(conv1_t_size, spatial_dims)
         conv1_stride = ensure_tuple_rep(conv1_t_stride, spatial_dims)
 
@@ -251,6 +252,22 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2)
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
+        if self.selectivenet:
+            self.classifier = torch.nn.Sequential(nn.Linear(block_inplanes[3], num_classes))
+
+            self.selector = torch.nn.Sequential(
+            torch.nn.Linear(block_inplanes[3], block_inplanes[3]),
+            torch.nn.ReLU(True),
+            torch.nn.InstanceNorm1d(block_inplanes[3]),
+            torch.nn.Linear(block_inplanes[3], 1),
+            torch.nn.Sigmoid()
+        )
+            # represented as h() in the original paper
+            self.aux_classifier = torch.nn.Sequential(
+                nn.Linear(block_inplanes[3], self.num_classes),
+            )
+
+
         if task == "classification" or task == 'selective':
             self.fc = nn.Linear(block_inplanes[3] * block.expansion, num_classes) if feed_forward else None
         else:
@@ -336,19 +353,7 @@ class ResNet(nn.Module):
         if self.selectivenet: 
             x = x.view(x.size(0), -1)
             print(x.size(),'xsize')
-            self.classifier = torch.nn.Sequential(nn.Linear(x.size(1), self.num_classes))
-
-            self.selector = torch.nn.Sequential(
-            torch.nn.Linear(x.size(1), x.size(1)),
-            torch.nn.ReLU(True),
-            torch.nn.InstanceNorm1d(x.shape),
-            torch.nn.Linear(x.size(1), 1),
-            torch.nn.Sigmoid()
-        )
-            # represented as h() in the original paper
-            self.aux_classifier = torch.nn.Sequential(
-                nn.Linear(x.size(1), self.num_classes),
-            )
+            
             pre_out = self.classifier(x)
             select_out = self.selector(x)
             aux_out = self.aux_classifier(x)

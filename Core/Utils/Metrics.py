@@ -118,19 +118,19 @@ class ClassificationMetrics(Metrics):
 
 
 class SelectiveMetrics(Metrics):
-    def __init__(self,y_true,model_output,ave_loss,num_class=2,coverage=None,loss_type='Gamblerloss'):
+    def __init__(self,y_true,model_output,ave_loss,num_class=2,coverage=None,loss_type='GamblerLoss'):
         super().__init__(y_true,model_output,ave_loss,num_class=num_class)
         #separate another extra class head!
         self.loss_type = loss_type
-        assert loss_type in ['Gamblerloss','Selectiveloss']
+        assert loss_type in ['GamblerLoss','SelectiveLoss']
 
 
-        if loss_type == 'Gamblerloss':
+        if loss_type == 'GamblerLoss':
             self.y_pred, self.y_true = self._get_array()
             self.y_pred,self.reservation = self.y_pred[:,:,:-1],self.y_pred[:,:,-1]
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
             
-        elif loss_type == 'Selectiveloss':
+        elif loss_type == 'SelectiveLoss':
             self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
             self.y_pred, self.y_select,self.y_aux,self.y_true = self._get_array()
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
@@ -147,9 +147,9 @@ class SelectiveMetrics(Metrics):
         
         
     def calculate_selected_metrics(self):
-        if self.loss_type == 'Gamblerloss':
+        if self.loss_type == 'GamblerLoss':
             self._calculate_gambler_metrics()
-        elif self.loss_type == 'Selectiveloss':
+        elif self.loss_type == 'SelectiveLoss':
             self._calculate_selective_metrics()
         return self.metrics
 
@@ -214,14 +214,15 @@ class SelectiveMetrics(Metrics):
         output, reservation = self.y_pred.reshape(-1,self.num_class), self.reservation.reshape(-1)
         #print(output)
         predictions = np.argmax(output,axis=1).reshape(-1)#shape : [Sample,pre_prob]
-        coverage_rate = int(round(len(reservation)) * (1-coverage_rate))
+        coverage_rate = int(round(len(reservation)) * coverage_rate)
         print(coverage_rate,'coverage_rate')
         #sorted by the reservation
         sort_index = np.argsort(reservation)
-        output = output[sort_index,:][coverage_rate:]
-        predictions = predictions[sort_index][coverage_rate:]
-        true_labels = self.y_true[sort_index][coverage_rate:]
-        reservation = reservation[sort_index][coverage_rate:]
+        output = output[sort_index,:][:coverage_rate]
+        predictions = predictions[sort_index][:coverage_rate]
+        true_labels = self.y_true[sort_index][:coverage_rate]
+        reservation = reservation[sort_index][:coverage_rate]
+        print(coverage_rate,'coverage_rate6666',reservation)
         #cat with reservation
         output = np.concatenate((output, reservation[:, np.newaxis]), axis=1)
 
@@ -258,12 +259,12 @@ class SelectiveMetrics(Metrics):
 
     def _get_array(self):
         # get y_pred numpy with shape (Sample, Batch, Class)
-        if self.loss_type == 'Gamblerloss':
+        if self.loss_type == 'GamblerLoss':
             self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
             self.y_true = np.array(self.y_true)
 
             return self.y_pred,self.y_true
-        elif self.loss_type == 'Selectiveloss':
+        elif self.loss_type == 'SelectiveLoss':
             #get y_pred, y_select, y_aux numpy with shape (Sample, Batch, Class)
             #print(self.y_pred,'y_pred_shape vali!')
             self.y_select = [y[1] for y in self.y_pred]

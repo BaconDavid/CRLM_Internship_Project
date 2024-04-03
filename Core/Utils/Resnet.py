@@ -352,7 +352,7 @@ class ResNet(nn.Module):
 
         if self.selectivenet: 
             x = x.view(x.size(0), -1)
-            print(x.size(),'xsize')
+            #print(x.size(),'xsize')
             
             pre_out = self.classifier(x)
             select_out = self.selector(x)

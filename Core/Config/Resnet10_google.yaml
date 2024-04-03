@@ -1,22 +1,20 @@
 
+
+
+
 # my_project/experiment.yaml
-
-###Experiment description:
-
-
-
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
   NUM_WORKERS: 8
+ 
     
 DATA:
-  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
-  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
-  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Data_dir: '/content/drive/MyDrive/CILM/largest_tm_lv_slices_window_+5'
+  Train_file: '/content/drive/MyDrive/CILM/True_Label/all_tumor_pure/'
+  Valid_file: '/content/drive/MyDrive/CILM/True_Label/all_tumor_pure/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
-
 LABEL:
   label_name: 'HGP_Type'
 
@@ -29,7 +27,7 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'SelectiveLoss'
+    loss: 'GamblerLoss'
 
     GamblerLoss:
       reward: 1.2
@@ -116,14 +114,14 @@ Augmentation:
   RandFlip: (prob = 0.3)
   
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  save_dir: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/'
   save_name: ''
   fold: ''
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  weight_dir: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/'
 
 visual_im:
   visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  visual_out_path: '/content/drive/MyDrive/CILM/Output/Swingtransformer/Test_google/'
   slice: 5

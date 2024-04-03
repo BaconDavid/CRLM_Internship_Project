@@ -241,7 +241,7 @@ def main(cfg,mode='train'):
                                                ave_loss,
                                                num_class=cfg.MODEL.num_class,
                                                coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
-                                               loss_type='Selectiveloss')
+                                               loss_type='SelectiveLoss')
                     
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()

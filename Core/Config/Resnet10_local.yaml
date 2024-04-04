@@ -7,8 +7,8 @@ SYSTEM:
     
 DATA:
   Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_window_+5\'
-  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
-  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\largest_tm_lv_+5_mask\'
+  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Pure_scans\'
+  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Pure_scans\'
   Data_mask_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_mask_+5\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   
@@ -40,21 +40,21 @@ LOSS:
 
 TRAIN:
   batch_size: 1
-  num_epochs: 2
+  num_epochs: 100
   Debug: True
   data_aug: True
   
 Scheduler:
-  scheduler: True
+  scheduler: False
   scheduler_name: 'WarmupCosineSchedule'
 
   WarmupCosineScheduler:
-    warmup_steps: 0
-    t_total: 10
+    warmup_steps: 300
+    t_total: 7000
 
 Optimizer:
   name: 'SGD'
-  lr: 0.00001
+  lr: 0.0001
   weight_decay: 0.001
   
   SGD:
@@ -72,15 +72,15 @@ DATASET:
   WeightedRandomSampler: False
   num_classes: 2
   num_channels: 1
-  mask: True
+  mask: False
 
 ## task should be claaification, selective, regression
 MODEL:
   task: 'selective'
   name: 'Resnet10' #model body for classification or selective
-  pretrained: False
+  pretrained: True
   num_class: 2
-  num_in_channels: 2
+  num_in_channels: 1
   drop_out: 0.0
   #only for dropblock
   Drop_block: False
@@ -93,7 +93,7 @@ MODEL:
   selectivenet: True # whether to use selectivenet or not
 
   Gambler:
-    pretrain_epochs: 30
+    pretrain_epochs: 20
   
 
 

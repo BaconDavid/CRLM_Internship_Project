@@ -141,7 +141,7 @@ def main(cfg,mode='train'):
         #set model
      
         model = Model(cfg).build_model()
-        print('fuck model',model)
+        #print('fuck model',model)
         model.to(cfg.SYSTEM.DEVICE)
         
         ## add exponential moving average
@@ -220,7 +220,8 @@ def main(cfg,mode='train'):
                                                y_pred,
                                                ave_loss,
                                                num_class=cfg.MODEL.num_class,
-                                               coverage=[(i+1)/10 for i in range(10)],
+                                               #coverage=[(i+1)/10 for i in range(10)],
+                                               coverage=[0.5],
                                                loss_type='GamblerLoss')
                     metrics.calculate_selected_metrics()
                     singel_metric = metrics.generate_metrics_df(epoch+1)

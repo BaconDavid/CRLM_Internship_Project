@@ -129,6 +129,7 @@ class SelectiveMetrics(Metrics):
             self.y_pred, self.y_true = self._get_array()
             self.y_pred,self.reservation = self.y_pred[:,:,:-1],self.y_pred[:,:,-1]
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
+            print((self.y_pred_label,self.y_pred,self.reservation,'model_out_put'))
             
         elif loss_type == 'SelectiveLoss':
             self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
@@ -141,7 +142,6 @@ class SelectiveMetrics(Metrics):
 
         self.coverage = coverage # only for gambler input a list of coverage
         
-        print(self.coverage)
         #check if loss_type is Gambler or Selective
         self.metrics = {f"{i}_coverage_{j}": {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class) for j in self.coverage}
         
@@ -188,7 +188,7 @@ class SelectiveMetrics(Metrics):
         self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
         self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
         #self.y_pred_label = np.argmax(self.y_pred,axis=1)
-        print(self._selectivenet_pred())
+        #print(self._selectivenet_pred())
         for i in range(self.num_class):
             for j in self.coverage:
                 true_binary = (self.y_true == i).astype(int)
@@ -210,22 +210,22 @@ class SelectiveMetrics(Metrics):
 
     def _gambler_selective_pred(self,coverage_rate):
         #get the reservation
-        print(self.y_pred,'y_pred_shape')
+       # print(self.y_pred,'y_pred_shape')
         output, reservation = self.y_pred.reshape(-1,self.num_class), self.reservation.reshape(-1)
         #print(output)
         predictions = np.argmax(output,axis=1).reshape(-1)#shape : [Sample,pre_prob]
         coverage_rate = int(round(len(reservation)) * coverage_rate)
-        print(coverage_rate,'coverage_rate')
+        #print(coverage_rate,'coverage_rate')
         #sorted by the reservation
         sort_index = np.argsort(reservation)
         output = output[sort_index,:][:coverage_rate]
         predictions = predictions[sort_index][:coverage_rate]
         true_labels = self.y_true[sort_index][:coverage_rate]
         reservation = reservation[sort_index][:coverage_rate]
-        print(coverage_rate,'coverage_rate6666',reservation)
+        print(coverage_rate,f'coverage_rate6666, reservation order {reservation}')
         #cat with reservation
         output = np.concatenate((output, reservation[:, np.newaxis]), axis=1)
-
+        print(output,'output after selection')
         return output,predictions,true_labels
     
     def _selectivenet_pred(self,threshold=0.5):

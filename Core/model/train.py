@@ -77,8 +77,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         ##TRAIN by task    
         optimizer.zero_grad()
         if cfg.MODEL.task == 'selective':
+
             if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+
                 if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
+
                     print('pretrain loop!')
                     output = model(im)
                     #loss = nn.CrossEntropyLoss()(output[:,:-1],label)# only extract 0,1 class
@@ -86,9 +89,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     loss.backward()
                     average_loss += loss.item()
                     output = torch.nn.functional.softmax(output,dim=1)
+
                 else:
                     output = model(im)
                     loss = criterion(output,label)
+                    loss.backward()
                     average_loss += loss.item()
                     output = torch.nn.functional.softmax(output,dim=1)
                 

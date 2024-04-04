@@ -60,6 +60,7 @@ class SelectiveModel(Model):
         #check which selectivenet
         if self.cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
             return GamblerNet(self.cfg).build_model(**kwargs)
+        
         elif self.cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
             return SelectiveNet(self.cfg).build_model(**kwargs)
 
@@ -120,11 +121,7 @@ class SwinTransformer(Model):
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
     
 
-class ResnetAttention(ResNet):
-    pass
 
-class ResnetDrop(ResNet):
-    pass
 
 class SelectiveNet(Model):
     def __init__(self,cfg) -> None:
@@ -152,6 +149,7 @@ class GamblerNet(Model):
                                 drop_rate=self.cfg.MODEL.drop_out,
                                 task=self.cfg.MODEL.task,
                                 **kwargs)
+                
             elif self.cfg.MODEL.name == "Resnet18":
                 model = resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
                             num_classes=self.cfg.MODEL.num_class + 1, 

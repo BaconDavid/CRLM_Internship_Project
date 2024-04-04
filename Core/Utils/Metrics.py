@@ -218,6 +218,11 @@ class SelectiveMetrics(Metrics):
         #print(coverage_rate,'coverage_rate')
         #sorted by the reservation
         sort_index = np.argsort(reservation)
+
+        #if coverage_rate is larger than the length of the reservation
+        if coverage_rate >= len(reservation):
+            coverage_rate -= 1
+
         output = output[sort_index,:][:coverage_rate]
         predictions = predictions[sort_index][:coverage_rate]
         true_labels = self.y_true[sort_index][:coverage_rate]

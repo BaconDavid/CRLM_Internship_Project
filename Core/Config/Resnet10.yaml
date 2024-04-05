@@ -12,8 +12,8 @@ SYSTEM:
     
 DATA:
   Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
-  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
-  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/all_tumor_pure/'
+  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
+  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
 
@@ -45,7 +45,7 @@ LOSS:
 
 TRAIN:
   batch_size: 1
-  num_epochs: 2
+  num_epochs: 500
   Debug: False
   data_aug: True
   
@@ -74,7 +74,7 @@ TEST:
   loss: 'CrossEntropyLoss'
 
 DATASET:
-  WeightedRandomSampler: False
+  WeightedRandomSampler: True
   num_classes: 2
   num_channels: 1
   mask: False
@@ -95,7 +95,7 @@ MODEL:
   num_out_channels: 1
   # output of last layer
   feature_dims: 512
-  selectivenet: False # whether to use selectivenet or not
+  selectivenet: True # whether to use selectivenet or not
 
   Gambler:
     pretrain_epochs: 30

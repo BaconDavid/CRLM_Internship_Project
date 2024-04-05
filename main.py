@@ -220,8 +220,8 @@ def main(cfg,mode='train'):
                                                y_pred,
                                                ave_loss,
                                                num_class=cfg.MODEL.num_class,
-                                               #coverage=[(i+1)/10 for i in range(10)],
-                                               coverage=[0.5],
+                                               coverage=[(i+1)/10 for i in range(10)],
+                                               #coverage=[0.5],
                                                loss_type='GamblerLoss')
                     metrics.calculate_selected_metrics()
                     singel_metric = metrics.generate_metrics_df(epoch+1)
@@ -313,7 +313,7 @@ def main(cfg,mode='train'):
                                                ave_loss,
                                                num_class=cfg.MODEL.num_class,
                                                coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
-                                               loss_type='Selectiveloss')
+                                               loss_type='SelectiveLoss')
                     
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()

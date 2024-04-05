@@ -77,6 +77,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                         output = model(im)
                         loss = criterion(output,label)
                         average_loss += loss.item()
+                        output = torch.nn.functional.softmax(output,dim=1)
                         #softmax probability for classification and auxiliary
                         
                     

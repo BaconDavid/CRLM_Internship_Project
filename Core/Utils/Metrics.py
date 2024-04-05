@@ -233,7 +233,7 @@ class SelectiveMetrics(Metrics):
         print(output,'output after selection')
         return output,predictions,true_labels
     
-    def _selectivenet_pred(self,threshold=0.5):
+    def _selectivenet_pred(self,threshold=0.7):
         #sort all output followed by selection output
         y_select = self.y_select.reshape(-1) # (Sample,Batch,1) --> (Sample*Batch)
         y_pred = self.y_pred.reshape(-1,self.num_class) # (Sample,Batch,Class) --> (Sample*Batch,Class)

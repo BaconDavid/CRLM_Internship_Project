@@ -79,7 +79,8 @@ def main(cfg,mode='train'):
     train_data.Data_check()
     vali_data.Data_check()
     y_pred_lst = []
-    y_selection_lst = []
+    y_selection_lst = [] # only for selective net
+    y_true_lst = []
     
     if mode == 'train':
 
@@ -317,6 +318,7 @@ def main(cfg,mode='train'):
                                                loss_type='SelectiveLoss')
                     y_pred_lst.append(metrics.y_pred)
                     y_selection_lst.append(metrics.y_select)
+                    y_true_lst.append(metrics.y_true)
                     
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()
@@ -359,8 +361,11 @@ def main(cfg,mode='train'):
             if cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
                 y_selection_array = np.stack(y_selection_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,1) # for selection head in SENet
+                y_true_array = np.stack(y_true_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_selection.npy',y_selection_array)
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_true.npy',y_true_array)
+
             elif cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class+1)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)

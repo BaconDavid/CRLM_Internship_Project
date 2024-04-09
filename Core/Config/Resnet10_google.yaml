@@ -11,8 +11,8 @@ SYSTEM:
     
 DATA:
   Data_dir: '/content/drive/MyDrive/CILM/largest_tm_lv_slices_window_+5'
-  Train_file: '/content/drive/MyDrive/CILM/True_Label/all_tumor_pure/'
-  Valid_file: '/content/drive/MyDrive/CILM/True_Label/all_tumor_pure/'
+  Train_file: '/content/drive/MyDrive/CILM/True_Label/Pure_scans/'
+  Valid_file: '/content/drive/MyDrive/CILM/True_Label/Pure_scans/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
   Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
 LABEL:
@@ -27,14 +27,14 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'GamblerLoss'
+    loss: 'SelectiveLoss'
 
     GamblerLoss:
       reward: 1.2
       
     SelectiveNetLoss:
       loss: 'SelectiveLoss'
-      coverage: 0.5
+      coverage: 0.7
       lm: 32
       alpha: 0.5
 
@@ -43,21 +43,21 @@ LOSS:
 
 TRAIN:
   batch_size: 1
-  num_epochs: 2
-  Debug: False
+  num_epochs: 100
+  Debug: True
   data_aug: True
   
 Scheduler:
-  scheduler: True
+  scheduler: False
   scheduler_name: 'WarmupCosineSchedule'
 
   WarmupCosineScheduler:
     warmup_steps: 500
-    t_total: 17000
+    t_total: 9500
 
 Optimizer:
   name: 'SGD'
-  lr: 0.0001
+  lr: 0.001
   weight_decay: 0.001
   
   SGD:
@@ -93,7 +93,7 @@ MODEL:
   num_out_channels: 1
   # output of last layer
   feature_dims: 512
-  selectivenet: False # whether to use selectivenet or not
+  selectivenet: True # whether to use selectivenet or not
 
   Gambler:
     pretrain_epochs: 30

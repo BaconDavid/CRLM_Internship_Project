@@ -79,6 +79,7 @@ def main(cfg,mode='train'):
     train_data.Data_check()
     vali_data.Data_check()
     y_pred_lst = []
+    y_selection_lst = []
     
     if mode == 'train':
 
@@ -299,7 +300,7 @@ def main(cfg,mode='train'):
 
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-                    metrics = SelectiveMetrics(y_true,y_pred,ave_loss,num_class=cfg.MODEL.num_class,coverage=[(i+1)/10 for i in range(0,10,3)])
+                    metrics = SelectiveMetrics(y_true,y_pred,ave_loss,num_class=cfg.MODEL.num_class,coverage=[(i+1)/10 for i in range(0,10)])
                     metrics.calculate_selected_metrics()
                     singel_metric = metrics.generate_metrics_df(epoch+1)
                     val_results.store_results(singel_metric,'metrics')
@@ -314,6 +315,8 @@ def main(cfg,mode='train'):
                                                num_class=cfg.MODEL.num_class,
                                                coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
                                                loss_type='SelectiveLoss')
+                    y_pred_lst.append(metrics.y_pred)
+                    y_selection_lst.append(metrics.y_select)
                     
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()
@@ -354,7 +357,10 @@ def main(cfg,mode='train'):
         #stack y_pred_lst except the selective loss
         if cfg.MODEL.task == 'selective':
             if cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-                pass
+                y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
+                y_selection_array = np.stack(y_selection_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,1) # for selection head in SENet
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_selection.npy',y_selection_array)
             elif cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class+1)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)

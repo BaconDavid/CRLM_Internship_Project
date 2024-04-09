@@ -133,7 +133,7 @@ class SelectiveMetrics(Metrics):
             
         elif loss_type == 'SelectiveLoss':
             self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
-            self.y_pred, self.y_select,self.y_aux,self.y_true = self._get_array()
+            self.y_pred, self.y_select,self.y_aux,self.y_true = self._get_array() # (sample,batch,class)
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
         
         self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]

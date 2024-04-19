@@ -24,7 +24,7 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'GamblerLoss' # GamblerLoss or SelectiveLoss
+    loss: 'SelectiveLoss' # GamblerLoss or SelectiveLoss
 
     GamblerLoss:
       reward: 1.2
@@ -40,7 +40,8 @@ LOSS:
 
 TRAIN:
   batch_size: 1
-  num_epochs: 100
+  batch_accumulation_size: 3
+  num_epochs: 2
   Debug: True
   data_aug: True
   
@@ -63,6 +64,7 @@ Optimizer:
 VALID:
   batch_size: 1
   data_aug: True
+  batch_accumulation_size: 3
 
 TEST:
   batch_size: 1
@@ -78,7 +80,7 @@ DATASET:
 MODEL:
   task: 'selective'
   name: 'Resnet10' #model body for classification or selective
-  pretrained: True
+  pretrained: False
   num_class: 2
   num_in_channels: 1
   drop_out: 0.0

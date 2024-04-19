@@ -39,6 +39,13 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     #set metrics record
     y_pred = []
     y_true = []
+
+    #only for selectivenet to store batch samples
+    accumulated_outputs = []
+    accumulated_labels = []
+    
+    accumulated_batch = cfg.TRAIN.batch_accumulation_size
+
     print("##################")
     print(f"epoch {epoch_num+1}")
     print("##################")
@@ -94,8 +101,10 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     output = model(im)
                     loss = criterion(output,label)
                     loss.backward()
+                    optimizer.step()
                     average_loss += loss.item()
                     output = torch.nn.functional.softmax(output,dim=1)
+                    
                 
 
             elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
@@ -103,16 +112,30 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                 output = model(im)
                 
                 out_class,out_select,out_aux = output
+                accumulated_outputs.append(output), accumulated_labels.append(label)
                 # loss dict includes, 'empirical_risk' / 'emprical_coverage' / 'penulty'
-                loss, loss_dict = criterion(out_class, out_select,out_aux,label)
-                average_loss += loss.item()
+
+                
+                
                 #softmax for class and aux
                 out_class = torch.nn.functional.softmax(out_class,dim=1)
                 out_aux = torch.nn.functional.softmax(out_aux,dim=1)
 
                 output = (out_class,out_select,out_aux)
-                #print('output',output)
-                loss.backward()
+                
+                # every 5 batch gradient accumulation
+                if (i+1) % accumulated_batch ==0:
+                    out_class_accum = torch.cat([out[0] for out in accumulated_outputs], dim=0)
+                    out_select_accum = torch.cat([out[1] for out in accumulated_outputs], dim=0)
+                    out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
+                    label_accum = torch.cat(accumulated_labels, dim=0)
+                    print('accumulated',out_class_accum,out_select_accum,out_aux_accum)
+                    loss, loss_dict = criterion(out_class_accum, out_select_accum,out_aux_accum,label_accum)
+                    loss.backward()
+                    optimizer.step()
+                    average_loss += loss.item()
+                    #clear accumulation list
+                    accumulated_outputs.clear(),accumulated_labels.clear()
             else:
                 raise ValueError('SelectiveLoss can only be GamblerLoss or SelectiveLoss')
             
@@ -121,18 +144,18 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             #print('output',output.shape,label.shape)
             loss = criterion(output,label)
             loss.backward()
+            optimizer.step()
             average_loss += loss.item()
             output = torch.nn.functional.softmax(output,dim=1)
-        elif cfg.MODEL.task == 'regression':
-            #output = torch.nn.functional.sigmoid(output)
-            pass
+            
+
         #softmax probability
         y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
         #set description for tqdm
-        train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},step_loss:{loss},out_put_prob:{output}")
+        train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},out_put_prob:{output}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
-        optimizer.step()
+
         if scheduler:
             print('scheduler stepup')
             scheduler.step()

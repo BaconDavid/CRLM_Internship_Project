@@ -30,6 +30,12 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     #set metrics record
     y_pred = []
     y_true = []
+    
+    #only for selectivenet to store batch samples
+    accumulated_outputs = []
+    accumulated_labels = []
+    accumulated_batch = cfg.VALID.batch_accumulation_size
+    
     print("##################")
     print("##################")
     #model = model.to(device)
@@ -63,8 +69,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                 loss = criterion(output,label)
                 average_loss += loss.item()
                 output = torch.nn.functional.softmax(output,dim=1)
-            elif cfg.MODEL.task == 'regression':
-                pass
+
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                     if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
@@ -84,19 +89,29 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                     output = model(im)
                     out_class,out_select,out_aux = output
-                    loss,loss_dict = criterion(out_class,out_select,out_aux,label)
+                    accumulated_outputs.append(output),accumulated_labels.append(label)
+                    #calculate batch accumulation
+                    if (i+1) % accumulated_batch ==0:
+                        out_class_accum = torch.cat([out[0] for out in accumulated_outputs], dim=0)
+                        out_select_accum = torch.cat([out[1] for out in accumulated_outputs], dim=0)
+                        out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
+                        label_accum = torch.cat(accumulated_labels, dim=0)
+                        #print('accumulated',out_class_accum,out_select_accum,out_aux_accum)
+                        loss, loss_dict = criterion(out_class_accum, out_select_accum,out_aux_accum,label_accum)
+                        average_loss += loss.item()
+                        accumulated_outputs.clear(),accumulated_labels.clear() #clear accumulation list
+
+                    #loss,loss_dict = criterion(out_class,out_select,out_aux,label)
                     out_class = torch.nn.functional.softmax(out_class,dim=1)
                     out_aux = torch.nn.functional.softmax(out_aux,dim=1)
-
                     output = (out_class,out_select,out_aux)
-                    average_loss += loss.item()
-             
+                    print(i,'epoch')
             #print('this is output',output)
             else:
                 pass
     
 
-        #softmax probability
+
         y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
 
@@ -108,6 +123,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
 
     average_loss = average_loss/len(vali_bar)
     print('this is average loss',average_loss)
+    print('return',y_pred)
     return average_loss,y_pred,y_true
 
     

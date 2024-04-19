@@ -27,36 +27,6 @@ class Metrics():
         #turn into (steps,batch,out_class) prob
         #[batch,sample,class]
 
-    
-    def calculate_metrics(self):
-        self.metrics = {str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class)}
-
-        for i in range(self.num_class):
-            true_binary = (self.y_true == i).astype(int)
-            pred_binary = (self.y_pred_label == i).astype(int)
-            
-            self.metrics[str(i)]['f1'] = f1_score(true_binary, pred_binary)
-            self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
-            self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
-
-            if len(np.unique(true_binary)) > 1:
-                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))
-
-            self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
-
-        return self.metrics
-        
-    def get_four_rate(self):
-        y_pred_one_hot_tensor = torch.tensor(self.y_pred_one_hot)
-        y_true_one_hot_tensor = torch.tensor(self.y_true_one_hot)
-        confu_matrix = get_confusion_matrix(y_pred_one_hot_tensor,y_true_one_hot_tensor)
-        for i in range(self.num_class):
-            self.four_rate_dic[str(i)]['tp'] += confu_matrix[:,i,0].sum().item()
-            self.four_rate_dic[str(i)]['fp'] += confu_matrix[:,i,1].sum().item()
-            self.four_rate_dic[str(i)]['tn'] += confu_matrix[:,i,2].sum().item() 
-            self.four_rate_dic[str(i)]['fn'] += confu_matrix[:,i,3].sum().item()
-        return self.four_rate_dic
-
 
     def generate_metrics_df(self, epoch):
         # 存储度量数据
@@ -82,26 +52,56 @@ class Metrics():
         new_df = pd.DataFrame(four_rate_data)
         return new_df
     
-    def _get_array(self):
-        # get y_pred numpy with shape (Sample, Batch, Class)
-        self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
-        self.y_true = np.array(self.y_true)
-        return self.y_pred,self.y_true
-    
+
 
 
 
 class ClassificationMetrics(Metrics):
     def __init__(self,y_true,model_output,ave_loss,num_class=2):
         super().__init__(y_true,model_output,ave_loss,num_class=num_class)
-        self.y_true = np.array(y_true)
-        self.y_pred, self.y_true = self._get_array()
-        self.y_pred_label = np.argmax(self.y_pred,axis=2)
+        self.y_pred, self.y_true = self._get_array()#get pred,y_true array
+        self.y_pred_label = np.argmax(self.y_pred,axis=2) #predict label
+
+        #get one hot
         self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
-        print(self.y_pred_label)
         self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label]
+        #get metrics
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
-        self.y_pred, self.y_true = self._get_array()
+
+    def calculate_metrics(self):
+        self.metrics = {
+            str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class)
+        }
+
+        for i in range(self.num_class):
+            true_binary = (self.y_true == i).astype(int)
+            pred_binary = (self.y_pred_label == i).astype(int)
+
+            
+            self.metrics[str(i)]['f1'] = f1_score(true_binary, pred_binary)
+            self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
+            self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
+            self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
+
+            if len(np.unique(true_binary)) > 1:
+                self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))
+
+           
+
+        return self.metrics
+
+    def get_four_rate(self):
+        y_pred_one_hot_tensor = torch.tensor(self.y_pred_one_hot)
+        y_true_one_hot_tensor = torch.tensor(self.y_true_one_hot)
+        confu_matrix = get_confusion_matrix(y_pred_one_hot_tensor,y_true_one_hot_tensor)
+        for i in range(self.num_class):
+            self.four_rate_dic[str(i)]['tp'] += confu_matrix[:,i,0].sum().item()
+            self.four_rate_dic[str(i)]['fp'] += confu_matrix[:,i,1].sum().item()
+            self.four_rate_dic[str(i)]['tn'] += confu_matrix[:,i,2].sum().item() 
+            self.four_rate_dic[str(i)]['fn'] += confu_matrix[:,i,3].sum().item()
+
+        return self.four_rate_dic
+
     def get_roc(self):
         #always return AUC with dHGP even thought it is not a binary classification
         positive_class = self.num_class - 1
@@ -112,6 +112,13 @@ class ClassificationMetrics(Metrics):
     
     def get_f1_score(self):
         return f1_score(self.y_true,self.y_pred_label)
+    
+    def _get_array(self):
+        # get y_pred numpy with shape (Sample, Batch, Class)
+        self.y_pred = np.stack([y.detach().cpu().numpy() for y in self.y_pred],axis=0)
+        self.y_true = np.array(self.y_true)
+        return self.y_pred,self.y_true
+
 
 
 
@@ -129,15 +136,15 @@ class SelectiveMetrics(Metrics):
             self.y_pred, self.y_true = self._get_array()
             self.y_pred,self.reservation = self.y_pred[:,:,:-1],self.y_pred[:,:,-1]
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
-            print((self.y_pred_label,self.y_pred,self.reservation,'model_out_put'))
+            #print((self.y_pred_label,self.y_pred,self.reservation,'model_out_put'))
             
         elif loss_type == 'SelectiveLoss':
             self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
             self.y_pred, self.y_select,self.y_aux,self.y_true = self._get_array() # (sample,batch,class)
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
+            print('validation?',self.y_pred_label,self.y_pred,self.y_select)
         
-        self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
-        self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
+        
 
 
         self.coverage = coverage # only for gambler input a list of coverage
@@ -153,6 +160,19 @@ class SelectiveMetrics(Metrics):
             self._calculate_selective_metrics()
         return self.metrics
 
+    def get_four_rate(self):
+        y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
+        y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
+        y_pred_one_hot_tensor = torch.tensor(y_pred_one_hot)
+        y_true_one_hot_tensor = torch.tensor(y_true_one_hot)
+        print('y_pred_one_hot',y_pred_one_hot_tensor)
+        confu_matrix = get_confusion_matrix(y_pred_one_hot_tensor,y_true_one_hot_tensor)
+        for i in range(self.num_class):
+            self.four_rate_dic[str(i)]['tp'] += confu_matrix[:,i,0].sum().item()
+            self.four_rate_dic[str(i)]['fp'] += confu_matrix[:,i,1].sum().item()
+            self.four_rate_dic[str(i)]['tn'] += confu_matrix[:,i,2].sum().item() 
+            self.four_rate_dic[str(i)]['fn'] += confu_matrix[:,i,3].sum().item()
+        return self.four_rate_dic
 
     def _calculate_gambler_metrics(self):
         #for every coverage, calculate its corresponding metrics
@@ -199,7 +219,7 @@ class SelectiveMetrics(Metrics):
                 self.metrics[f"{i}_coverage_{j}"]['recall'] = recall_score(true_binary, pred_binary)
 
                 if len(np.unique(true_binary)) > 1:
-                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, self.y_pred[:,i].reshape(-1))
+                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, np.max(self.y_pred[:,],axis=1).reshape(-1)) #use max softmax
 
                     
                 self.metrics[f"{i}_coverage_{j}"]['accuracy'] = accuracy_score(true_binary, pred_binary)
@@ -233,7 +253,7 @@ class SelectiveMetrics(Metrics):
         print(output,'output after selection')
         return output,predictions,true_labels
     
-    def _selectivenet_pred(self,threshold=0.7):
+    def _selectivenet_pred(self,threshold=0.5):
         #sort all output followed by selection output
         y_select = self.y_select.reshape(-1) # (Sample,Batch,1) --> (Sample*Batch)
         y_pred = self.y_pred.reshape(-1,self.num_class) # (Sample,Batch,Class) --> (Sample*Batch,Class)
@@ -269,6 +289,7 @@ class SelectiveMetrics(Metrics):
             self.y_true = np.array(self.y_true)
 
             return self.y_pred,self.y_true
+        
         elif self.loss_type == 'SelectiveLoss':
             #get y_pred, y_select, y_aux numpy with shape (Sample, Batch, Class)
             #print(self.y_pred,'y_pred_shape vali!')

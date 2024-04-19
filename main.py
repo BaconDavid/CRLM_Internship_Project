@@ -308,14 +308,16 @@ def main(cfg,mode='train'):
                     y_pred_array = np.stack([y.detach().cpu().numpy() for y in y_pred],axis=0)
                     y_pred_lst.append(y_pred_array)
                     val_loss_values.append(ave_loss)
-                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
 
+                elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                    print(y_true,'validation_y_true')
                     metrics = SelectiveMetrics(y_true,
                                                y_pred,
                                                ave_loss,
                                                num_class=cfg.MODEL.num_class,
                                                coverage=[cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage],
                                                loss_type='SelectiveLoss')
+                    
                     y_pred_lst.append(metrics.y_pred)
                     y_selection_lst.append(metrics.y_select)
                     y_true_lst.append(metrics.y_true)

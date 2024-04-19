@@ -90,7 +90,7 @@ class SelectiveLoss(Loss):
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage <= 1.0
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
 
-        self.loss_func = nn.CrossEntropyLoss()
+        self.loss_func = nn.CrossEntropyLoss(reduce='none')
         self.coverage = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage
         self.lm = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
         self.alpha = self.cfg.MODEL.SelectiveNet.alpha # combine coefficient of selective loss and aux loss
@@ -103,7 +103,7 @@ class SelectiveLoss(Loss):
         """
         # compute emprical coverage (=phi^)
         emprical_coverage = selection_out.mean() 
-
+        print(selection_out.shape,'shape of selectionout')
         # compute emprical risk (=r^)
         emprical_risk = (self.loss_func(prediction_out, target)*selection_out.view(-1)).mean()
         emprical_risk = emprical_risk / emprical_coverage
@@ -114,7 +114,7 @@ class SelectiveLoss(Loss):
         penulty *= self.lm
 
         # compute aux loss
-        aux_loss = self.loss_func(aux_out, target)
+        aux_loss = torch.nn.CrossEntropyLoss()(aux_out, target)
         # loss information dict 
         loss_dict={}
         loss_dict['emprical_coverage'] = emprical_coverage.detach().cpu().item()

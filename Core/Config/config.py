@@ -34,6 +34,7 @@ _C.TRAIN.num_epochs = 20
 _C.TRAIN.data_aug = True
 _C.TRAIN.Debug = False
 _C.TRAIN.drop_out = 0.5
+_C.TRAIN.batch_accumulation_size = 3
 
 
 _C.Optimizer = CN()
@@ -57,6 +58,7 @@ _C.VALID = CN()
 _C.VALID.batch_size = 16
 _C.VALID.loss = 'CrossEntropy'
 _C.VALID.data_aug = False
+_C.VALID.batch_accumulation_size = 3
 
 _C.LOSS = CN()
 _C.LOSS.task = 'classification'

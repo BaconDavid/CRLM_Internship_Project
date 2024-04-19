@@ -1,0 +1,131 @@
+
+# my_project/experiment.yaml
+
+###Experiment description:
+
+
+
+SYSTEM:
+  NUM_GPUS: None
+  DEVICE: 'cuda'
+  NUM_WORKERS: 8
+    
+DATA:
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
+  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
+  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
+  Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
+  Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
+
+LABEL:
+  label_name: 'HGP_Type'
+
+#LOSS's task should be classification, selective, regression
+LOSS:
+  task: 'selective'
+
+  RegressionLoss:
+    loss: 'MSE'
+
+#loss should be GamblerLoss or SelectiveLoss
+  SelectiveLoss:
+    loss: 'GamblerLoss'
+
+    GamblerLoss:
+      reward: 1.2
+      
+    SelectiveNetLoss:
+      loss: 'SelectiveLoss'
+      coverage: 0.5
+      lm: 32
+      alpha: 0.5
+
+  ClassificationLoss:
+    loss: 'CrossEntropyLoss'
+
+TRAIN:
+  batch_size: 1
+  num_epochs: 300
+  Debug: False
+  data_aug: True
+  batch_accumulation_size: 5
+  
+Scheduler:
+  scheduler: True
+  scheduler_name: 'WarmupCosineSchedule'
+
+  WarmupCosineScheduler:
+    warmup_steps: 2000
+    t_total: 60000
+
+Optimizer:
+  name: 'SGD'
+  lr: 0.0001
+  weight_decay: 0.001
+  
+  SGD:
+    momentum: 0.9
+
+VALID:
+  batch_size: 1
+  data_aug: True
+  batch_accumulation_size: 5
+
+TEST:
+  batch_size: 1
+  loss: 'CrossEntropyLoss'
+
+DATASET:
+  WeightedRandomSampler: True
+  num_classes: 2
+  num_channels: 1
+  mask: False
+
+## task should be claaification, selective, regression
+MODEL:
+  task: 'selective'
+  name: 'Resnet10' #model body for classification or selective
+  pretrained: True
+  num_class: 2
+  num_in_channels: 1
+  drop_out: 0.0
+  #only for dropblock
+  Drop_block: False
+  block_size: 5
+  drop_prob: 0.9
+  ###
+  num_out_channels: 1
+  # output of last layer
+  feature_dims: 512
+  selectivenet: False # whether to use selectivenet or not
+
+  Gambler:
+    pretrain_epochs: 40
+  
+
+
+LOG:
+  log_dir: ./logs
+  log_file: log.txt
+
+Preprocess:
+  padding_size: (368,368,64)
+  normalize: 'NormalizeIntensity'
+
+Augmentation:
+  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandRotate: (range_z = 0.3, prob = 0.5)
+  RandFlip: (prob = 0.3)
+  
+SAVE:
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  save_name: ''
+  fold: ''
+
+WEIGHT:
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+
+visual_im:
+  visual_im: True
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  slice: 5

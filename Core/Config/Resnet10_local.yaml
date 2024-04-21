@@ -24,10 +24,10 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'SelectiveLoss' # GamblerLoss or SelectiveLoss
+    loss: 'GamblerLoss' # GamblerLoss or SelectiveLoss
 
     GamblerLoss:
-      reward: 1.2
+      reward: 1.8
       
     SelectiveNetLoss:
       loss: 'SelectiveLoss'
@@ -92,7 +92,7 @@ MODEL:
   num_out_channels: 1
   # output of last layer
   feature_dims: 512
-  selectivenet: True # whether to use selectivenet or not
+  selectivenet: False # whether to use selectivenet or not
 
   Gambler:
     pretrain_epochs: 20

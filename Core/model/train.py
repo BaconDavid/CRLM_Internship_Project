@@ -88,22 +88,32 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
 
                 if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
-
                     print('pretrain loop!')
                     output = model(im)
-                    loss = nn.CrossEntropyLoss()(output[:,:-1],label)# only extract 0,1 class
+                    loss = (nn.CrossEntropyLoss()(output[:,:-1],label)) / accumulated_batch# only extract 0,1 class
                     #loss = nn.CrossEntropyLoss()(output,label) # all class
                     loss.backward()
+                    
+                    # gradient accumulation
+
+                    if (i+1) % accumulated_batch ==0:
+                        optimizer.step()
+                        if scheduler:
+                            scheduler.step()
+
                     average_loss += loss.item()
-                    output = torch.nn.functional.softmax(output,dim=1)
 
                 else:
                     output = model(im)
-                    loss = criterion(output,label)
+                    loss = (criterion(output,label)) / accumulated_batch
                     loss.backward()
-                    optimizer.step()
                     average_loss += loss.item()
-                    output = torch.nn.functional.softmax(output,dim=1)
+                    if (i+1) % accumulated_batch ==0:
+                        optimizer.step()
+                        if scheduler:
+                            scheduler.step()
+                    
+                output = torch.nn.functional.softmax(output,dim=1)
                     
                 
 
@@ -133,7 +143,10 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     loss, loss_dict = criterion(out_class_accum, out_select_accum,out_aux_accum,label_accum)
                     loss.backward()
                     optimizer.step()
-                    average_loss += loss.item()
+                    if scheduler:
+                        scheduler.step()
+
+                    average_loss += loss.item()  
                     #clear accumulation list
                     accumulated_outputs.clear(),accumulated_labels.clear()
             else:
@@ -156,9 +169,9 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         train_bar.set_description(f"label:{label},lr:{optimizer.param_groups[0]['lr']},out_put_prob:{output}")
         #print(f"y_true_label{label};y_predict:{output};step_loss{loss}")
 
-        if scheduler:
-            print('scheduler stepup')
-            scheduler.step()
+        # if scheduler:
+        #     print('scheduler stepup')
+        #     scheduler.step()
         ema.update()
 
 
@@ -170,7 +183,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     #print('accur',accuracy)
     
 
-    average_loss /= len(train_bar)
+    average_loss = (average_loss * accumulated_batch)/len(train_bar)
     print('average_loss',average_loss)
     return average_loss,y_true,y_pred
 

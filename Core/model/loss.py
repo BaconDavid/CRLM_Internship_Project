@@ -103,7 +103,7 @@ class SelectiveLoss(Loss):
         """
         # compute emprical coverage (=phi^)
         emprical_coverage = selection_out.mean() 
-        print(selection_out.shape,'shape of selectionout')
+
         # compute emprical risk (=r^)
         emprical_risk = (self.loss_func(prediction_out, target)*selection_out.view(-1)).mean()
         emprical_risk = emprical_risk / emprical_coverage
@@ -122,7 +122,7 @@ class SelectiveLoss(Loss):
         loss_dict['penulty'] = penulty.detach().cpu().item()
         loss_dict['aux_loss'] = aux_loss.detach().cpu().item()
         selective_loss = self.alpha*(emprical_risk + penulty) + (1-self.alpha)*aux_loss
-
+        print(loss_dict,'selective loss')
         return selective_loss, loss_dict
     
     

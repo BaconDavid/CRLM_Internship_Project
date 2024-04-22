@@ -1,7 +1,8 @@
 from collections import OrderedDict
+import sched
 import sys
 import os
-from numpy import mask_indices
+from numpy import average, mask_indices
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
 from tqdm import tqdm
@@ -34,6 +35,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     """
     #prepare data for training
     train_bar = tqdm(dataloader)
+    sample_length = len(dataloader)
     average_loss = 0
     print(len(train_bar),'length of train_bar')
     #set metrics record
@@ -59,11 +61,6 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
             
         else:
             im,label,_ = data
-    
-        
-        #make the same as the model output
-        if cfg.MODEL.task == 'regression':
-            label = label.unsqueeze(1)
 
         #rotate and flip
         im = torch.rot90(im,k=3,dims=(2,3))
@@ -71,40 +68,18 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         #permute to [B,C,D,H,W]
         im = im.permute(0,1,4,2,3)
 
-
-
-        im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE)
+        im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE) # to device
 
         
-        if cfg.MODEL.task == 'classification' or cfg.MODEL.task == 'selective':
-            label = label.long()
-        else:
-            label = label.float()
+        label = label.long()
 
         ##TRAIN by task    
         optimizer.zero_grad()
         if cfg.MODEL.task == 'selective':
 
             if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-
-                if cfg.MODEL.pretrained and (epoch_num < cfg.MODEL.Gambler.pretrain_epochs):
-
-                    print('pretrain loop!')
-                    output = model(im)
-                    loss = nn.CrossEntropyLoss()(output[:,:-1],label)# only extract 0,1 class
-                    #loss = nn.CrossEntropyLoss()(output,label) # all class
-                    loss.backward()
-                    average_loss += loss.item()
-                    output = torch.nn.functional.softmax(output,dim=1)
-
-                else:
-                    output = model(im)
-                    loss = criterion(output,label)
-                    loss.backward()
-                    optimizer.step()
-                    average_loss += loss.item()
-                    output = torch.nn.functional.softmax(output,dim=1)
-                    
+                gambler_train = GamblerTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
+                average_loss, output = gambler_train.train(im,label,i,sample_length)
                 
 
             elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
@@ -170,7 +145,46 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     #print('accur',accuracy)
     
 
-    average_loss /= len(train_bar)
+    average_loss = (average_loss * accumulated_batch)/ len(train_bar)
     print('average_loss',average_loss)
     return average_loss,y_true,y_pred
 
+class GamblerTrain:
+    def __init__(self, model, epoch_num, optimizer, criterion, scheduler, cfg):
+        self.model = model
+        self.epoch_num = epoch_num
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.scheduler = scheduler
+        self.cfg = cfg
+
+    def train(self, im, label,sample_index,sample_num):
+        average_loss = 0
+
+        self.model.train()  # 确保模型处于训练模式
+        
+
+        if self.cfg.MODEL.pretrained and (self.epoch_num < self.cfg.MODEL.Gambler.pretrain_epochs):
+            print('Pretrain loop!')
+            output = self.model(im)
+            # 仅提取0,1类别进行交叉熵损失计算
+            loss = nn.CrossEntropyLoss()(output[:, :-1], label)
+            loss.backward()
+        else:
+            output = self.model(im)
+            loss = self.criterion(output, label)
+            loss.backward()
+
+        if ((sample_index + 1) % self.cfg.TRAIN.batch_accumulation_size == 0) or (sample_index == sample_num - 1):
+            loss /= self.cfg.TRAIN.batch_accumulation_size # average loss
+            average_loss += loss.item()
+            #update
+            self.optimizer.step()
+            if self.scheduler:
+                self.scheduler.step()
+
+        output = torch.nn.functional.softmax(output, dim=1)
+
+
+
+        return   average_loss,output

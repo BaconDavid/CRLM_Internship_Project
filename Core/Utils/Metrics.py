@@ -190,7 +190,7 @@ class SelectiveMetrics(Metrics):
                 self.metrics[f"{i}_coverage_{j}"]['recall'] = recall_score(true_binary, pred_binary)
 
                 if len(np.unique(true_binary)) > 1:
-                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, y_pred_coverage[:,i].reshape(-1))
+                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(np.max(true_binary, y_pred_coverage[:,],axis=1)).reshape(-1))
                     #some probelems here for roc
                     print(roc_auc_score(true_binary, y_pred_coverage[:,i].reshape(-1)),'roc_auc_score',true_binary,y_pred_coverage[:,i].reshape(-1))
                     
@@ -219,7 +219,7 @@ class SelectiveMetrics(Metrics):
                 self.metrics[f"{i}_coverage_{j}"]['recall'] = recall_score(true_binary, pred_binary)
 
                 if len(np.unique(true_binary)) > 1:
-                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, np.max(self.y_pred[:,],axis=1).reshape(-1)) #use max softmax
+                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, self.y_pred[:,i]).reshape(-1) #use max softmax
 
                     
                 self.metrics[f"{i}_coverage_{j}"]['accuracy'] = accuracy_score(true_binary, pred_binary)

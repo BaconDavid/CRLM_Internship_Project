@@ -45,3 +45,7 @@ the rest of other you can keep the same. However, you can change build model, da
 ## Per tumor
 1. only per tumor 
 2. per tumor bounding box
+
+
+## Evaluation
+Keep every output as a single output from batch size one, and finally calculate them by stacking

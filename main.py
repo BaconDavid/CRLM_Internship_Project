@@ -205,16 +205,6 @@ def main(cfg,mode='train'):
                 tr_results.store_results(singel_metric,'metrics')
                 tr_results.store_results(four_rate_metric,'four rates')
 
-
-
-            elif cfg.MODEL.task == 'regression':
-                metrics = Metrics_regression(y_pred,y_true)
-                metrics.calculate_metrics()
-                singel_metric = metrics.generate_metrics_df(epoch+1)
-                tr_results.store_results(singel_metric,'metrics')
-
-
-
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                     ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)

@@ -190,7 +190,7 @@ class SelectiveMetrics(Metrics):
                 self.metrics[f"{i}_coverage_{j}"]['recall'] = recall_score(true_binary, pred_binary)
 
                 if len(np.unique(true_binary)) > 1:
-                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(np.max(true_binary, y_pred_coverage[:,],axis=1)).reshape(-1))
+                    self.metrics[f"{i}_coverage_{j}"]['auc'] = roc_auc_score(true_binary, np.max(y_pred_coverage[:,],axis=1)).reshape(-1)
                     #some probelems here for roc
                     print(roc_auc_score(true_binary, y_pred_coverage[:,i].reshape(-1)),'roc_auc_score',true_binary,y_pred_coverage[:,i].reshape(-1))
                     
@@ -297,7 +297,6 @@ class SelectiveMetrics(Metrics):
             self.y_aux = [y[2] for y in self.y_pred]
             self.y_pred = [y[0]for y in self.y_pred]#last unpack to keep the same variable name
 
-            #print(self.y_pred,self.y_select,'y_pred_shape')
             self.y_pred = np.stack([y.detach().cpu().numpy()  for y in self.y_pred],axis=0)
             self.y_select = np.stack([y.detach().cpu().numpy()  for y in self.y_select],axis=0)
             self.y_aux = np.stack([y.detach().cpu().numpy()  for y in self.y_aux],axis=0)

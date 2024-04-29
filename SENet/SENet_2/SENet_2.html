@@ -337,8 +337,51 @@ Yizhou Liu
 </div>
 
 </section>
-<section>
+<section id="last-month" class="title-slide slide level1 center">
+<h1>Last Month</h1>
+<div>
+<ul>
+<li class="fragment">Try two selective methods</li>
+</ul>
+</div>
+</section>
+
 <section id="selectivenet" class="title-slide slide level1 center">
+<h1>SelectiveNet</h1>
+<div class="quarto-layout-panel" data-layout="[80,-2,40]">
+<div class="quarto-layout-row quarto-layout-valign-center">
+<div class="quarto-layout-cell" style="flex-basis: 65.6%;justify-content: flex-start;">
+<div id="fig-SelectiveNet" class="quarto-figure quarto-figure-center quarto-float">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-SelectiveNet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img data-src="./Images/SENet.png">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-SelectiveNet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Structure of SelectiveNet
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-figure-spacer quarto-layout-cell" style="flex-basis: 1.6%;justify-content: flex-start;">
+<p>&nbsp;</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 32.8%;justify-content: flex-start;">
+<p>Target: Given a target coverage, minimize the loss</p>
+</div>
+</div>
+</div>
+<p>Selective loss function:</p>
+<p><span class="math display">\[
+\mathcal{L}_{(f,g)} \triangleq \hat{r}_e(f, g|\mathcal{S}_m) + \lambda \Psi(c - \phi(g|\mathcal{S}_m))
+\]</span> Emprical loss function: <span class="math display">\[
+\hat{r}(f, g|\mathcal{S}_m) \triangleq \frac{1}{m} \sum_{i=1}^{m} \frac{\ell(f(x_i), y_i)g(x_i)}{\phi(g|\mathcal{S}_m)}
+\]</span> Emprical coverage: <span class="math display">\[
+\hat{\phi}(g|\mathcal{S}_m) \triangleq \frac{1}{m} \sum_{i=1}^{m} g(x_i).
+\]</span></p>
+</section>
+
+<section>
+<section id="selectivenet-1" class="title-slide slide level1 center">
 <h1>SelectiveNet</h1>
 <div>
 <ul>
@@ -358,7 +401,7 @@ Yizhou Liu
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mermaid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Training with gradient accumulation
+Figure&nbsp;2: Training with gradient accumulation
 </figcaption>
 </figure>
 </div>
@@ -374,7 +417,7 @@ Figure&nbsp;1: Training with gradient accumulation
 Table&nbsp;1: Astronomical object
 </figcaption>
 <div aria-describedby="tbl-planet-measures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="1">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="5">
 <table class="do-not-create-environment cell">
 <thead>
 <tr class="header">
@@ -470,22 +513,22 @@ Table&nbsp;1: Astronomical object
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-Loss_Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Loss plot of different batch size
+Figure&nbsp;3: Loss plot of different batch size
 </figcaption>
 </figure>
 </div>
 </section>
 <section id="selectivenetresults-1" class="slide level2">
 <h2>SelectiveNet–Results</h2>
+<h3 id="by-coverage">By coverage</h3>
 <div id="fig-Coverage_Plot" class="quarto-layout-panel">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-Coverage_Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<p><strong>By coverage</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="./Images/AUC_BY_COV_C_05_B_5_ALL.png" style="width:50.0%"></p>
+<p><img data-src="./Images/AUC_BY_COV_C_05_B_5_ALL.png" style="width:70.0%"></p>
 <figcaption>AUC by coverage</figcaption>
 </figure>
 </div>
@@ -493,32 +536,27 @@ Figure&nbsp;2: Loss plot of different batch size
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="./Images/AUC_BY_COV_C_05_B_5_F_2.png" style="width:50.0%"></p>
+<p><img data-src="./Images/AUC_BY_COV_C_05_B_5_F_2.png" style="width:70.0%"></p>
 <figcaption>AUC by coverage in fold 2</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<div class="quarto-layout-row">
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<p><strong>By threshold</strong></p>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-Coverage_Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4
+</figcaption>
+</figure>
+</div>
+<h3 id="by-threshold">By threshold</h3>
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="./Images/AUC_BY_THRE_C_05_B_5_ALL.png" style="width:70.0%"></p>
 <figcaption>AUC by threshold</figcaption>
 </figure>
 </div>
-</div>
-<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <p>The model may not perform well under a certain coverage</p>
-</div>
-</div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-Coverage_Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: fig-AUC by coverage and threshold (batch size 5)
-</figcaption>
-</figure>
-</div>
+<p>fig-AUC by coverage and threshold (batch size 5) :::</p>
 </section>
 <section id="selectivenetresults-2" class="slide level2">
 <h2>SelectiveNet–Results</h2>
@@ -530,7 +568,7 @@ Figure&nbsp;3: fig-AUC by coverage and threshold (batch size 5)
 <p><strong>By coverage</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="./Images/AUC_BY_COV_C_05_B_10_ALL.png" style="width:50.0%"></p>
+<p><img data-src="./Images/AUC_BY_COV_C_05_B_10_ALL.png" style="width:10.0%"></p>
 <figcaption>AUC by coverage</figcaption>
 </figure>
 </div>
@@ -538,7 +576,7 @@ Figure&nbsp;3: fig-AUC by coverage and threshold (batch size 5)
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="./Images/AUC_BY_COV_C_05_B_10_F_2.png" style="width:50.0%"></p>
+<p><img data-src="./Images/AUC_BY_COV_C_05_B_10_F_2.png" style="width:10.0%"></p>
 <figcaption>AUC by coverage in fold 2</figcaption>
 </figure>
 </div>
@@ -557,10 +595,15 @@ Figure&nbsp;3: fig-AUC by coverage and threshold (batch size 5)
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-Coverage_Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: fig-AUC by coverage and threshold (batch size 10)
+Figure&nbsp;5: fig-AUC by coverage and threshold (batch size 10)
 </figcaption>
 </figure>
 </div>
+</section>
+<section id="new-section" class="slide level2">
+<h2>[New Section]</h2>
+<p>This is the first par{}</p>
+<p>This is the seconde par</p>
 
 <div class="quarto-auto-generated-content">
 <div class="footer footer-default">

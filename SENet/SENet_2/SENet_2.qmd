@@ -9,6 +9,37 @@ format:
         math: true
 ---
 
+# Last Month
+
+:::{.incremental}
+- Try two selective methods
+:::
+
+# SelectiveNet
+::: {layout="[80,-2,40]" layout-valign="center"}
+![Structure of SelectiveNet ](./Images/SENet.png){#fig-SelectiveNet}
+
+Target: Given a target coverage, minimize the loss
+
+
+:::
+
+Selective loss function:
+
+$$
+\mathcal{L}_{(f,g)} \triangleq \hat{r}_e(f, g|\mathcal{S}_m) + \lambda \Psi(c - \phi(g|\mathcal{S}_m))
+$$
+Emprical loss function:
+$$
+\hat{r}(f, g|\mathcal{S}_m) \triangleq \frac{1}{m} \sum_{i=1}^{m} \frac{\ell(f(x_i), y_i)g(x_i)}{\phi(g|\mathcal{S}_m)} 
+$$
+Emprical coverage:
+$$
+\hat{\phi}(g|\mathcal{S}_m) \triangleq \frac{1}{m} \sum_{i=1}^{m} g(x_i).
+$$
+
+
+
 
 # SelectiveNet
 
@@ -92,14 +123,14 @@ Loss plot of different batch size
 ## SelectiveNet--Results
 
 
-
-:::{layout=[[1,1],[1,1]] #fig-Coverage_Plot}
-
 ### By coverage
+:::{layout=[[1,1],[1,1]] #fig-Coverage_Plot style="margin: 500px"}
 
-![AUC by coverage](./Images/AUC_BY_COV_C_05_B_5_ALL.png){width="50%"}
+![AUC by coverage](./Images/AUC_BY_COV_C_05_B_5_ALL.png){width="70%"}
 
-![AUC by coverage in fold 2](./Images/AUC_BY_COV_C_05_B_5_F_2.png){width="50%"}
+![AUC by coverage in fold 2](./Images/AUC_BY_COV_C_05_B_5_F_2.png){width="70%"}
+:::
+
 
 ### By threshold
 
@@ -113,12 +144,12 @@ fig-AUC by coverage and threshold (batch size 5)
 ## SelectiveNet--Results
 
 
-:::{layout=[[200,200],[50,50]] #fig-Coverage_Plot}
+:::{layout=[[100,100],[50,50]] #fig-Coverage_Plot}
 ### By coverage
 
-![AUC by coverage](./Images/AUC_BY_COV_C_05_B_10_ALL.png){width="50%"}
+![AUC by coverage](./Images/AUC_BY_COV_C_05_B_10_ALL.png){width="10%"}
 
-![AUC by coverage in fold 2](./Images/AUC_BY_COV_C_05_B_10_F_2.png){width="50%"}
+![AUC by coverage in fold 2](./Images/AUC_BY_COV_C_05_B_10_F_2.png){width="10%"}
 
 ### By threshold
 
@@ -128,3 +159,10 @@ fig-AUC by coverage and threshold (batch size 5)
 
 fig-AUC by coverage and threshold (batch size 10)
 :::
+
+## [New Section]
+
+This is the first par{}
+
+This is the seconde par
+

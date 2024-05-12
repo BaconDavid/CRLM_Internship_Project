@@ -1,0 +1,21 @@
+---
+title: "SelectiveNet Analysis"
+author: "Yizhou Liu"
+format: 
+    pdf: 
+        mainfont: Times New Roman
+        theme: [Simple,Math-test.scss]
+        margin: 0.1
+        math: true
+---
+
+# Softmax
+
+## Can softmax be selective?
+
+
+## Use selective with pretrained model?
+
+## Use multiple measurements?
+
+## 

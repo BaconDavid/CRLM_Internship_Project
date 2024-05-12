@@ -11,9 +11,6 @@ import torch
 import matplotlib.pyplot as plt
 from Utils.Metrics import Metrics
 
-CLASSIFICATION = {'blanco':0,'AP':1,"PVP":2}
-
-
 def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     """
     args:
@@ -41,7 +38,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     #model = model.to(device)
     #predict
 
-
+    validator = build_validator(model, epoch_num, criterion, cfg)
     for i,data in enumerate(vali_bar):
         if cfg.DATASET.mask:
             im,label,_,mask = data
@@ -63,14 +60,14 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
             if cfg.MODEL.task == 'classification':
                 output = (model(im))
                 loss = criterion(output,label)
-                average_loss += loss.item()
-                output = torch.nn.functional.softmax(output,dim=1)
+                average_loss_valid,output = validator.grad_accumulate(im,label)
+                average_loss += average_loss_valid
 
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-                    gambler_vali = GamblerValidation(model,epoch_num,criterion,cfg)
-                    average_loss,output = gambler_vali.validate(im,label,i,sample_num)                    
-                    
+                    average_loss_valid,output = validator.grad_accumulate(im,label)
+                    average_loss += average_loss_valid            
+
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                     output = model(im)
                     out_class,out_select,out_aux = output
@@ -82,7 +79,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                         out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
                         label_accum = torch.cat(accumulated_labels, dim=0)
                         #print('accumulated',out_class_accum,out_select_accum,out_aux_accum)
-                        loss, loss_dict = criterion(out_class_accum, out_select_accum,out_aux_accum,label_accum)
+                        loss, loss_dict = validator.grad_accumulate(out_class_accum, out_select_accum,out_aux_accum,label_accum)
                         average_loss += loss.item()
                         accumulated_outputs.clear(),accumulated_labels.clear() #clear accumulation list
 
@@ -90,59 +87,107 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                     out_class = torch.nn.functional.softmax(out_class,dim=1)
                     out_aux = torch.nn.functional.softmax(out_aux,dim=1)
                     output = (out_class,out_select,out_aux)
-                    print(i,'epoch')
-            #print('this is output',output)
-            else:
-                pass
-    
-
 
         y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
+        vali_bar.set_description(f"label{label},loss:{average_loss}")
 
-
-        #set description for tqdm
-
-
-        vali_bar.set_description(f"label{label},loss:{average_loss},out_put_prob:{output}")
-
-    average_loss = (average_loss * accumulated_batch)/ len(vali_bar)
+    average_loss = average_loss / len(vali_bar)
 
     print('this is average loss',average_loss)
-    print('return',y_pred)
     return average_loss,y_pred,y_true
 
+def build_validator(model, epoch_num, criterion, cfg):
+    if cfg.MODEL.task == 'selective':
+        if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+            return GamblerValidate(model,epoch_num,criterion,cfg)
+        elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+            return SelectiveValidate(model, epoch_num, criterion, cfg)
 
-
-class GamblerValidation:
+class GamblerValidate:
     def __init__(self, model, epoch_num, criterion, cfg):
         self.model = model
         self.epoch_num = epoch_num
         self.criterion = criterion
         self.cfg = cfg
 
-    def validate(self, im, label,sample_index,sample_num):
-        average_loss = 0
-        self.model.eval()  # 确保模型处于训练模式
-        
-
+    def grad_accumulate(self, im, label):
+        """
+        args:
+            im: image
+            label: true label
+            sample_index: batch accumulation index
+            sample_num: how many samples in total(length of dataloader)
+        """
         if self.cfg.MODEL.pretrained and (self.epoch_num < self.cfg.MODEL.Gambler.pretrain_epochs):
             print('Pretrain loop!')
             output = self.model(im)
             # 仅提取0,1类别进行交叉熵损失计算
             loss = torch.nn.CrossEntropyLoss()(output[:, :-1], label)
-
         else:
             output = self.model(im)
             loss = self.criterion(output, label)
+            
+        loss_value = loss.item()
+        output = torch.nn.functional.softmax(output,dim=1)
+        return loss_value, output
 
 
-        if ((sample_index + 1) % self.cfg.TRAIN.batch_accumulation_size == 0) or (sample_index == sample_num - 1):
-            loss /= self.cfg.TRAIN.batch_accumulation_size # average loss
-            average_loss += loss.item()
+    
+class SelectiveValidate:
+    def __init__(self, model, epoch_num, criterion,  cfg):
+        self.model = model
+        self.epoch_num = epoch_num
+        self.criterion = criterion
+        self.cfg = cfg
+    
+    def grad_accumulate(self,
+              out_class_accum,
+              out_select_accum,
+              out_aux_accum,
+              label_accum):
+        """
+        args:
+            out_class_accum: accmulation of prediction head
+            out_select_accum: accmulation of output of selection head
+            out_aux_accum: accumulation of output of aux head
+            label_accum: accumlation of true labels
+        """
+        average_loss = 0
+        self.model.train()
 
-        output = torch.nn.functional.softmax(output, dim=1)
+        loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+        loss.backward()
+        average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
+        return average_loss
+    
+
+    
+
+class ClassificationValidate:
+    def __init__(self, model, epoch_num, criterion,cfg):
+        self.model = model
+        self.epoch_num = epoch_num
+        self.criterion = criterion
+        self.cfg = cfg
+    
+    def grad_accumulate(self,im,label):
+        """
+        args:
+            im: image
+            label: true label
+            sample_index: batch accumulation index
+            sample_num: how many samples in total(length of dataloader)
+        """
+        output = self.model(im)
+        loss = self.criterion(output, label)
+        loss.backward()
+
+        loss_value = loss.item()
+        output = torch.nn.functional.softmax(output,dim=1)
+        return loss_value, output
 
 
 
-        return   average_loss,output
+
+

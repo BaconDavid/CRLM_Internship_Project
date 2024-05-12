@@ -1,5 +1,5 @@
 import os
-from cv2 import sort
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import torch
@@ -78,17 +78,16 @@ def main(cfg,mode='train'):
     vali_labels = vali_data.get_labels()
     train_data.Data_check()
     vali_data.Data_check()
+
     y_pred_lst = []
     y_selection_lst = [] # only for selective net
     y_true_lst = []
     
     if mode == 'train':
+        tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train') # save results
+        transform_train,transform_val = data_aug(cfg) # data augmentation
 
-        #save results
-        tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train')
-
-
-        transform_train,transform_val = data_aug(cfg)
+        #whether to add mask as second channel
         if cfg.DATASET.mask:
             train_mask = DataFiles(mask_path,train_data_label,label_name)
             vali_mask = DataFiles(mask_path,vali_data_label,label_name)
@@ -99,7 +98,6 @@ def main(cfg,mode='train'):
             tr_dataset = Image_Dataset(image_files=train_images,seg_files=train_masks,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
             val_dataset = Image_Dataset(image_files=vali_images,seg_files=vali_masks,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
         else:
-
             tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
             val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
 
@@ -111,32 +109,39 @@ def main(cfg,mode='train'):
             #labels and images for subset
             train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
             
-            #sampler
-            if cfg.DATASET.WeightedRandomSampler:
-                sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
-            else:
-                sampler = None
+            # #sampler
+            # if cfg.DATASET.WeightedRandomSampler:
+            #     sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+            # else:
+            #     sampler = None
 
             tr_dataset = tr_dataset_sub
             val_dataset = val_dataset_sub
 
-
-            tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size).build_train_loader() 
-            val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
-        else:           
-            #sampler
-            if cfg.DATASET.WeightedRandomSampler:
-                sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
-            else:
-                sampler = None
+            # DataLoader
             
-            tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size,shuffle=False).build_train_loader() 
-            val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
+            #val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
+        # else:           
+        #     #sampler
+        #     if cfg.DATASET.WeightedRandomSampler:
+        #         sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+        #     else:
+        #         sampler = None
+            
+            # tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size,shuffle=False).build_train_loader() 
+            # val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
+        if cfg.DATASET.WeightedRandomSampler:
+            sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
+            print('yes,',sampler)
 
-            ## get train_labels and image_labels
+        else:
+            sampler = None
 
-            #set best metric
+        tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size).build_train_loader() 
+        val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
+
+        #set best metric
                 
         best_metric = 10000000
         
@@ -153,21 +158,14 @@ def main(cfg,mode='train'):
         update_after_step = 50,    # only after this number of .update() calls will it start updating
         update_every = 10, 
         power =3/4 )
-        #print(ema.step,"ema step!!")
         
         #set scheduler,optimizer parameters
-
         loss_fun = Loss(cfg).build_loss()
         optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
-
         if cfg.Scheduler.scheduler:
-            print('scheduler is on:',cfg.Scheduler.scheduler_name)
             scheduler_fun = scheduler.build_scheduler(cfg,optimizer_fun) 
-            print(scheduler_fun,"this is scheduler_fun")
         else:
             scheduler_fun = None
-
-        
         
         epoch_loss_values, train_loss_epoch_x_axis = [], []
         val_loss_values, val_loss_epoch_x_axis = [], []
@@ -175,26 +173,18 @@ def main(cfg,mode='train'):
          
         #visualize input
         if cfg.visual_im.visual_im:
-           
             visual_input(cfg,tr_dataloader)
 
         for epoch in range(cfg.TRAIN.num_epochs):
             model.train()
-            
             train_loss_epoch_x_axis.append(epoch+1)
             val_loss_epoch_x_axis.append(epoch+1)
-            #average 
-            #ave_loss,y_pred,y_true = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-            #stack y_pred and y_true
-            
-          
+
+            #which method to use
             if cfg.MODEL.task == 'classification':
                 ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
-                #
                 #print(y_pred)
                 metrics = ClassificationMetrics(y_true,y_pred,ave_loss,cfg.MODEL.num_class)
-                #AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
-
                 metrics.calculate_metrics()
                 metrics.get_four_rate()
                 singel_metric = metrics.generate_metrics_df(epoch+1)
@@ -228,7 +218,6 @@ def main(cfg,mode='train'):
                                                         loss_fun,
                                                         ema=ema,
                                                         scheduler=scheduler_fun)
-                    
                     metrics = SelectiveMetrics(y_true,
                                                y_pred,
                                                ave_loss,
@@ -269,7 +258,7 @@ def main(cfg,mode='train'):
 
             if cfg.MODEL.task == 'classification':
                 metrics = ClassificationMetrics(y_true,y_pred,ave_loss,cfg.MODEL.num_class)
-                print(f'this is y_true_lst:{metrics.y_true},this is y_pred_list{metrics.y_pred_label}')
+                #print(f'this is y_true_lst:{metrics.y_true},this is y_pred_list{metrics.y_pred_label}')
                 #AUC,accuracy,F1,four_rate_dic = metrics.get_roc(),metrics.get_accuracy(),metrics.get_f1_score('binary'),metrics.get_four_rate()
                 metrics.calculate_metrics()
                 metrics.get_four_rate()
@@ -300,7 +289,7 @@ def main(cfg,mode='train'):
                     val_loss_values.append(ave_loss)
 
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-                    print(y_true,'validation_y_true')
+                    #print(y_true,'validation_y_true')
                     metrics = SelectiveMetrics(y_true,
                                                y_pred,
                                                ave_loss,

@@ -71,7 +71,7 @@ TEST:
   loss: 'CrossEntropyLoss'
 
 DATASET:
-  WeightedRandomSampler: False
+  WeightedRandomSampler: True
   num_classes: 2
   num_channels: 1
   mask: False

@@ -1,0 +1,19 @@
+---
+title: "SelectiveNet Analysis"
+author: "Yizhou Liu"
+format: 
+    revealjs: 
+        mainfont: Times New Roman
+        theme: [Simple,Math-test.scss]
+        margin: 0.1
+        math: true
+        page-layout: full
+---
+
+```{r}
+print(3)
+```
+
+```{mermaid}
+A --> B
+```

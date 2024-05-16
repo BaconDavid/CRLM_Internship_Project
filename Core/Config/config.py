@@ -79,6 +79,11 @@ _C.LOSS.SelectiveLoss.SelectiveNetLoss.alpha = 0.5
 _C.LOSS.SelectiveLoss.SelectiveNetLoss.coverage = 0.5
 _C.LOSS.SelectiveLoss.SelectiveNetLoss.lm = 32
 
+_C.LOSS.CommonLoss = CN()
+_C.LOSS.CommonLoss.loss = 'CrossEntropy'
+_C.LOSS.CommonLoss.CELoss = CN()
+_C.LOSS.CommonLoss.CELoss.weight = 1.0
+
 
 
 _C.TEST = CN()

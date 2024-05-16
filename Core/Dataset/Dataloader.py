@@ -9,19 +9,17 @@ import numpy as np
 import pandas as pd
 import os
 
-
-
-
 class DataFiles:
     def __init__(self,
                  data_path: str,
                  label_path: str,
                  label_name: str) -> None:
         """
+        List all the files in a data directory, using csv file to get the labels and their paths.
         Args:
             data_path: csv path to the data
-            label_path: path to the label
-            label_name: name of the label
+            label_path: path to the csv file containing the labels
+            label_name: name of the predicted label
         """
         self.data_path = data_path
         self.label_path = label_path
@@ -52,7 +50,7 @@ class DataFiles:
 
 
 
-class Image_Dataset(ImageDataset):
+class CreateImageDataset(ImageDataset):
     def __init__(self,
                  image_files: list,
                  labels: list,
@@ -98,7 +96,7 @@ class Image_Dataset(ImageDataset):
         
 
 
-class Data_Loader(DataLoader):
+class CreateDataLoader(DataLoader):
     def __init__(self,dataset,batch_size,num_workers=0,*args,**kwargs):
         super().__init__(dataset=dataset,batch_size=batch_size,num_workers=num_workers,*args,**kwargs)
         self.args = args

@@ -1,5 +1,4 @@
 import os
-
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import torch
@@ -25,21 +24,22 @@ from monai.transforms import (
     SpatialPad
     )
 from monai.data import ImageDataset,DataLoader
+from Core.Dataset.Dataloader import DataFiles,CreateImageDataset,CreateDataLoader
 
 from Core.Utils.Models import Model
-from Core.Utils import args
 from Core.Utils.Metrics import ClassificationMetrics, Metrics,SelectiveMetrics
-from Core.Utils.Utility import SaveResults
-from Core.model.checkpoint import save_checkpoint,load_checkpoint
+from Core.Utils.Utility import SaveResults, Balanced_sampler, visual_input
 from Core.Utils import Swin_Transformer_Classification
-from Core.model import optimizer,scheduler
+
+from Core.model.optimizer import build_optimizer
+from Core.model.scheduler import build_scheduler
 from Core.model.loss import Loss
 from Core.model.train import train_loop
 from Core.model.Validation import Validation_loop
-from Core.Utils.Utility import Balanced_sampler, visual_input
+
 from Core.Config.config import get_cfg_defaults
-from Core.Dataset.Dataloader import DataFiles,Image_Dataset,Data_Loader
 from Core.Utils.Data_Aug import data_aug
+from Core.Utils import args
 
 import numpy as np
 import datetime
@@ -60,8 +60,6 @@ def main(cfg,mode='train'):
     np.random.seed(114514)
     random.seed(114514)
     torch.backends.cudnn.deterministic = True
-
-
 
     data_path = cfg.DATA.Data_dir
     mask_path = cfg.DATA.Data_mask_dir
@@ -86,7 +84,6 @@ def main(cfg,mode='train'):
     if mode == 'train':
         tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train') # save results
         transform_train,transform_val = data_aug(cfg) # data augmentation
-
         #whether to add mask as second channel
         if cfg.DATASET.mask:
             train_mask = DataFiles(mask_path,train_data_label,label_name)
@@ -95,41 +92,20 @@ def main(cfg,mode='train'):
             vali_masks = vali_mask.get_masks()
             train_masks = sorted(train_masks)
             vali_masks = sorted(vali_masks)
-            tr_dataset = Image_Dataset(image_files=train_images,seg_files=train_masks,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
-            val_dataset = Image_Dataset(image_files=vali_images,seg_files=vali_masks,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
+            tr_dataset = CreateImageDataset(image_files=train_images,seg_files=train_masks,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
+            val_dataset = CreateImageDataset(image_files=vali_images,seg_files=vali_masks,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
         else:
-            tr_dataset = Image_Dataset(image_files=train_images,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
-            val_dataset = Image_Dataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
+            tr_dataset = CreateImageDataset(image_files=train_images,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
+            val_dataset = CreateImageDataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
 
-            
         if cfg.TRAIN.Debug:
-            #how many data for subset
-            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2)))
+            tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2))) #how many data for subset
             val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
-            #labels and images for subset
-            train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))]
-            
-            # #sampler
-            # if cfg.DATASET.WeightedRandomSampler:
-            #     sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
-            # else:
-            #     sampler = None
-
+            train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))] #labels and images for subset
             tr_dataset = tr_dataset_sub
             val_dataset = val_dataset_sub
 
-            # DataLoader
             
-            #val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
-        # else:           
-        #     #sampler
-        #     if cfg.DATASET.WeightedRandomSampler:
-        #         sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
-        #     else:
-        #         sampler = None
-            
-            # tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size,shuffle=False).build_train_loader() 
-            # val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
         if cfg.DATASET.WeightedRandomSampler:
             sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
@@ -138,8 +114,8 @@ def main(cfg,mode='train'):
         else:
             sampler = None
 
-        tr_dataloader = Data_Loader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size).build_train_loader() 
-        val_dataloader = Data_Loader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
+        tr_dataloader = CreateDataLoader(dataset=tr_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,sampler=sampler,batch_size=cfg.TRAIN.batch_size).build_train_loader() 
+        val_dataloader = CreateDataLoader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
         #set best metric
                 
@@ -161,9 +137,9 @@ def main(cfg,mode='train'):
         
         #set scheduler,optimizer parameters
         loss_fun = Loss(cfg).build_loss()
-        optimizer_fun = optimizer.build_optimizer(cfg,model.parameters())
+        optimizer_fun = build_optimizer(cfg,model.parameters())
         if cfg.Scheduler.scheduler:
-            scheduler_fun = scheduler.build_scheduler(cfg,optimizer_fun) 
+            scheduler_fun = build_scheduler(cfg,optimizer_fun) 
         else:
             scheduler_fun = None
         

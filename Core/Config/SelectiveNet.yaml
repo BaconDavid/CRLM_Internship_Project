@@ -28,6 +28,7 @@ LOSS:
   loss_lm : 32
   loss_coverage: 0.5
   alpha: 0.5
+  common_loss_name: 'CrossEntropyLoss'
 
 TRAIN:
   lr: 0.00001

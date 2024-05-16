@@ -42,6 +42,12 @@ LOSS:
 
   ClassificationLoss:
     loss: 'CrossEntropyLoss'
+  
+  CommonLoss:
+    loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
 
 TRAIN:
   batch_size: 1

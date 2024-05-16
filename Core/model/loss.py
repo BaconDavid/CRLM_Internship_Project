@@ -126,4 +126,19 @@ class SelectiveLoss(Loss):
         return selective_loss, loss_dict
     
     
-   
+class CommonLoss:
+    """
+    Replace CELoss with other loss functions.
+    """
+    def __init__(self, cfg):
+        self.cfg = cfg
+    
+    def build_loss(self):
+        return loss_look_up(self.cfg)
+
+def loss_look_up(cfg):
+    loss_look_tabel = {
+        "CELoss": nn.CrossEntropyLoss(),
+
+    }
+    pass

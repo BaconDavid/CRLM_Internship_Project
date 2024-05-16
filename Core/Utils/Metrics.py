@@ -4,7 +4,7 @@ import numpy as np
 from monai.metrics import get_confusion_matrix,compute_roc_auc
 from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, f1_score
 from torch import tensor
-from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import precision_score, recall_score,balanced_accuracy_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 from Core.model.loss import Loss
@@ -64,13 +64,13 @@ class ClassificationMetrics(Metrics):
 
         #get one hot
         self.y_true_one_hot = np.eye(self.num_class)[self.y_true.reshape(-1)]
-        self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label]
+        self.y_pred_one_hot = np.eye(self.num_class)[self.y_pred_label.reshape(-1)]
         #get metrics
         self.four_rate_dic = {str(i):{'tp':0,'fp':0,'tn':0,'fn':0} for i in range(num_class)}
 
     def calculate_metrics(self):
         self.metrics = {
-            str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class)
+            str(i): {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss,'balanced_accuracy':0} for i in range(self.num_class)
         }
 
         for i in range(self.num_class):
@@ -82,6 +82,7 @@ class ClassificationMetrics(Metrics):
             self.metrics[str(i)]['precision'] = precision_score(true_binary, pred_binary)
             self.metrics[str(i)]['recall'] = recall_score(true_binary, pred_binary)
             self.metrics[str(i)]['accuracy'] = accuracy_score(true_binary, pred_binary)
+            self.metrics[str(i)]['balanced_accuracy'] = balanced_accuracy_score(true_binary, pred_binary)
 
             if len(np.unique(true_binary)) > 1:
                 self.metrics[str(i)]['auc'] = roc_auc_score(true_binary, self.y_pred[:,:,i].reshape(-1))

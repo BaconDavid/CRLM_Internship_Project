@@ -103,6 +103,8 @@ def build_validator(model, epoch_num, criterion, cfg):
             return GamblerValidate(model,epoch_num,criterion,cfg)
         elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
             return SelectiveValidate(model, epoch_num, criterion, cfg)
+    elif cfg.MODEL.task == 'classification':
+        return ClassificationValidate(model, epoch_num, criterion, cfg)
 
 class GamblerValidate:
     def __init__(self, model, epoch_num, criterion, cfg):
@@ -181,8 +183,6 @@ class ClassificationValidate:
         """
         output = self.model(im)
         loss = self.criterion(output, label)
-        loss.backward()
-
         loss_value = loss.item()
         output = torch.nn.functional.softmax(output,dim=1)
         return loss_value, output

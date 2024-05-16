@@ -98,6 +98,7 @@ def main(cfg,mode='train'):
             tr_dataset = CreateImageDataset(image_files=train_images,labels=train_labels,transform_methods=transform_train,data_aug=cfg.TRAIN.data_aug)
             val_dataset = CreateImageDataset(image_files=vali_images,labels=vali_labels,transform_methods=transform_val,data_aug=cfg.VALID.data_aug)
 
+    #Debug model
         if cfg.TRAIN.Debug:
             tr_dataset_sub = Subset(tr_dataset,range(int(len(tr_dataset)*0.2))) #how many data for subset
             val_dataset_sub = Subset(val_dataset,range(int(len(val_dataset)*0.2)))
@@ -105,12 +106,8 @@ def main(cfg,mode='train'):
             tr_dataset = tr_dataset_sub
             val_dataset = val_dataset_sub
 
-            
-
         if cfg.DATASET.WeightedRandomSampler:
             sampler = Balanced_sampler(train_labels,num_class=cfg.MODEL.num_class)
-            print('yes,',sampler)
-
         else:
             sampler = None
 
@@ -118,13 +115,10 @@ def main(cfg,mode='train'):
         val_dataloader = CreateDataLoader(dataset=val_dataset,num_workers=cfg.SYSTEM.NUM_WORKERS,batch_size=cfg.VALID.batch_size).build_vali_loader()
 
         #set best metric
-                
         best_metric = 10000000
         
         #set model
-     
         model = Model(cfg).build_model()
-        #print('fuck model',model)
         model.to(cfg.SYSTEM.DEVICE)
         
         ## add exponential moving average
@@ -145,8 +139,7 @@ def main(cfg,mode='train'):
         
         epoch_loss_values, train_loss_epoch_x_axis = [], []
         val_loss_values, val_loss_epoch_x_axis = [], []
-        
-         
+    
         #visualize input
         if cfg.visual_im.visual_im:
             visual_input(cfg,tr_dataloader)
@@ -167,7 +160,6 @@ def main(cfg,mode='train'):
                 four_rate_metric = metrics.generate_four_rate_df(epoch+1)
 
                 #save loss and metrics
-                #tr_results.store_results(tr_results.df_results(four_rate_dic,AUC,accuracy,F1,ave_loss,epoch),'metrics')
                 tr_results.store_results(singel_metric,'metrics')
                 tr_results.store_results(four_rate_metric,'four rates')
 

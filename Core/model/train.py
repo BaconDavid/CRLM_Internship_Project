@@ -145,6 +145,8 @@ def build_trainer(model,epoch_num,optimizer,criterion,scheduler,cfg):
             return GamblerTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
         elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
             return SelectiveTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
+    elif cfg.MODEL.task == 'classification':
+        return ClassificationTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
 
 
 class GamblerTrain:

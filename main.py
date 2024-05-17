@@ -203,20 +203,12 @@ def main(cfg,mode='train'):
                     tr_results.store_results(four_rate_metric,'four rates')
 
             epoch_loss_values.append(ave_loss)
-                
-                #metrcis = Metrics_Reg(cfg.MODEL.num_class,y_pred,y_true)
-
 
     ###########validation##############
             #save results
             val_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/','vali')
-            ###############
 
 
-
-
-            #################
-            #model.eval()
             ema_model = ema.ema_model
             ema_model.eval()
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun,epoch)
@@ -278,33 +270,6 @@ def main(cfg,mode='train'):
                     val_results.store_results(singel_metric,'metrics')
                     val_results.store_results(four_rate_metric,'four rates')
 
-
-            else:
-                metrics = Metrics_regression(y_pred,y_true)
-                metrics.calculate_metrics()
-                singel_metric = metrics.generate_metrics_df(epoch+1)
-                val_results.store_results(singel_metric,'metrics')
-
-                
-
-            #save best metric
-            """
-            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1) or ((epoch % 20) == 0):
-                save_dict = {
-                            'epoch':epoch+1,
-                            'model':ema_model.state_dict(),
-                            'optimizer':optimizer_fun.state_dict(),
-                            'loss':loss_fun.state_dict(),
-                            'arch': cfg.MODEL.name
-                        }
-                save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
-                best_metric = ave_loss
-            """
-            #save pred numpy array
-
-
-        
-
   
         #stack y_pred_lst except the selective loss
         if cfg.MODEL.task == 'selective':
@@ -320,8 +285,12 @@ def main(cfg,mode='train'):
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class+1)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
                 
-        else:
-            pass
+        elif cfg.MODEL.task == 'classification':
+            y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
+            np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
+
+
+            
             
             
     elif mode == 'test':

@@ -79,6 +79,7 @@ def main(cfg,mode='train'):
 
     y_pred_lst = []
     y_selection_lst = [] # only for selective net
+    y_aux_lst = [] # only for selective net
     y_true_lst = []
     
     if mode == 'train':

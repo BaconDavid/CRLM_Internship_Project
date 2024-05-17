@@ -39,7 +39,7 @@ class ClassificationLoss(Loss):
 
     def build_loss(self):
         if self.cfg.LOSS.ClassificationLoss.loss == 'CrossEntropyLoss':
-            return nn.CrossEntropyLoss()
+            return nn.CrossEntropyLoss(reduction='mean')
 
 
 class SELoss(Loss):

@@ -213,8 +213,23 @@ def main(cfg,mode='train'):
             ema_model.eval()
             ave_loss,y_pred,y_true = Validation_loop(cfg,ema_model,val_dataloader,loss_fun,epoch)
 
-
+            
             print('this is average loss',ave_loss)
+            #save best metric
+            
+            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1) or ((epoch % 20) == 0):
+                save_dict = {
+                            'epoch':epoch+1,
+                            'model':ema_model.state_dict(),
+                            'optimizer':optimizer_fun.state_dict(),
+                            'loss':loss_fun.state_dict(),
+                            'arch': cfg.MODEL.name
+                        }
+                save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
+                best_metric = ave_loss
+            
+            #save pred numpy array
+
             #save predict probability
 
             if cfg.MODEL.task == 'classification':

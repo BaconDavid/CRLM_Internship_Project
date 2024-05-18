@@ -59,8 +59,10 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
         with torch.no_grad():
             if cfg.MODEL.task == 'classification':
                 output = (model(im))
-                loss = criterion(output,label)
+                #loss = criterion(output,label)
                 average_loss_valid,output = validator.grad_accumulate(im,label)
+                print('average_loss in validation one epoch!',average_loss_valid)
+                print('output in validation one epoch!',output)
                 average_loss += average_loss_valid
 
             elif cfg.MODEL.task == 'selective':

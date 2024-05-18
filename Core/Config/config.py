@@ -67,7 +67,13 @@ _C.LOSS.RegressionLoss = CN()
 _C.LOSS.RegressionLoss.loss = 'MSE'
 
 _C.LOSS.ClassificationLoss = CN()
-_C.LOSS.ClassificationLoss.loss = 'CrossEntropy'
+_C.LOSS.ClassificationLoss.loss = 'CrossEntropyLoss'
+_C.LOSS.ClassificationLoss.CELoss = CN()
+_C.LOSS.ClassificationLoss.CELoss.weight = 1.0
+_C.LOSS.ClassificationLoss.FocalLoss = CN()
+_C.LOSS.ClassificationLoss.FocalLoss.alpha = 0.25
+_C.LOSS.ClassificationLoss.FocalLoss.gamma = 2.0
+
 _C.LOSS.SelectiveLoss = CN()
 _C.LOSS.SelectiveLoss.loss = 'GamblersLoss'
 _C.LOSS.SelectiveLoss.GamblerLoss = CN()
@@ -83,6 +89,10 @@ _C.LOSS.CommonLoss = CN()
 _C.LOSS.CommonLoss.loss = 'CrossEntropy'
 _C.LOSS.CommonLoss.CELoss = CN()
 _C.LOSS.CommonLoss.CELoss.weight = 1.0
+_C.LOSS.CommonLoss.FocalLoss = CN()
+_C.LOSS.CommonLoss.FocalLoss.alpha = 0.25
+_C.LOSS.CommonLoss.FocalLoss.gamma = 2.0
+
 
 
 

@@ -41,13 +41,26 @@ LOSS:
       alpha: 0.5
 
   ClassificationLoss:
-    loss: 'CrossEntropyLoss'
+    loss: 'FocalLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
   
   CommonLoss:
     loss: 'CrossEntropyLoss'
 
     CELoss:
       weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+
+
 
 TRAIN:
   batch_size: 1

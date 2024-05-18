@@ -24,19 +24,40 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'SelectiveLoss' # GamblerLoss or SelectiveLoss
+    loss: 'SelectiveLoss'
 
     GamblerLoss:
       reward: 1.2
       
     SelectiveNetLoss:
       loss: 'SelectiveLoss'
-      coverage: 0.5
+      coverage: 0.9
       lm: 32
       alpha: 0.5
 
   ClassificationLoss:
+    loss: 'FocalLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+  
+  #only use classification loss for other loss
+  CommonLoss:
     loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+
+
+
 
 TRAIN:
   batch_size: 1

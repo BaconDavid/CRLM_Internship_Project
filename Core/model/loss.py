@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-
+import torch.nn.functional as F
 class Loss:
     def __init__(self,cfg):
         """
@@ -40,6 +40,10 @@ class ClassificationLoss(Loss):
     def build_loss(self):
         if self.cfg.LOSS.ClassificationLoss.loss == 'CrossEntropyLoss':
             return nn.CrossEntropyLoss(reduction='mean')
+        if self.cfg.LOSS.ClassificationLoss.loss == 'FocalLoss':
+            return FocalLoss(alpha=self.cfg.LOSS.ClassificationLoss.FocalLoss.alpha, 
+                             gamma=self.cfg.LOSS.ClassificationLoss.FocalLoss.gamma, 
+                             reduction='mean')
 
 
 class SELoss(Loss):
@@ -125,7 +129,52 @@ class SelectiveLoss(Loss):
 
         return selective_loss, loss_dict
     
-    
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2, reduction='mean'):
+        """
+        :param alpha: Balancing factor, can be a scalar (for all classes) or a tensor (for class-specific weights)
+        :param gamma: Modulating factor to focus on hard examples
+        :param reduction: Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'
+        """
+        super(FocalLoss, self).__init__()
+        if isinstance(alpha, (int, float)):
+            self.alpha = torch.tensor([alpha, 1 - alpha])  # Use specified alpha for class 1, and 1 - alpha for class 0
+        else:
+            self.alpha = alpha  # Use class-specific alpha if provided as tensor
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, inputs, targets):
+        """
+        :param inputs: Predictions from the model (batch_size, num_classes), expected to be logits
+        :param targets: Ground truth labels (batch_size)
+        """
+        # Compute log softmax probabilities
+        logpt = F.log_softmax(inputs, dim=-1)
+        # Gather log probabilities for the true class labels
+        targets = targets.view(-1, 1)
+        logpt = logpt.gather(1, targets)
+        logpt = logpt.view(-1)
+        # Compute probabilities
+        pt = logpt.exp()
+
+        # Compute class weights
+        at = self.alpha.gather(0, targets.view(-1))
+        print(at,666)
+
+
+        # Compute Focal Loss
+        loss = -at * (1 - pt) ** self.gamma * logpt
+
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        else:
+            return loss
+
+        
 class CommonLoss:
     """
     Replace CELoss with other loss functions.
@@ -134,11 +183,13 @@ class CommonLoss:
         self.cfg = cfg
     
     def build_loss(self):
-        return loss_look_up(self.cfg)
+        return common_loss_look_up(self.cfg)
 
-def loss_look_up(cfg):
+def common_loss_look_up(cfg):
     loss_look_tabel = {
         "CELoss": nn.CrossEntropyLoss(),
-
+        "FocalLoss": FocalLoss(alpha=cfg.LOSS.CommonLoss.FocalLoss.alpha, 
+                               gamma=cfg.LOSS.FocalLoss.gamma, 
+                               reduction='mean'),
     }
-    pass
+    

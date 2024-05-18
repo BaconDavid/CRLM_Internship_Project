@@ -29,6 +29,7 @@ from Core.Dataset.Dataloader import DataFiles,CreateImageDataset,CreateDataLoade
 from Core.Utils.Models import Model
 from Core.Utils.Metrics import ClassificationMetrics, Metrics,SelectiveMetrics
 from Core.Utils.Utility import SaveResults, Balanced_sampler, visual_input
+from Core.model.checkpoint import save_checkpoint
 from Core.Utils import Swin_Transformer_Classification
 
 from Core.model.optimizer import build_optimizer
@@ -217,7 +218,7 @@ def main(cfg,mode='train'):
             print('this is average loss',ave_loss)
             #save best metric
             
-            if (ave_loss <= best_metric) or (epoch == cfg.TRAIN.num_epochs-1) or ((epoch % 20) == 0):
+            if (epoch) == 100:
                 save_dict = {
                             'epoch':epoch+1,
                             'model':ema_model.state_dict(),

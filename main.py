@@ -216,20 +216,20 @@ def main(cfg,mode='train'):
 
             
             print('this is average loss',ave_loss)
-            #save best metric
+            # #save best metric
             
-            if (epoch) == 100:
-                save_dict = {
-                            'epoch':epoch+1,
-                            'model':ema_model.state_dict(),
-                            'optimizer':optimizer_fun.state_dict(),
-                            'loss':loss_fun.state_dict(),
-                            'arch': cfg.MODEL.name
-                        }
-                save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
-                best_metric = ave_loss
+            # if (epoch) == 100:
+            #     save_dict = {
+            #                 'epoch':epoch+1,
+            #                 'model':ema_model.state_dict(),
+            #                 'optimizer':optimizer_fun.state_dict(),
+            #                 'loss':loss_fun.state_dict(),
+            #                 'arch': cfg.MODEL.name
+            #             }
+            #     save_checkpoint(cfg.SAVE.save_dir +  "weight/" + cfg.SAVE.fold,save_dict,f'best_metric_{epoch+1}.pth')
+            #     best_metric = ave_loss
             
-            #save pred numpy array
+            # #save pred numpy array
 
             #save predict probability
 

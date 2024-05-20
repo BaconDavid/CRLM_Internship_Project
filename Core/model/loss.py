@@ -43,7 +43,8 @@ class ClassificationLoss(Loss):
         if self.cfg.LOSS.ClassificationLoss.loss == 'FocalLoss':
             return FocalLoss(alpha=self.cfg.LOSS.ClassificationLoss.FocalLoss.alpha, 
                              gamma=self.cfg.LOSS.ClassificationLoss.FocalLoss.gamma, 
-                             reduction='mean')
+                             reduction='mean',
+                             device=self.cfg.SYSTEM.DEVICE)
 
 
 class SELoss(Loss):
@@ -131,7 +132,7 @@ class SelectiveLoss(Loss):
     
 
 class FocalLoss(nn.Module):
-    def __init__(self, alpha=0.25, gamma=2, reduction='mean'):
+    def __init__(self, alpha=0.25, gamma=2, reduction='mean',device='cpu'):
         """
         :param alpha: Balancing factor, can be a scalar (for all classes) or a tensor (for class-specific weights)
         :param gamma: Modulating factor to focus on hard examples
@@ -143,6 +144,7 @@ class FocalLoss(nn.Module):
         else:
             self.alpha = alpha  # Use class-specific alpha if provided as tensor
         self.gamma = gamma
+        self.alpha = self.alpha.to(device)
         self.reduction = reduction
 
     def forward(self, inputs, targets):
@@ -161,8 +163,6 @@ class FocalLoss(nn.Module):
 
         # Compute class weights
         at = self.alpha.gather(0, targets.view(-1))
-        print(at,666)
-
 
         # Compute Focal Loss
         loss = -at * (1 - pt) ** self.gamma * logpt

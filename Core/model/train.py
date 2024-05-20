@@ -245,6 +245,7 @@ class ClassificationTrain:
             sample_num: how many samples in total(length of dataloader)
         """
         output = self.model(im)
+        print('here it is!')
         loss = self.criterion(output, label)
         loss.backward()
 

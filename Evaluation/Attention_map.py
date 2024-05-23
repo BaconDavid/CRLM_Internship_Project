@@ -5,7 +5,7 @@ import SimpleITK as sitk
 import numpy as np
 
 from Core.Dataset.Dataloader import Data_Loader,Image_Dataset,DataFiles
-from Core.Utils.Models import build_model
+from Core.model.Models import build_model
 
 # Import M3d-CAM
 from medcam import medcam

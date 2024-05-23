@@ -50,10 +50,14 @@ ul.task-list li input[type="checkbox"] {
 <h1>Overall Structure</h1>
 <p>This Project code is divided into different parts, including main(run the model),Core(load model, dataloader, etc.),Pre-processing(as still testing different pre-processing methods, still not integrate)…</p>
 </section>
-<section id="how-to-use" class="level1">
-<h1>How to use</h1>
-<section id="core" class="level2">
-<h2 class="anchored" data-anchor-id="core">Core</h2>
+<section id="core-part" class="level1">
+<h1>Core Part</h1>
+<p>This part includes the main model, dataloader, and configuration file. ## Dataset</p>
+<section id="data-download-from-xnat-and-nnunet" class="level3">
+<h3 class="anchored" data-anchor-id="data-download-from-xnat-and-nnunet">Data download from XNAT and nnUnet</h3>
+<p><strong>Pay attention</strong>: When extracting downloaded data, scan ids are used to label and rank each sample. For some samples, their scan id is not a single number, but only few of them are in such conditions. Therefore, we need to check the scan id inside each experiment and mannually assign a unique number to each sample. eg: A patient has 3 scans, and two of them are named as “1” and “2”, while the third one is 2-CT10, so we need to manually assign “3” to the third scan by changing the raw data file name.</p>
+<p><strong>Important</strong>: Make the scans</p>
+</section>
 <section id="config" class="level3">
 <h3 class="anchored" data-anchor-id="config">Config</h3>
 <p>This is the folder that contains model configuration file. When running the model, only need to load the configuration file and mode. In configuration file, here below are some essential part you need to assign: 1. Model name 2. Save dir 3. Data csv file that must include: data path and label name. 4. fold</p>
@@ -62,7 +66,6 @@ ul.task-list li input[type="checkbox"] {
 <section id="utils" class="level3">
 <h3 class="anchored" data-anchor-id="utils">Utils</h3>
 <p>This module includes some basic tools, like calculating metrics, building models, and some modifed models. In Utility script it has some tools functions such as path check.</p>
-</section>
 </section>
 <section id="pre-processing" class="level2">
 <h2 class="anchored" data-anchor-id="pre-processing">Pre-processing</h2>
@@ -90,7 +93,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="evaluation" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
-<p>Keep every</p>
+<p>Keep every output as a single output from batch size one, and finally calculate them by stacking</p>
 </section>
 </section>
 

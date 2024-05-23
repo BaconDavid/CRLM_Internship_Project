@@ -12,5 +12,5 @@ if __name__ == "__main__":
 
 
     #print(cfg.TRAIN.scheduler_param)
-    print(type(cfg.SAVE.fold))
+    print(list(cfg.MODEL.Resnet10.block_inplanes))
 

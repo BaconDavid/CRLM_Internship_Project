@@ -131,6 +131,8 @@ _C.MODEL.Gambler.pretrain_epochs = 30
 _C.MODEL.SelectiveNet = CN()
 _C.MODEL.SelectiveNet.alpha = 0.5
 _C.MODEL.SelectiveNet.coverage = 0.5
+_C.MODEL.Resnet10 = CN()
+_C.MODEL.Resnet10.block_inplanes = (64,128,256,512)
 
 
 _C.LOG = CN()

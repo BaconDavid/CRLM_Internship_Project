@@ -7,7 +7,9 @@ This part includes the main model, dataloader, and configuration file.
 ## Dataset
 
 ### Data download from XNAT and nnUnet
-**Pay attention**: When extracting downloaded data, scan ids are used to label and rank each sample. For some samples, their scan id is not a single number, but only few of them. Therefore, we need to check the scan id inside each experiment and mannually assign a unique number to each sample. eg: A patient has 3 scans, and two of them are named as "1" and "2", while the third one is 2-CT10, so weWe need to manually assign "3" to the third scan by changing the raw data file name.
+**Pay attention**: When extracting downloaded data, scan ids are used to label and rank each sample. For some samples, their scan id is not a single number, but only few of them are in such conditions. Therefore, we need to check the scan id inside each experiment and mannually assign a unique number to each sample. eg: A patient has 3 scans, and two of them are named as "1" and "2", while the third one is 2-CT10, so we need to manually assign "3" to the third scan by changing the raw data file name. However, I recommend add a new column :scan_id instead of replacing their original scan name
+
+**Important**: Make the scans number correctly is very important when pre-processing the data, and make sure scans id rank correctly from small to large.
 ### Config
 This is the folder that contains model configuration file. When running the model, only need to load the configuration file and mode. In configuration file, here below are some essential part you need to assign:
 1. Model name

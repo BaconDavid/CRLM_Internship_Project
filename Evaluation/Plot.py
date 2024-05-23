@@ -5,7 +5,7 @@ sys.path.append('./')
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import torch
-from Core.Utils.Swin_Transformer_Classification import Swintransformer
+from Network.Swin_Transformer_Classification import Swintransformer
 import sys
 sys.path.append('../')
 from Core.Dataset.Dataloader import *

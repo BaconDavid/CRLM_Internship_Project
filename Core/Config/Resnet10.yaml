@@ -95,7 +95,7 @@ TEST:
   loss: 'CrossEntropyLoss'
 
 DATASET:
-  WeightedRandomSampler: True
+  WeightedRandomSampler: False
   num_classes: 2
   num_channels: 1
   mask: False
@@ -121,6 +121,9 @@ MODEL:
   Gambler:
     pretrain_epochs: 30
   
+  Resnet10:
+    block_inplanes: (16,32,64,128)
+  
 
 
 LOG:
@@ -145,6 +148,6 @@ WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 
 visual_im:
-  visual_im: True
+  visual_im: False
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5

@@ -11,10 +11,10 @@ SYSTEM:
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: '/data/scratch/r098986/MIXED_HGP/largest_tm_lv_slices_window_+5/'
-  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
-  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Largest_tumor/'
-  Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_+5_07071_window/'
+  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Per_tumor_by_group_quantile_025/'
+  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Per_tumor_by_group_quantile_025/'
+  Test_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
   Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/per_tumor_lv_mask_+5_07071/'
 
 LABEL:
@@ -36,7 +36,7 @@ LOSS:
       
     SelectiveNetLoss:
       loss: 'SelectiveLoss'
-      coverage: 0.9
+      coverage: 0.7
       lm: 32
       alpha: 0.5
 
@@ -66,19 +66,19 @@ TRAIN:
   num_epochs: 300
   Debug: False
   data_aug: True
-  batch_accumulation_size: 3
+  batch_accumulation_size: 5
   
 Scheduler:
   scheduler: True
   scheduler_name: 'WarmupCosineSchedule'
 
   WarmupCosineScheduler:
-    warmup_steps: 2000
-    t_total: 60000
+    warmup_steps: 400
+    t_total: 15000
 
 Optimizer:
   name: 'SGD'
-  lr: 0.0001
+  lr: 0.001
   weight_decay: 0.001
   
   SGD:
@@ -87,7 +87,7 @@ Optimizer:
 VALID:
   batch_size: 1
   data_aug: True
-  batch_accumulation_size: 3
+  batch_accumulation_size: 5
 
 TEST:
   batch_size: 1
@@ -97,7 +97,7 @@ DATASET:
   WeightedRandomSampler: True
   num_classes: 2
   num_channels: 1
-  mask: False
+  mask: True
 
 ## task should be claaification, selective, regression
 MODEL:
@@ -105,7 +105,7 @@ MODEL:
   name: 'Resnet10' #model body for classification or selective
   pretrained: False
   num_class: 2
-  num_in_channels: 1
+  num_in_channels: 2
   drop_out: 0.0
   #only for dropblock
   Drop_block: False
@@ -119,6 +119,11 @@ MODEL:
 
   Gambler:
     pretrain_epochs: 30
+  
+  Resnet10:
+    block_inplanes: (16,32,64,128)
+  
+
   
 
 
@@ -144,6 +149,6 @@ WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 
 visual_im:
-  visual_im: True
+  visual_im: False
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5

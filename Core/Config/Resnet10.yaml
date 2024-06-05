@@ -51,7 +51,7 @@ LOSS:
       alpha: 0.25
   
   CommonLoss:
-    loss: 'CrossEntropyLoss'
+    loss: 'FocalLoss'
 
     CELoss:
       weight: 1.0

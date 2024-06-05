@@ -95,7 +95,7 @@ class SelectiveLoss(Loss):
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage <= 1.0
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
 
-        self.loss_func = nn.CrossEntropyLoss(reduce='none')
+        self.loss_func = CommonLoss(self.cfg).build_loss()
         self.coverage = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage
         self.lm = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
         self.alpha = self.cfg.MODEL.SelectiveNet.alpha # combine coefficient of selective loss and aux loss
@@ -119,7 +119,10 @@ class SelectiveLoss(Loss):
         penulty *= self.lm
 
         # compute aux loss
-        aux_loss = torch.nn.CrossEntropyLoss()(aux_out, target)
+        common_loss = CommonLoss(self.cfg).build_loss()
+        aux_loss = common_loss(aux_out, target)
+        
+        #aux_loss = torch.nn.CrossEntropyLoss()(aux_out, target)
         # loss information dict 
         loss_dict={}
         loss_dict['emprical_coverage'] = emprical_coverage.detach().cpu().item()
@@ -183,13 +186,14 @@ class CommonLoss:
         self.cfg = cfg
     
     def build_loss(self):
-        return common_loss_look_up(self.cfg)
+        return self.common_loss_look_up()
 
-def common_loss_look_up(cfg):
-    loss_look_tabel = {
-        "CELoss": nn.CrossEntropyLoss(),
-        "FocalLoss": FocalLoss(alpha=cfg.LOSS.CommonLoss.FocalLoss.alpha, 
-                               gamma=cfg.LOSS.FocalLoss.gamma, 
-                               reduction='mean'),
-    }
-    
+    def common_loss_look_up(self):
+        loss_look_tabel = {
+            "CELoss": nn.CrossEntropyLoss(),
+            "FocalLoss": FocalLoss(alpha=self.cfg.LOSS.CommonLoss.FocalLoss.alpha, 
+                                gamma=self.cfg.LOSS.CommonLoss.FocalLoss.gamma, 
+                                reduction='mean',
+                                device=self.cfg.SYSTEM.DEVICE),
+        }
+        return loss_look_tabel[self.cfg.LOSS.CommonLoss.loss]

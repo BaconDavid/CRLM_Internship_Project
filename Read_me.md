@@ -24,8 +24,7 @@ This folder includes code to build dataset and dataloader. You can design the pa
 ### Utils
 This module includes some basic tools, like calculating metrics, building models, and some modifed models. In Utility script it has some tools functions such as path check.
 
-## Pre-processing
-This module includes the steps to pre-processing data. Not implemented yet and will add them in the future.
+
 ## Evaluation
 This module contains scripts for results analysis. In the future might add some visualization methods.
 
@@ -42,7 +41,23 @@ If you want to run the model simply and directly , Here below are the steps:
 
 the rest of other you can keep the same. However, you can change build model, dataloader,...etc, if you want to add more model or functions.
 
+# Pre-processing
 
+As we all know, the most annoying part is pre-processing. As there are all tumors, per tumor, largest tumor, we need to preprocess them separately. 
+
+First: Download the data from XNAT, I recommend first you store the data info in a csv file, and then you can use it to download the data. Besides, you can also download from xnat directly, you can only download earliest scan or the whole scans. **Remeber, there are some scan IDs are not numbers**, I recommend to manually assign a unique number to each sample, better from small to large, and add a new column :scan_id instead of replacing their original scan name.
+
+Second: move all mask files and raw data files to a folder, name format: "CILM_{Exp_name}_{scan_id}.nii.gz". For example, one 
+Patient has 2 scans, then the name of mask and raw image files should be:
+
+CILM_CT_10033_0.nii.gz
+CILM_CT_10033_1.nii.gz
+
+Third: Extract liver and tumor
+Before cropping liver and tumor, prepare for the correct csv file. The csv file should include:
+1. Sample Column: eg:CILM_CT_10033_0
+2. tumor_id: eg: 0,1,2...
+3. crop range: min_z,min_y,min_x,max_z,max_y,max_x
 
 # Experiments 
 ## All tumors

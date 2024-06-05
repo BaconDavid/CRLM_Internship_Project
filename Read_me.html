@@ -55,21 +55,17 @@ ul.task-list li input[type="checkbox"] {
 <p>This part includes the main model, dataloader, and configuration file. ## Dataset</p>
 <section id="data-download-from-xnat-and-nnunet" class="level3">
 <h3 class="anchored" data-anchor-id="data-download-from-xnat-and-nnunet">Data download from XNAT and nnUnet</h3>
-<p><strong>Pay attention</strong>: When extracting downloaded data, scan ids are used to label and rank each sample. For some samples, their scan id is not a single number, but only few of them are in such conditions. Therefore, we need to check the scan id inside each experiment and mannually assign a unique number to each sample. eg: A patient has 3 scans, and two of them are named as “1” and “2”, while the third one is 2-CT10, so we need to manually assign “3” to the third scan by changing the raw data file name.</p>
-<p><strong>Important</strong>: Make the scans</p>
-</section>
-<section id="config" class="level3">
-<h3 class="anchored" data-anchor-id="config">Config</h3>
-<p>This is the folder that contains model configuration file. When running the model, only need to load the configuration file and mode. In configuration file, here below are some essential part you need to assign: 1. Model name 2. Save dir 3. Data csv file that must include: data path and label name. 4. fold</p>
+<p><strong>Pay attention</strong>: When extracting downloaded data, scan ids are used to label and rank each sample. For some samples, their scan id is not a single number, but only few of them are in such conditions. Therefore, we need to check the scan id inside each experiment and mannually assign a unique number to each sample. eg: A patient has 3 scans, and two of them are named as “1” and “2”, while the third one is 2-CT10, so we need to manually assign “3” to the third scan by changing the raw data file name. However, I recommend add a new column :scan_id instead of replacing their original scan name</p>
+<p><strong>Important</strong>: Make the scans number correctly is very important when pre-processing the data, and make sure scans id rank correctly from small to large. ### Config This is the folder that contains model configuration file. When running the model, only need to load the configuration file and mode. In configuration file, here below are some essential part you need to assign: 1. Model name 2. Save dir 3. Data csv file that must include: data path and label name. 4. fold</p>
 <p>Then the corresponding results will automatically be saved in the save folder that you assign. ### Dataset This folder includes code to build dataset and dataloader. You can design the parameters yourself. It is inherited from class ImageDataset and Dataloder from monai. you can operate what you want in the inherited class(eg:print info, modify img or label in dataset…)</p>
 </section>
 <section id="utils" class="level3">
 <h3 class="anchored" data-anchor-id="utils">Utils</h3>
 <p>This module includes some basic tools, like calculating metrics, building models, and some modifed models. In Utility script it has some tools functions such as path check.</p>
 </section>
-<section id="pre-processing" class="level2">
-<h2 class="anchored" data-anchor-id="pre-processing">Pre-processing</h2>
-<p>This module includes the steps to pre-processing data. Not implemented yet and will add them in the future. ## Evaluation This module contains scripts for results analysis. In the future might add some visualization methods.</p>
+<section id="evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
+<p>This module contains scripts for results analysis. In the future might add some visualization methods.</p>
 </section>
 <section id="jupyter-test" class="level2">
 <h2 class="anchored" data-anchor-id="jupyter-test">Jupyter Test</h2>
@@ -77,6 +73,11 @@ ul.task-list li input[type="checkbox"] {
 <p>If you want to run the model simply and directly , Here below are the steps: 1. First make sure you have a data info csv file, and have <strong>label</strong>, <strong>img path</strong> column.(Will put an example file here) 2. Then set a proper configureation file, which includes essential parts as mentioned above. 3. Run “Python main.py –config_file xxx.yaml –mode”train/test”</p>
 <p>the rest of other you can keep the same. However, you can change build model, dataloader,…etc, if you want to add more model or functions.</p>
 </section>
+</section>
+<section id="pre-processing" class="level1">
+<h1>Pre-processing</h1>
+<p>As we all know, the most annoying part is pre-processing. As there are all tumors, per tumor, largest tumor, we need to preprocess them separately.</p>
+<p>First:</p>
 </section>
 <section id="experiments" class="level1">
 <h1>Experiments</h1>
@@ -91,8 +92,8 @@ ul.task-list li input[type="checkbox"] {
 <li>per tumor bounding box</li>
 </ol>
 </section>
-<section id="evaluation" class="level2">
-<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
+<section id="evaluation-1" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation-1">Evaluation</h2>
 <p>Keep every output as a single output from batch size one, and finally calculate them by stacking</p>
 </section>
 </section>

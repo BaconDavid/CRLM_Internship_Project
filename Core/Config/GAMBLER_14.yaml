@@ -150,6 +150,6 @@ WEIGHT:
   weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 
 visual_im:
-  visual_im: True
+  visual_im: False
   visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5

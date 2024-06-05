@@ -170,7 +170,9 @@ class GamblerTrain:
             print('Pretrain loop!')
             output = self.model(im)
             # 仅提取0,1类别进行交叉熵损失计算
-            loss = nn.CrossEntropyLoss()(output[:, :-1], label)
+            #loss = nn.CrossEntropyLoss()(output[:, :-1], label)
+            loss = nn.CrossEntropyLoss()(output[:, ], label)
+
             loss.backward()
         else:
             output = self.model(im)

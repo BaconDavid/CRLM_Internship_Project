@@ -2,16 +2,19 @@
 # This script is used to generate liver bounding box for each patient
 # The bounding box is used to crop the liver region from the original image
 
+from abc import ABC, abstractmethod
 import os
-from random import choices
+from random import choices, sample
 import nibabel as nib
 import numpy as np
 import skimage 
 import matplotlib.pyplot as plt
+from sympy import Union
 from tqdm import tqdm
 import SimpleITK as sitk
 import nibabel as nib
 import pandas as pd
+from typing import Union
 
 
 def components_to_array(components):
@@ -65,6 +68,7 @@ class ImageReader:
     def __init__(self,image_set):
         self.image_set = image_set
         self.current_index = 0
+        self.current_name_index = 0
 
     def load_image(self,reader='sitk'):
         if self.current_index >= self.image_set.get_image_num():
@@ -72,6 +76,7 @@ class ImageReader:
         image_path = self.image_set.get_image_full_path(self.current_index)
 
         if reader == 'nib':
+            image = nib.load(image_path)
             image_array = nib.load(image_path).get_fdata()
         elif reader == 'sitk':
             #get image array
@@ -80,14 +85,15 @@ class ImageReader:
         else:
             raise ValueError("The reader should be either nib or sitk!")
         self.current_index += 1
-        return image_array
+        return image, image_array
 
     def load_image_name(self):
         if self.current_index >= self.image_set.get_image_num():
             raise StopIteration("No more images to read")
-        image_name = self.image_set.get_image_list()[self.current_index]
-        self.current_index += 1
+        image_name = self.image_set.get_image_list()[self.current_name_index]
+        self.current_name_index += 1
         return image_name
+    
 class BoundingBoxRecorde:
     def __init__(self,file_name):
         self.file_name = file_name
@@ -108,7 +114,6 @@ class LiverBoundingBox():
 
     def extract_liver(self,largest: bool = True):
         mask = self.liver_mask.astype(int)
-        print(mask.shape)
         mask[mask == 2] = 0 #only keep liver regions
         labeled,num_features = skimage.measure.label(mask, connectivity=2,return_num=True)
         #only extract largest connected component
@@ -124,7 +129,8 @@ class LiverBoundingBox():
     
 
     def get_liver_bounding_box(self):
-        image_probs = skimage.measure.regionprops((self.liver_mask))
+        liver_mask = self.extract_liver()
+        image_probs = skimage.measure.regionprops(liver_mask)
 
         # get the bounding box of the liver
 
@@ -132,116 +138,42 @@ class LiverBoundingBox():
             print(f'[WARNING] {self.file_name} no liver found')
 
         ## find the adjacent box that contains the liver
-        for props in image_probs:
-            bbox = props.bbox
-            print(bbox)
-            min_slice, min_col, min_row, max_slice, max_col, max_row = bbox 
-            print("this is range",min_slice, min_col, min_row, max_slice, max_col, max_row)
-        return [min_slice, min_col, min_row, max_slice, max_col, max_row]
+        ones_indices = np.argwhere(liver_mask == 1)
+        # find the bounidng box in each dimention
+        if ones_indices.size > 0:
+            min_z, min_y, min_x = ones_indices.min(axis=0)
+            max_z, max_y, max_x = ones_indices.max(axis=0)
+
+        return [(min_z, min_y, min_x, max_z, max_y+1, max_x+1)] # add 1 to include the last pixel
+
+
+class TumorBoundingBox(ABC):
+    def __init__(self,liver_img,liver_mask:np.ndarray = None) -> None:
+        self.liver_img = liver_img
+        self.liver_mask = liver_mask
     
-    def __check_liver_mask(self):
+    @abstractmethod
+    def extract_tumor(self):
+        pass
+
+    @abstractmethod
+    def get_tumor_bounding_box(self) -> list:
+        """
+        return a list containing min_row, min_col, min_slice, max_row, max_col, max_slice of the tumor
+        """
         pass
 
 
-
-class TumorBoundingBox():
-    def __init__(self, tumor_seg_mask,file_name=None,largest=True):
-        self.seg_mask = tumor_seg_mask
-        self.file_name = file_name
-        self.tumor_mask = self.extract(largest)
-        self.largest = largest
-        
-
-    def extract(self,largest=True):
-        mask = self.seg_mask
+class LargestTumorBoundingBox(TumorBoundingBox):
+    def __init__(self,liver_img,liver_mask:np.ndarray = None) -> None:
+        super().__init__(liver_img,liver_mask)
+    
+    def extract_tumor(self):
+        mask = self.liver_mask
         mask = mask.astype(int)
         mask[mask == 1] = 0
         mask[mask == 2] = 1
-        if largest:
-            mask = self.__get_largest_part(mask)
-            return mask
-        
-        mask = mask.astype(int)
-
-        return mask
-
-
-    def get_bound_box(self,choice='pertumor'):
-        choices = {'per_tumor':self.__get_per_tumor_bound_box(),}
-                   #'all_tumor':self._get_all_tumor_bound_box,
-                   #'largest_tumor':self._get_largest_tumor_bound_box}
-        return choices[choice]
-
-        
-
-    def __get_per_tumor_bound_box(self):
-        """"
-        extract a bounding box of each tumor, return a np.arrary with shape (n,min_slice,min_col,min_row,max_slice,max_col,max_row,tumor_size) for each patient
-
-        mask: mask that contains all tumors
-        
-        """
-        if self.largest:
-            raise ValueError("The mask is the largest tumor mask, cannot extract per tumor bounding box")
-        per_tumor_mask_lst = []
-        tumor_boduning_lst = []
-        labeled,num_features = skimage.measure.label(self.tumor_mask, connectivity=2,return_num=True)
-
-        for label in range(1, num_features + 1):
-            component_mask = np.where(labeled == label, 1, 0)
-            per_tumor_mask_lst.append(component_mask)
-        
-        #get tumor slices (n,d,h,w)
-        per_tumor_mask_array = np.stack(per_tumor_mask_lst)
-         # check each tumor
-        for i in range(per_tumor_mask_array.shape[0]):  # how many slices
-            tumor_slice = []
-            # get the mask of each tumor
-            tumor_mask_i = per_tumor_mask_array[i, :, :,:]
-            # check each tumor slice
-            for j in range(tumor_mask_i.shape[0]):
-                slice = tumor_mask_i[j, :, :]
-                if np.any(slice):
-                    tumor_slice.append(j)
-            # check tumor's bounding box
-            
-            ones_indices = np.argwhere(tumor_mask_i == 1)
-            if ones_indices.size > 0:
-                # max and min of the indices
-                min_z, min_y, min_x = ones_indices.min(axis=0)
-                max_z, max_y, max_x = ones_indices.max(axis=0)
-
-            #calculate tumor size
-            tumor_size = tumor_mask_i.sum()
-            
-            tumor_slice_lower = tumor_slice[0]
-            tumor_slice_upper = tumor_slice[-1]
-            tumor_boduning_lst.append((tumor_slice_lower, min_y,min_x,tumor_slice_upper,max_y,max_x,tumor_size))
-            tumor_bounding_bbx_array = np.stack(tumor_boduning_lst)
-        return tumor_bounding_bbx_array
-
-
-    def __per_tumor_components(self):
-        """
-        args:mask: the mask of the tumor
-
-        return: the mask of single tumor in a patient
-        """
-        #find each single connected component
-        labeled,num_features = skimage.measure.label(self.mask, connectivity=2,return_num=True)
-        #if only one connected component
-        if num_features <= 1:
-            return {1:labeled}
-        # multiple connected components
-        components = {}  
-
-        for label in range(1, num_features + 1):
-            component_mask = np.where(labeled == label, 1, 0)
-            components[label] = component_mask
-        return components
-
-
-    def __get_largest_part(self,mask):
+        #extract largest connected component
         max_label = 0
         max_size = 0
         labeled,num_features = skimage.measure.label(mask, connectivity=2,return_num=True)
@@ -255,197 +187,175 @@ class TumorBoundingBox():
         # keep only the largest connected component
         mask = np.where(labeled == max_label, 1, 0)
         mask.astype(int)
+
         return mask
-
     
-    def __per_tumor_size(self):
-        pertumor_components = self.__per_tumor_components()
-        per_tumor_size = {}
-        for key, value in pertumor_components.items():
-            per_tumor_size[key] = value.sum()
-        return per_tumor_size
+    def get_tumor_bounding_box(self) -> list:
+        """
+        return a list containing min_row, min_col, min_slice, max_row, max_col, max_slice of the tumor
+        """
+        tumor_mask = self.extract_tumor()
+        per_tumor_bounding = []
+        tumor_size = tumor_mask.sum()
+        ones_indices = np.argwhere(tumor_mask == 1)
+        # find the bounidng box in each dimention
+        if ones_indices.size > 0:
+            min_z, min_y, min_x = ones_indices.min(axis=0)
+            max_z, max_y, max_x = ones_indices.max(axis=0)
 
-
-    def __all_tumor_bound_box(self):
-        pass
+        #calculate tumor size
+        #tumor_size = tumor_mask.sum()
+        per_tumor_bounding.append((min_z, min_y, min_x, max_z, max_y, max_x, tumor_size))
         
-    
-    def __largest_tumor_bound_box(self):
-        pass
+        return per_tumor_bounding
 
-    def per_tumor_bound_box(self):
-        per_tumor_size = self.__per_tumor_components()
-        per_tumor_mask = components_to_array(per_tumor_size)
-        bounding_box_dict = {'min_row':[],'min_col':[],'min_slice':[],'max_row':[],'max_col':[],'max_slice':[]}
-        for key, value in per_tumor_mask.items():
-            mask = value
-            ones_indices = np.argwhere(mask == 1)
+class PerTumorBoundingBox(TumorBoundingBox):
+    def __init__(self,liver_img,liver_mask:np.ndarray = None) -> None:
+        super().__init__(liver_img,liver_mask)
+    
+    def extract_tumor(self):
+        mask = self.liver_mask
+        mask = mask.astype(int)
+        mask[mask == 1] = 0
+        mask[mask == 2] = 1
+        per_tumor_list = []
+        labeled,num_features = skimage.measure.label(mask, connectivity=2,return_num=True)
+        for label in range(1, num_features + 1):
+            component_mask = np.where(labeled == label, 1, 0)
+            per_tumor_list.append(component_mask)
+        
+        #stack each tumor mask
+        per_tumor_mask = np.stack(per_tumor_list)
+        
+        return per_tumor_mask
+        
+    def get_tumor_bounding_box(self) -> list:
+        """
+        return a list containing min_row, min_col, min_slice, max_row, max_col, max_slice of each tumor
+        """
+        per_tumor_mask = self.extract_tumor()
+        per_tumor_bounding = []
+        for i in range(per_tumor_mask.shape[0]):  # how many tumors
+            # get the mask of each tumor
+            tumor_mask_i = per_tumor_mask[i, :, :,:]
+            tumor_size_i = tumor_mask_i.sum()
+
+            ones_indices = np.argwhere(tumor_mask_i == 1)
+            # find the bounidng box in each dimention
             if ones_indices.size > 0:
-                # max and min of the indices
                 min_z, min_y, min_x = ones_indices.min(axis=0)
                 max_z, max_y, max_x = ones_indices.max(axis=0)
 
-                # create the bounding box
-                bounding_box = ((min_z, min_y, min_x), (max_z, max_y, max_x))
-                bounding_box_dict['min_row'].append(min_x)
-                bounding_box_dict['min_col'].append(min_y)
-                bounding_box_dict['min_slice'].append(min_z)
-                bounding_box_dict['max_row'].append(max_x)
-                bounding_box_dict['max_col'].append(max_y)
-                bounding_box_dict['max_slice'].append(max_z)
-
-
-                print("Bounding box:", bounding_box)
-
-        rows = []
-
-
-        for key, values in bounding_box_dict.items():
-            for i in range(len(values['min_row'])):
-                row = {
-                    'Sample': key,
-                    'min_row': values['min_row'][i],
-                    'min_col': values['min_col'][i],
-                    'min_slice': values['min_slice'][i],
-                    'max_row': values['max_row'][i],
-                    'max_col': values['max_col'][i],
-                    'max_slice': values['max_slice'][i]
-                }
-                rows.append(row)
-
-        # 创建一个DataFrame
-        df = pd.DataFrame(rows)
-
-        return df
-
-
-    
-
-    
-
-# class LiverBoundingBox:
-#     def __init__(self,liver_mask,liver_orig,out_path_box=None,file_name=None):
-#         """
-#         args:
-#             liver_mask: the liver mask|nib or sitk
-#             original_image: the original image|nib or sitk
-#         """
-#         self.liver_seg = liver_mask
-#         self.liver_orig = liver_orig
-#         self.out_path_box = out_path_box
-#         self.file_name = file_name
-#         # self.original_image = original_image
-#         # self.liver_mask_array = self._get_array(liver_seg)
-#         # self.original_arrary = self._get_array(original_image)
-#         # self.image_loader = image_loader
-#     def extract_liver(self,liver=True):
-#         """
-#             get either the liver or tumor region from the mask
-#             args:
-#                 mask: mask of the liver and tumor
-#                 liver: if True return the liver region, if False return the tumor region
-#         """
-#         mask = self._get_array(self.liver_seg)
-#         mask = mask.astype(int)
-#         print(mask.shape)
-        
-#         if liver:
-#             mask[mask == 2] = 1
-#         else:
-#             mask[mask == 1] = 0
-#             mask[mask == 2] = 1
-#             mask = mask.astype(int)
+            #calculate tumor size
+            #tumor_size = tumor_mask_i.sum()
             
-#         # only keep the largest connected component
-#         labeled = skimage.measure.label(mask, connectivity=2)
+            per_tumor_bounding.append((min_z, min_y, min_x, max_z, max_y, max_x, tumor_size_i))
 
-#         labeled[labeled != 1] = 0
-      
-#         mask = labeled
-#         print(mask.sum())
+        return per_tumor_bounding
 
-#         return mask
+class TumorBoundingBoxFactory:
+    @staticmethod
+    def create_tumor_bounding_box(tumor_type='largest',liver_img=None,liver_mask=None):
+        assert tumor_type in ['largest','per_tumor'], "Tumor type should be either 'largest' or 'per_tumor'"
+        if tumor_type == 'largest':
+            return LargestTumorBoundingBox(liver_img,liver_mask)
+        elif tumor_type == 'per_tumor':
+            return PerTumorBoundingBox(liver_img,liver_mask)
 
-
-        
-#     def get_liver_bounding_box(self,liver_mask):
-#         '''
-#     Function to generate bounding box for liver, from a binary liver mask
-#         args:
-#             liver_mask: binary mask of the liver
-
-#         returns:
-#             bbox: bounding box of the liver (min_row, min_col, min_slice, max_row, max_col, max_slice = bbox)
-#         '''
-
-#         # get the image_probs
-#         image_probs = skimage.measure.regionprops((liver_mask))
-
-#         # get the bounding box of the liver
-
-#         if len(image_probs) == 0:
-#             print(f'[WARNING] no liver found')
-#             self._recording_failing()
-#             return None
-
-#         ## find the adjacent box that contains the liver
-#         for props in image_probs:
-#             bbox = props.bbox
-#             min_row, min_col, min_slice, max_row, max_col, max_slice = bbox 
-#             print("this is range",min_row, min_col, min_slice, max_row, max_col, max_slice)
-#         return [min_row, min_col, min_slice, max_row, max_col, max_slice]
-
-#     def crop_scan(self,liver_bounding):
-#         """
-#         Crop the scan with the bounding box
-#         args:
-#             liver_bounding: the bounding box of the liver
-#         """
-#         liver_original = self._get_array(self.liver_orig)
-#         # get the bounding box of the liver
-#         min_row, min_col, min_slice, max_row, max_col, max_slice = list(map(self._check_range,liver_bounding))
-#         print('this is after check range',min_row, min_col, min_slice, max_row, max_col, max_slice)
-        
-#         #crop the scan
-#         cropped_scan = liver_original[min_row:max_row,min_col:max_col,min_slice:max_slice]
-#         return cropped_scan
+def generate_bounding_df(data,type='liver'):
+    """
+    Convert a dictionary of samples to a DataFrame.
     
-#     def store_cropped_data(self,cropped_data):
+    Parameters:
+    data (dict): A dictionary where keys are sample names and values are lists of tuples. 
+                 Each tuple contains three elements representing the values in three columns.
+                 
+    Returns:
+    pd.DataFrame: A DataFrame with four columns: 'col1', 'col2', 'col3', and 'sample'.
+                  Each row corresponds to one tuple from the input dictionary, 
+                  with an additional column 'sample' indicating the sample name.
+    """
+    # Initialize an empty list to store all DataFrames
+    dfs = []
 
-#     #     if not os.path.exists(self.out_path_box):
-    #         os.mkdir(self.out_path_box)
-    #         print('The path does not exist, create the path!')
+    # Iterate over each key-value pair in the dictionary
+    for key, values in data.items():
+        # Create a DataFrame for each list of tuples
+        if type == 'liver':
+            df = pd.DataFrame(values, columns=['min_z','min_y','min_x','max_z','max_y','max_x'])
+        elif type == 'tumor':
+            df = pd.DataFrame(values, columns=['min_z','min_y','min_x','max_z','max_y','max_x','tumor_size'])
+            df['tumor_id'] = range(len(values)) # give each tumor a unique id in a sample
 
-    #     header = self.liver_orig.header
-    #     affine = self.liver_orig.affine
-    #     print("this is shape of cropped data",cropped_data.shape)
-    #     cropped_image = nib.Nifti1Image(cropped_data, affine, header)
+        # Add a new column to indicate the sample name
+        df['sample'] = key
+        # Append the DataFrame to the list
+        dfs.append(df)
 
+    # Concatenate all DataFrames into one
+    result = pd.concat(dfs, ignore_index=True, axis=0)
+    
+    # Return the resulting DataFrame
+    return result
+def extend_margin_slice(crop_df,image_array,slice_margin: Union[int ,float] = 5,threshold=None):
 
+    """
+    args:
+        crop_df: the dataframe containing the liver bounding box info
+    """
+    max_z_dim = image_array.shape[0] #upper bound is the last slice
+
+    for i in range(crop_df.shape[0]):
+        min_z, max_z = crop_df.loc[i,['min_z','max_z']].values.astype(int)
+        if isinstance(slice_margin,int):
+            extension_slice = slice_margin
+        elif isinstance(slice_margin,float):
+            extension_slice = int(max_z - min_z) * slice_margin
         
-    #     nib.save(cropped_image, self.out_path_box + self.file_name)
+        new_min_z, new_max_z = max(0,min_z-extension_slice), min(max_z_dim,max_z+extension_slice) #lower bound is 0 and upper bound is the last slice
+        #if we set a threshold for slices limitation
+        if threshold is not None and (max_z - min_z) > threshold:
+            new_min_z, new_max_z = min_z, max_z # keep the same if the slices are under the threshold.
+                    
+        crop_df['extension_min_z'], crop_df['extension_max_z'] = new_min_z, new_max_z
+        print(crop_df.loc[i,['min_z','max_z','extension_min_z','extension_max_z']])
+    return crop_df
 
-    # @staticmethod   
-    # def liver_detection(mask):
-    #     if np.count_nonzero(mask) != 0:
-    #         return True
+def crop_liver_tumor(crop_df,reader = 'sitk',tumor_type='largest',img_path=None,mask_path=None,output_img_path=None,output_path=None):
+    for i in range(crop_df.shape[0]):
+        sample = crop_df.loc[i,'sample']
+        tumor_id = crop_df.loc[i,'tumor_id']
+        liver_img_path = os.path.join(image_path,sample+'.nii.gz')
+        liver_mask_path = os.path.join(mask_path,sample+'.nii.gz')
+        min_z, min_y, min_x, max_z, max_y, max_x = crop_df.loc[i,['min_z','min_y','min_x','max_z','max_y','max_x']].values.astype(int)
+        if reader == 'sitk':
+            mask, mask_array = sitk.ReadImage(liver_img_path), sitk.GetArrayFromImage(sitk.ReadImage(liver_mask_path))
+            image, image_array = sitk.ReadImage(liver_img_path), sitk.GetArrayFromImage(sitk.ReadImage(liver_img_path))
+            extracted_img_array = image_array[min_z:max_z,min_y:max_y,min_x:max_x]
+            print(extracted_img_array.shape,'shitttt')
+            #write new cropped image
+            extracted_img = sitk.GetImageFromArray(extracted_img_array)
+            extracted_img.SetSpacing(image.GetSpacing())
+            extracted_img.SetDirection(image.GetDirection())
+            extracted_img.SetOrigin(image.GetOrigin()) 
+            #same for mask          
+            image_extracted_name = sample + '_' + str(tumor_id) + '.nii.gz'
+            output_img_path = os.path.join(output_path,image_extracted_name)
+            print(output_img_path,'output_img_path')
+            sitk.WriteImage(extracted_img, output_img_path)#image_path
+        
+        elif reader == 'nib':
+            mask, mask_array = nib.load(liver_mask_path), nib.load(liver_mask_path).get_fdata()
+            image, image_array = nib.load(liver_img_path), nib.load(liver_img_path).get_fdata()
+            pass #if you want to use nibabel reader, you need to install nibabel
 
 
-    # def _check_range(self,range_num):
-    #     return max(0,range_num)
-    
-    # def _get_array(self,image_file):
-    #     return image_file.get_fdata()
-    
-    # def _recording_failing(self):
-    #     with open(self.out_path_box + 'failing_box.txt','a') as f:
-    #         f.write(self.file_name + '\n')
+
+
+
+
+
 if __name__ == "__main__":
-
-    # load the image
-    #image_orig_path = '/data/scratch/r098986/CT_Phase/Data/Raw_Phase_data/'
-    #image_seg_path = '/data/scratch/r098986/nnUnet_Seg/nnUNeT_test/Task_502_Phase_Data/'
-    #cropped_out_path = '/data/scratch/r098986/CT_Phase/Data/Cropped_Data/'
     scans_info_path = '../Data/Mixed_HGP/Test/Test_scan_info.csv'
     image_path = '../Data/Mixed_HGP/Test_Data/'
     mask_path = '../Data/Mixed_HGP/Test_Mask_Data/'
@@ -453,80 +363,38 @@ if __name__ == "__main__":
     mask_readr = ImageReader(ImageSet(mask_path))
     scans_info = FileLoad(scans_info_path).scans_df
     #load each image
+    liver_bbx_dict = {}
+    tumor_bbx_dict = {}
+
     for i in range(scans_info.shape[0]):
-        image = img_reader.load_image()
-        mask = mask_readr.load_image()
-        file_name = "CILM_" + scans_info.iloc[i]['Experiment'] + f"_{str(i)}" 
+        #create dic to store the bounding box
+
+        image, image_array = img_reader.load_image()
+        mask, mask_array = mask_readr.load_image()
         image_name, mask_name = img_reader.load_image_name(), mask_readr.load_image_name()
-        assert image.shape == mask.shape, "The shape of image and mask is not the same"
-        liver_bbx = LiverBoundingBox(image,mask)
-        liver_mask = liver_bbx.extract_liver()
-        print(file_name,image_name,mask_name)
+        file_name = "CILM_" + scans_info.iloc[i]['Experiment'] + "_" + str(scans_info.iloc[i]['Scan_Id']) #remember to have such two columns! 
+
+        assert image_array.shape == mask_array.shape, "The shape of image and mask is not the same"
+
+        liver_bbx = LiverBoundingBox(image_array,mask_array)
+        tumor_bbx = TumorBoundingBoxFactory().create_tumor_bounding_box("per_tumor",image_array,mask_array)
+
+        liver_bounding = liver_bbx.get_liver_bounding_box()
+        tumor_bounding_size = tumor_bbx.get_tumor_bounding_box()
+
+        #store info
+        liver_bbx_dict[file_name] = liver_bounding
+        tumor_bbx_dict[file_name] = tumor_bounding_size
         break
-
-    # image_orig_path = 'D:/Onedrive/bioinformatics_textbook/VU_Study/internship/Erasmusmc/Test_Data/Raw_Phase_data/'
-    # image_seg_path = 'D:/Onedrive/bioinformatics_textbook/VU_Study/internship/Erasmusmc/Test_Data/Seg_Phase_data/'
-    # cropped_out_path = '../../Test_Data/CT_Phase/Cropped_Data_Liver/'
-    # #load the images
-    # image_orig_load = ImageLoad(image_orig_path)
-    # image_seg_load = ImageLoad(image_seg_path)
-    # for i in range(image_orig_load.images_num):
-    #     file_name = image_orig_load.images_names[i]
-    #     image_orign,image_segg = image_orig_load.image_load(image_orig_load.image_path[i]),image_seg_load.image_load(image_seg_load.image_path[i])
-
-    #     #finding bounding box
-    #     liver_bbox = LiverBoundingBox(image_segg,image_orign,cropped_out_path,file_name)
-    #     liver_mask = liver_bbox.extract_liver()
-    #     if liver_bbox.liver_detection(liver_mask):
-    #         liver_box_range = liver_bbox.get_liver_bounding_box(liver_mask)
-    #         cropped_image = liver_bbox.crop_scan(liver_box_range)
-    #         liver_bbox.store_cropped_data(cropped_image)
-    #     else:
-    #         liver_bbox._recording_failing()
+    
+    #crop
+    liver_bbx_df = generate_bounding_df(liver_bbx_dict)
+    tumor_bbx_df = generate_bounding_df(tumor_bbx_dict, type='tumor')
+    #extend margin slice
+    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, image_array, slice_margin=5, threshold=12)
+    crop_liver_tumor(tumor_bbx_extend_df,tumor_type='per_tumor',img_path=image_path,mask_path=mask_path,output_path= "../Data/Test/Store_Data/")
+    print(file_name,image_name,mask_name)
+    
 
 
-
-
-    # # image_orig_nib,image_seg_nib = image_orig_load.images_nib,image_seg_load.images_nib
-    # # #get the images
-    # # for orig,seg in zip(image_orig_nib.items(),image_seg_nib.items()):
-    # # #get the liver mask
-    # # #create the liver bounding box
-    # #     orig_name,seg_name = orig[0],seg[0]
-    # #     orig_nib,seg_nib = orig[1],seg[1]
-    # #     liver_bbox = LiverBoundingBox(original_image=orig_nib,liver_seg=seg_nib)
-    # #     # get the bounding box of the liver
-    # #     liver_mask = liver_bbox.extract_liver()
-    # #     print(liver_mask.sum(),'hhhhhhhhhhh')
-    # #     if liver_bbox.liver_detection(liver_mask):
-    # #         liver_bounding = liver_bbox.get_liver_bounding_box(liver_mask)
-    # #         cropped_image = liver_bbox.crop_scan(liver_bounding)
-    # #         liver_bbox.store_cropped_data(cropped_image,'./Test_Data/Cropped_Data/',orig_name)
-    # #         print(f"The file {orig_name} has liver! and the shape is {cropped_image.shape}")
-    # #     else:
-    # #         print(f"The file {orig_name} has no liver!")
-    # #         with open('./Test_Data/Cropped_Data/No_Liver.txt','a') as f:
-    # #             f.write(orig_name + '\n')
-
-       
-    #     # check if the mask is empty
-        
-
-        
-    #     #print(cropped_image)
-    # #mask_path = '/home/weiweiduan/Downloads/nnUNet/nnUNet_raw_data_base/nnUNet_raw_data/Task50_CILM/labelsTr/'
-    # #image_name = 'CILM_1_0000.nii.gz'
-    # #mask_name = 'CILM_1_0000.nii.gz'
-    # # create the liver bounding box
-    # #liver_bbox = LiverBoundingBox(mask_data,image_data)
-    # # get the liver region
-    # #liver_mask = liver_bbox.extract_liver()
-    # # get the bounding box of the liver
-    # #liver_bounding = liver_bbox.get_liver_bounding_box(liver_mask)
-    # # crop the image
-    # # cropped_image = liver_bbox.crop_scan(liver_bounding)
-    # # # plot the image
-    # # plt.imshow(cropped_image[:,:,0])
-    # # plt.show()
-    # # # save the image
-    # # cropped_image_nifti = nib.Nifti1Image(cropped_image, image.affine, image.header
+    

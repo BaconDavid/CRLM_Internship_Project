@@ -79,7 +79,6 @@ class ResNet(Model):
                             task = self.cfg.MODEL.task,
                             selectivenet = self.cfg.MODEL.selectivenet,
                             block_inplanes = list(self.cfg.MODEL.Resnet10.block_inplanes),
-                            
                             **kwargs)
         elif self.cfg.MODEL.name == "Resnet18":
             return resnet18(n_input_channels=self.cfg.MODEL.num_in_channels, 
@@ -150,7 +149,7 @@ class GamblerNet(Model):
                                 no_max_pool=False,
                                 drop_rate=self.cfg.MODEL.drop_out,
                                 task=self.cfg.MODEL.task,
-                                block_inplanes = list(self.cfg.MODEL.Resnet10.block_inplanes)
+                                block_inplanes = list(self.cfg.MODEL.Resnet10.block_inplanes),
                                 **kwargs)
                 
             elif self.cfg.MODEL.name == "Resnet18":

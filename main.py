@@ -53,6 +53,18 @@ import random
 from sklearn.model_selection import StratifiedKFold
 from ema_pytorch import EMA
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+# 设置随机种子
+
+
 def main(cfg,mode='train'):
     """
     args:
@@ -355,5 +367,5 @@ if __name__ == "__main__":
     cfg.SAVE.save_dir = os.path.join(cfg.SAVE.save_dir,args.exp_name) + '//'
     cfg.freeze()
     print('successfully load the config file !')
-
+    set_seed(114514)
     main(cfg,mode=args.mode)

@@ -5,6 +5,7 @@
 from abc import ABC, abstractmethod
 import os
 from random import choices, sample
+from cv2 import sort
 import nibabel as nib
 import numpy as np
 import skimage 
@@ -45,7 +46,7 @@ class ImageSet:
         Initialize with the directory path containing images.
         """
         self.image_path = image_path
-        self.image_names = os.listdir(self.image_path)
+        self.image_names = sorted((os.listdir(self.image_path)))
         self.image_num = len(self.image_names)
         self.image_full_paths = [os.path.join(self.image_path, name) for name in self.image_names]
         print("Total number of images:", self.image_num)
@@ -57,7 +58,7 @@ class ImageSet:
         return self.image_num
     
     def get_image_full_path(self, index):
-        if index < 0 or index >= self.image_num:
+        if index < 0 or index > self.image_num:
             raise IndexError("Index out of range")
         
         return self.image_full_paths[index]
@@ -71,7 +72,7 @@ class ImageReader:
         self.current_name_index = 0
 
     def load_image(self,reader='sitk'):
-        if self.current_index >= self.image_set.get_image_num():
+        if self.current_index > self.image_set.get_image_num():
             raise StopIteration("No more images to read")
         image_path = self.image_set.get_image_full_path(self.current_index)
 
@@ -88,7 +89,7 @@ class ImageReader:
         return image, image_array
 
     def load_image_name(self):
-        if self.current_index >= self.image_set.get_image_num():
+        if self.current_index > self.image_set.get_image_num():
             raise StopIteration("No more images to read")
         image_name = self.image_set.get_image_list()[self.current_name_index]
         self.current_name_index += 1
@@ -303,6 +304,10 @@ def extend_margin_slice(crop_df,image_array,slice_margin: Union[int ,float] = 5,
     args:
         crop_df: the dataframe containing the liver bounding box info
     """
+    #initialize new columns with nan
+    crop_df['extension_min_z'] = np.nan
+    crop_df['extension_max_z'] = np.nan
+
     max_z_dim = image_array.shape[0] #upper bound is the last slice
 
     for i in range(crop_df.shape[0]):
@@ -313,11 +318,14 @@ def extend_margin_slice(crop_df,image_array,slice_margin: Union[int ,float] = 5,
             extension_slice = int(max_z - min_z) * slice_margin
         
         new_min_z, new_max_z = max(0,min_z-extension_slice), min(max_z_dim,max_z+extension_slice) #lower bound is 0 and upper bound is the last slice
+        print(new_min_z,new_max_z,'new_min_z,new_max_z')
         #if we set a threshold for slices limitation
-        if threshold is not None and (max_z - min_z) > threshold:
+
+        if threshold is not None and (max_z - min_z) >= threshold:
             new_min_z, new_max_z = min_z, max_z # keep the same if the slices are under the threshold.
-                    
-        crop_df['extension_min_z'], crop_df['extension_max_z'] = new_min_z, new_max_z
+            
+        crop_df.loc[i, 'extension_min_z'] = new_min_z
+        crop_df.loc[i, 'extension_max_z'] = new_max_z        
         print(crop_df.loc[i,['min_z','max_z','extension_min_z','extension_max_z']])
     return crop_df
 
@@ -356,9 +364,9 @@ def crop_liver_tumor(crop_df,reader = 'sitk',tumor_type='largest',img_path=None,
 
 
 if __name__ == "__main__":
-    scans_info_path = '../Data/Mixed_HGP/Test/Test_scan_info.csv'
-    image_path = '../Data/Mixed_HGP/Test_Data/'
-    mask_path = '../Data/Mixed_HGP/Test_Mask_Data/'
+    scans_info_path = '../../Data/Mixed_HGP/True_Label/scans_used_all_info_with_tumor.csv'
+    image_path = '../../Data/Mixed_HGP/Mixed_HGP_07071/'
+    mask_path = '../../Data/Mixed_HGP/Mixed_HGP_mask_07071/'
     img_reader = ImageReader(ImageSet(image_path))
     mask_readr = ImageReader(ImageSet(mask_path))
     scans_info = FileLoad(scans_info_path).scans_df
@@ -366,34 +374,64 @@ if __name__ == "__main__":
     liver_bbx_dict = {}
     tumor_bbx_dict = {}
 
-    for i in range(scans_info.shape[0]):
-        #create dic to store the bounding box
 
+    img, img_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'))
+
+    mask, mask_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'))
+
+
+    liver_bbx = LiverBoundingBox(img_array,mask_array)
+    tumor_bbx = TumorBoundingBoxFactory().create_tumor_bounding_box("largest",img_array,mask_array)
+    liver_bounding = liver_bbx.get_liver_bounding_box()
+    tumor_bounding_size = tumor_bbx.get_tumor_bounding_box()
+
+    # #store info
+    liver_bbx_dict['CILM_CT_27354_0'] = liver_bounding
+    tumor_bbx_dict['CILM_CT_27354_0'] = tumor_bounding_size
+    liver_bbx_df = generate_bounding_df(liver_bbx_dict,type='liver')
+    tumor_bbx_df = generate_bounding_df(tumor_bbx_dict, type='tumor')
+    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, img_array, slice_margin=5, threshold=17)
+    liver_bbx_extend_df = extend_margin_slice(liver_bbx_df, img_array, slice_margin=5, threshold=17)
+    
+    print(tumor_bbx_extend_df,tumor_bbx_dict)
+        
+    for i in range(scans_info.shape[0]):
+
+        #create dic to store the bounding box
         image, image_array = img_reader.load_image()
         mask, mask_array = mask_readr.load_image()
         image_name, mask_name = img_reader.load_image_name(), mask_readr.load_image_name()
+        print(image_name,mask_name,'666')
         file_name = "CILM_" + scans_info.iloc[i]['Experiment'] + "_" + str(scans_info.iloc[i]['Scan_Id']) #remember to have such two columns! 
-
+        
+        print(file_name,"processing!")
         assert image_array.shape == mask_array.shape, "The shape of image and mask is not the same"
 
         liver_bbx = LiverBoundingBox(image_array,mask_array)
-        tumor_bbx = TumorBoundingBoxFactory().create_tumor_bounding_box("per_tumor",image_array,mask_array)
-
+        tumor_bbx = TumorBoundingBoxFactory().create_tumor_bounding_box("largest",image_array,mask_array)
         liver_bounding = liver_bbx.get_liver_bounding_box()
         tumor_bounding_size = tumor_bbx.get_tumor_bounding_box()
-
+        
         #store info
         liver_bbx_dict[file_name] = liver_bounding
         tumor_bbx_dict[file_name] = tumor_bounding_size
-        break
+        print(tumor_bbx_dict)
+        
+
+        
+
     
     #crop
-    liver_bbx_df = generate_bounding_df(liver_bbx_dict)
+    liver_bbx_df = generate_bounding_df(liver_bbx_dict,type='liver')
     tumor_bbx_df = generate_bounding_df(tumor_bbx_dict, type='tumor')
     #extend margin slice
-    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, image_array, slice_margin=5, threshold=12)
-    crop_liver_tumor(tumor_bbx_extend_df,tumor_type='per_tumor',img_path=image_path,mask_path=mask_path,output_path= "../Data/Test/Store_Data/")
-    print(file_name,image_name,mask_name)
+    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, image_array, slice_margin=5, threshold=17)
+    liver_bbx_extend_df = extend_margin_slice(liver_bbx_df, image_array, slice_margin=5, threshold=17)
+    #crop_liver_tumor(liver_bbx_extend_df,tumor_type='largest',img_path=image_path,mask_path=mask_path,output_path= "../Data/Test/")
+    print(liver_bbx_df,tumor_bbx_df)
+    tumor_bbx_extend_df.to_csv('../../Data/Test/tumor_lg_mix_df.csv')
+
+    liver_bbx_extend_df.to_csv('../../Data/Test/liver_lg_mix_df.csv')
     
 
 

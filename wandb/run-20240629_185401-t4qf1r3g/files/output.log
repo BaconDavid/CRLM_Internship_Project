@@ -1,0 +1,55 @@
+
+<Core.model.scheduler.WeightDecayScheduler object at 0x00000236ECDFB5B0> this is weight decay scheduler
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+  0%|                                                                                                                                                                                                                      | 0/39 [00:00<?, ?it/s]
+##################
+epoch 1
+  0%|                                                                                                                                                                                                                      | 0/39 [02:10<?, ?it/s]
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 427, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 250, in main
+    ave_loss,y_true,y_pred,ave_loss_dict,l2_loss= train_loop(cfg,
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 65, in train_loop
+    np.save(im.detach().numpy(),'../../../Data/Test/Final_DataSet/im.npy')
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\numpy\lib\npyio.py", line 539, in save
+    file = os_fspath(file)
+TypeError: expected str, bytes or os.PathLike object, not ndarray

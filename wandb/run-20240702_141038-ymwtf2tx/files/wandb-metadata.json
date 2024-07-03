@@ -1,0 +1,60 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.9.18",
+    "heartbeatAt": "2024-07-02T12:10:40.473847",
+    "startedAt": "2024-07-02T12:10:38.747007",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--config_file",
+        "./Core/Config/Resnet10_local.yaml",
+        "--fold",
+        "0",
+        "--exp_name",
+        "Test"
+    ],
+    "state": "running",
+    "program": "C:\\Users\\098986\\Intership_CILM\\CRLM_Internship_Project\\main.py",
+    "codePathLocal": "main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/BaconDavid/CRLM_Internship_Project.git",
+        "commit": "b5c8e2b4d711a62e3f167961df34f247c019b66d"
+    },
+    "email": "y.liu.3@erasmusmc.nl",
+    "root": "C:/Users/098986/Intership_CILM/CRLM_Internship_Project",
+    "host": "WX-AC1A3DC20455",
+    "username": "098986",
+    "executable": "C:\\Users\\098986\\AppData\\Local\\anaconda3\\envs\\CILM\\python.exe",
+    "cpu_count": 14,
+    "cpu_count_logical": 20,
+    "cpu_freq": {
+        "current": 1900.0,
+        "min": 0.0,
+        "max": 1900.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1900.0,
+            "min": 0.0,
+            "max": 1900.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 944.0195274353027,
+            "used": 821.2043952941895
+        }
+    },
+    "gpu": "NVIDIA GeForce MX550",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce MX550",
+            "memory_total": 2147483648
+        }
+    ],
+    "memory": {
+        "total": 31.692092895507812
+    }
+}

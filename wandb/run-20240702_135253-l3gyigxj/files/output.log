@@ -1,0 +1,60 @@
+
+<Core.model.scheduler.WeightDecayScheduler object at 0x000001ED6B7926A0> this is weight decay scheduler
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+##################
+epoch 1
+##################
+  0%|                                                                                                                                                                                                                             | 0/39 [00:00<?, ?it/s]C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\instancenorm.py:80: UserWarning: input's size at dim=0 does not match num_features. You can silence this warning by not passing in num_features, which is not used because affine=False
+  warnings.warn(f"input's size at dim={feature_dim} does not match num_features. "
+
+label:tensor([1]),lr:0.0):  10%|███████████████████                                                                                                                                                                       | 4/39 [01:38<14:20, 24.60s/it]
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 251, in main
+    ave_loss,y_true,y_pred,ave_loss_dict,l2_loss= train_loop(cfg,
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 101, in train_loop
+    average_loss_train,average_loss_dict = trainer.grad_accumulate(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 227, in grad_accumulate
+    loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\loss.py", line 114, in __call__
+    #emprical_risk = (self.loss_func(prediction_out, target)*selection_out.view(-1)).mean()
+NameError: name 'np' is not defined

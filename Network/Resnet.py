@@ -253,18 +253,22 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
         if self.selectivenet:
-            self.classifier = torch.nn.Sequential(nn.Linear(block_inplanes[3], num_classes))
+            self.classifier = torch.nn.Sequential(
+            nn.Linear(block_inplanes[3], num_classes),
+            )
 
             self.selector = torch.nn.Sequential(
             torch.nn.Linear(block_inplanes[3], block_inplanes[3]),
             torch.nn.ReLU(True),
             torch.nn.InstanceNorm1d(block_inplanes[3]),
             torch.nn.Linear(block_inplanes[3], 1),
+
             torch.nn.Sigmoid()
         )
             # represented as h() in the original paper
             self.aux_classifier = torch.nn.Sequential(
                 nn.Linear(block_inplanes[3], self.num_classes),
+                
             )
 
 
@@ -272,6 +276,9 @@ class ResNet(nn.Module):
             self.fc = nn.Linear(block_inplanes[3] * block.expansion, num_classes) if feed_forward else None
         else:
             self.fc = nn.Linear(block_inplanes[3] * block.expansion, 1) if feed_forward else None
+
+        self.dropout = nn.Dropout(p=self.drop_rate)
+        
         for m in self.modules():
             if isinstance(m, conv_type):
                 nn.init.kaiming_normal_(torch.as_tensor(m.weight), mode="fan_out", nonlinearity="relu")
@@ -280,6 +287,16 @@ class ResNet(nn.Module):
                 nn.init.constant_(torch.as_tensor(m.bias), 0)
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(torch.as_tensor(m.bias), 0)
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')
+                nn.init.constant_(m.bias, 0)
 
     def _downsample_basic_block(self, x: torch.Tensor, planes: int, stride: int, spatial_dims: int = 3) -> torch.Tensor:
         out: torch.Tensor = get_pool_layer(("avg", {"kernel_size": 1, "stride": stride}), spatial_dims=spatial_dims)(x)
@@ -340,7 +357,7 @@ class ResNet(nn.Module):
             x = self.maxpool(x)
 
         x = self.layer1(x)
-        print(x.shape)
+        #print(x.shape)
         x = self.layer2(x)
         #print(x.shape)
         x = self.layer3(x)
@@ -354,17 +371,17 @@ class ResNet(nn.Module):
             x = x.view(x.size(0), -1)
             
             #print(x.size(),'xsize')
-            
-            pre_out = self.classifier(x)
-            select_out = self.selector(x)
-            aux_out = self.aux_classifier(x)
+            classification_output = self.dropout(x)
+            pre_out = self.classifier(classification_output)
+            select_out = self.selector(classification_output)
+            aux_out = self.aux_classifier(classification_output)
             return pre_out, select_out, aux_out
         
         else:
             x = x.view(x.size(0), -1)
             if self.fc is not None:
-                #x = nn.Dropout(self.drop_rate)(x)
-                x = self.fc(x)
+                
+                x = self.fc(self.dropout(x))
 
 
         return x

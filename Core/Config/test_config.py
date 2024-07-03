@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     print(cfg.LOSS.SelectiveLoss.SelectiveNetLoss.loss)
     cfg.TEST.batch_size = 10
-    print(cfg.Scheduler.WarmupCosineScheduler.t_total)
+    print(cfg)
     cfg.freeze()
 
 

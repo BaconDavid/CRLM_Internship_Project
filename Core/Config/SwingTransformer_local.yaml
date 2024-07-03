@@ -1,34 +1,94 @@
-
 # my_project/experiment.yaml
+
+###Experiment description:
+
+
+
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cpu'
   NUM_WORKERS: 8
     
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\'
-  Train_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\train_cv_0.csv'
-  Valid_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\val_cv_0.csv'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Dataset\largest_tm_lv_07071_windowed\'
+  Train_file: 'c:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Labels\lg_mixed_extended+5_folds\'
+  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Labels\lg_mixed_extended+5_folds\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
-  label_dir: 
   label_name: 'HGP_Type'
+
+#LOSS's task should be classification, selective, regression
+LOSS:
+  task: 'classification'
+
+  RegressionLoss:
+    loss: 'MSE'
+
+#loss should be GamblerLoss or SelectiveLoss
+  SelectiveLoss:
+    loss: 'SelectiveLoss'
+
+    GamblerLoss:
+      reward: 1.2
+      
+    SelectiveNetLoss:
+      loss: 'SelectiveLoss'
+      coverage: 0.9
+      lm: 32
+      alpha: 0.5
+
+  ClassificationLoss:
+    loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
   
+  CommonLoss:
+    loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+
+
+
 TRAIN:
-  lr: 0.00001
-  batch_size: 2
-  num_epochs: 200
-  optimizer: 'Adam'
-  loss: 'CrossEntropyLoss'
+  batch_size: 1
+  batch_accumulation_size: 1
+  num_epochs: 100
   Debug: True
-  #scheduler_param: "['step_size':20000, 'gamma': 0.1}"
   data_aug: True
+  
+Scheduler:
+  scheduler: True
+  scheduler_name: 'WarmupCosineSchedule'
+
+  WarmupCosineScheduler:
+    warmup_steps: 400
+    t_total: 4000
+
+Optimizer:
+  name: 'SGD'
+  lr: 0.001
+  weight_decay: 0.0
+  
+  SGD:
+    momentum: 0.9
+  
+  scheduler: False
 
 VALID:
   batch_size: 1
-  loss: 'CrossEntropyLoss'
   data_aug: True
+  batch_accumulation_size: 1
 
 TEST:
   batch_size: 1
@@ -38,37 +98,61 @@ DATASET:
   WeightedRandomSampler: True
   num_classes: 2
   num_channels: 1
+  mask: False
 
+## task should be claaification, selective, regression
 MODEL:
-  name: 'SwingTransformer'
-  pretrained: True
-  freeze_layers: ('layers1','layers2')  
-  pretrained_path: 'c:\Users\098986\Intership_CILM\Pre_trained\model_swinvit.pt'
-  weight_decay: 0.001
+  task: 'classification'
+  name: 'SwinTransformer' #model body for classification or selective
+  pretrained: False
   num_class: 2
   num_in_channels: 1
-  dropout: 0.5
+  drop_out: 0.0
+  #only for dropblock
+  Drop_block: False
+  block_size: 5
+  drop_prob: 0.0
+  ###
   num_out_channels: 1
+  # output of last layer
+  feature_dims: 512
+  selectivenet: False # whether to use selectivenet or not
+
+  Gambler:
+    pretrain_epochs: 30
+  
+  Resnet10:
+    block_inplanes: (64,128,256,512)
+  
+  SwinTransformer:
+    block_depth: (2,2,2,2)
+    SparseAttention: False
+  
+
 
 LOG:
   log_dir: ./logs
   log_file: log.txt
 
 Preprocess:
-  padding_size: (256,256,64)
+  padding_size: (368,368,64)
   normalize: 'NormalizeIntensity'
+
+Augmentation:
+  RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
+  RandRotate: (range_z = 0.3, prob = 0.5)
+  RandFlip: (prob = 0.3)
 
 
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\'
-  save_name: 'SwingTransformer\'
-  fold: '01'
+  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  save_name: ''
+  fold: ''
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\fold_0\'
+  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
 
 visual_im:
   visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\SwingTransformer\Test_local\SwingTransformer\Visual\'
-
-
+  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  slice: 5

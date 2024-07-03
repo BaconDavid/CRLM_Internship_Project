@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 109, in main
+    train_images = sorted(train_data.get_images())
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Dataset\Dataloader.py", line 29, in get_images
+    filenames = self.get_data_path()
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Dataset\Dataloader.py", line 40, in get_data_path
+    return pd.read_csv(self.label_path)['data_path'].values.tolist()
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\pandas\io\parsers\readers.py", line 1024, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\pandas\io\parsers\readers.py", line 618, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\pandas\io\parsers\readers.py", line 1618, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\pandas\io\parsers\readers.py", line 1878, in _make_engine
+    self.handles = get_handle(
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\pandas\io\common.py", line 873, in get_handle
+    handle = open(
+FileNotFoundError: [Errno 2] No such file or directory: '/data/scratch/r098986/MIXED_HGP/True_Label/Final_Labels/lg_mixed_extended+5_folds/train_cv_0.csv'

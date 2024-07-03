@@ -59,6 +59,8 @@ Before cropping liver and tumor, prepare for the correct csv file. The csv file 
 2. tumor_id: eg: 0,1,2...
 3. crop range: min_z,min_y,min_x,max_z,max_y,max_x
 
+**Attention** Make sure each file name is sorted from small to large, and the tumor_id is from small to large.
+
 # Experiments 
 ## All tumors
 ## Largest tumor

@@ -126,12 +126,13 @@ class ClassificationMetrics(Metrics):
 
 
 class SelectiveMetrics(Metrics):
-    def __init__(self,y_true,model_output,ave_loss,num_class=2,coverage=None,loss_type='GamblerLoss'):
+    def __init__(self,y_true,model_output,ave_loss,num_class=2,coverage=None,loss_dict = None,l2_loss=None,loss_type='GamblerLoss'):
         super().__init__(y_true,model_output,ave_loss,num_class=num_class)
         #separate another extra class head!
         self.loss_type = loss_type
         assert loss_type in ['GamblerLoss','SelectiveLoss']
 
+        
 
         if loss_type == 'GamblerLoss':
             self.y_pred, self.y_true = self._get_array()
@@ -149,7 +150,9 @@ class SelectiveMetrics(Metrics):
 
 
         self.coverage = coverage # only for gambler input a list of coverage
-        
+        self.aux_loss = loss_dict['aux_loss']
+        self.emprical_loss = loss_dict['emprical_loss']
+        self.l2_loss = l2_loss #
         #check if loss_type is Gambler or Selective
         self.metrics = {f"{i}_coverage_{j}": {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class) for j in self.coverage}
         
@@ -211,7 +214,7 @@ class SelectiveMetrics(Metrics):
         #self.y_pred_label = np.argmax(self.y_pred,axis=1)
         #print(self._selectivenet_pred())
         for i in range(self.num_class):
-            for j in self.coverage:
+            for j in self.coverage: # all coverage rate because threshold 
                 true_binary = (self.y_true == i).astype(int)
                 pred_binary = (self.y_pred_label == i).astype(int)
                 
@@ -224,7 +227,10 @@ class SelectiveMetrics(Metrics):
 
                     
                 self.metrics[f"{i}_coverage_{j}"]['accuracy'] = accuracy_score(true_binary, pred_binary)
-
+                #record aux loss and emprical loss separately
+                self.metrics[f"{i}_coverage_{j}"]['aux_loss'] = self.aux_loss
+                self.metrics[f"{i}_coverage_{j}"]['emprical_loss'] = self.emprical_loss
+                self.metrics[f"{i}_coverage_{j}"]['l2_loss'] = self.l2_loss
 
         return self.metrics
         
@@ -254,7 +260,7 @@ class SelectiveMetrics(Metrics):
         print(output,'output after selection')
         return output,predictions,true_labels
     
-    def _selectivenet_pred(self,threshold=0.7):
+    def _selectivenet_pred(self,threshold=0.1):
         #sort all output followed by selection output
         y_select = self.y_select.reshape(-1) # (Sample,Batch,1) --> (Sample*Batch)
         y_pred = self.y_pred.reshape(-1,self.num_class) # (Sample,Batch,Class) --> (Sample*Batch,Class)

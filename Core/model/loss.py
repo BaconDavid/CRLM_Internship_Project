@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+import numpy as np
 class Loss:
     def __init__(self,cfg):
         """
@@ -95,7 +96,8 @@ class SelectiveLoss(Loss):
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage <= 1.0
         assert 0.0 < self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
 
-        self.loss_func = CommonLoss(self.cfg).build_loss()
+        #self.loss_func = CommonLoss(self.cfg).build_loss()
+        self.loss_func = nn.CrossEntropyLoss(reduction='none')
         self.coverage = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.coverage
         self.lm = self.cfg.LOSS.SelectiveLoss.SelectiveNetLoss.lm
         self.alpha = self.cfg.MODEL.SelectiveNet.alpha # combine coefficient of selective loss and aux loss
@@ -108,7 +110,7 @@ class SelectiveLoss(Loss):
         """
         # compute emprical coverage (=phi^)
         emprical_coverage = selection_out.mean() 
-        print(selection_out.shape,'shape of selectionout')
+        #print(selection_out.shape,'shape of selectionout')
         # compute emprical risk (=r^)
         emprical_risk = (self.loss_func(prediction_out, target)*selection_out.view(-1)).mean()
         emprical_risk = emprical_risk / emprical_coverage
@@ -126,7 +128,7 @@ class SelectiveLoss(Loss):
         # loss information dict 
         loss_dict={}
         loss_dict['emprical_coverage'] = emprical_coverage.detach().cpu().item()
-        loss_dict['emprical_risk'] = emprical_risk.detach().cpu().item()
+        loss_dict['emprical_loss'] = emprical_risk.detach().cpu().item()
         loss_dict['penulty'] = penulty.detach().cpu().item()
         loss_dict['aux_loss'] = aux_loss.detach().cpu().item()
         selective_loss = self.alpha*(emprical_risk + penulty) + (1-self.alpha)*aux_loss

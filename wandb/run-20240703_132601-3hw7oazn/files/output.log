@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 165, in main
+    model = Model(cfg).build_model()
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\Models.py", line 31, in build_model
+    return ClassificationModel(self.cfg).build_model(**kwargs)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\Models.py", line 51, in build_model
+    model = SwinTransformer(self.cfg).build_model()
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\Models.py", line 108, in build_model
+    return swin_unetr.Swin3DTransformer(img_size=(64,256,256),
+TypeError: __init__() got an unexpected keyword argument 'depth'

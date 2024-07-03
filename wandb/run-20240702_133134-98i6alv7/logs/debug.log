@@ -1,0 +1,29 @@
+2024-07-02 13:31:34,055 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Current SDK version is 0.17.3
+2024-07-02 13:31:34,056 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Configure stats pid to 3056
+2024-07-02 13:31:34,056 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Loading settings from C:\Users\098986\.config\wandb\settings
+2024-07-02 13:31:34,056 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Loading settings from C:\Users\098986\Intership_CILM\CRLM_Internship_Project\wandb\settings
+2024-07-02 13:31:34,057 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-07-02 13:31:34,057 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-07-02 13:31:34,059 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'main.py', 'program_abspath': 'C:\\Users\\098986\\Intership_CILM\\CRLM_Internship_Project\\main.py', 'program': 'C:\\Users\\098986\\Intership_CILM\\CRLM_Internship_Project\\main.py'}
+2024-07-02 13:31:34,059 INFO    MainThread:3056 [wandb_setup.py:_flush():76] Applying login settings: {}
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:_log_setup():520] Logging user logs to C:\Users\098986\Intership_CILM\CRLM_Internship_Project\wandb\run-20240702_133134-98i6alv7\logs\debug.log
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:_log_setup():521] Logging internal logs to C:\Users\098986\Intership_CILM\CRLM_Internship_Project\wandb\run-20240702_133134-98i6alv7\logs\debug-internal.log
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:init():560] calling init triggers
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:init():567] wandb.init called with sweep_config: {}
+config: {'dataset': 'Mixed_HGP_Largest_Tumor', 'type': 'baseline', 'lr': 0.001, 'Weight_decay': 0.05, 'optimizer': 'SGD'}
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:init():610] starting backend
+2024-07-02 13:31:34,060 INFO    MainThread:3056 [wandb_init.py:init():614] setting up manager
+2024-07-02 13:31:34,168 INFO    MainThread:3056 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn, using: spawn
+2024-07-02 13:31:34,172 INFO    MainThread:3056 [wandb_init.py:init():622] backend started and connected
+2024-07-02 13:31:34,178 INFO    MainThread:3056 [wandb_init.py:init():711] updated telemetry
+2024-07-02 13:31:34,342 INFO    MainThread:3056 [wandb_init.py:init():744] communicating run to backend with 90.0 second timeout
+2024-07-02 13:31:35,368 INFO    MainThread:3056 [wandb_run.py:_on_init():2402] communicating current version
+2024-07-02 13:31:35,455 INFO    MainThread:3056 [wandb_run.py:_on_init():2411] got version response 
+2024-07-02 13:31:35,455 INFO    MainThread:3056 [wandb_init.py:init():795] starting run threads in backend
+2024-07-02 13:31:41,459 INFO    MainThread:3056 [wandb_run.py:_console_start():2380] atexit reg
+2024-07-02 13:31:41,460 INFO    MainThread:3056 [wandb_run.py:_redirect():2235] redirect: wrap_raw
+2024-07-02 13:31:41,460 INFO    MainThread:3056 [wandb_run.py:_redirect():2300] Wrapping output streams.
+2024-07-02 13:31:41,460 INFO    MainThread:3056 [wandb_run.py:_redirect():2325] Redirects installed.
+2024-07-02 13:31:41,464 INFO    MainThread:3056 [wandb_init.py:init():838] run started, returning control to user process
+2024-07-02 13:31:51,025 INFO    MainThread:3056 [wandb_watch.py:watch():51] Watching
+2024-07-02 13:36:31,422 WARNING MsgRouterThr:3056 [router.py:message_loop():77] message_loop has been closed

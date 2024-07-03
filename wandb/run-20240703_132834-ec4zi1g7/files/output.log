@@ -1,0 +1,43 @@
+
+None this is weight decay scheduler
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 206, in main
+    visual_input(cfg,tr_dataloader)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Utils\Utility.py", line 34, in wrapper
+    return func(*args,**kwargs)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Utils\Utility.py", line 50, in visual_input
+    for data in data_loader:
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\dataloader.py", line 631, in __next__
+    data = self._next_data()
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\dataloader.py", line 1346, in _next_data
+    return self._process_data(data)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\dataloader.py", line 1372, in _process_data
+    data.reraise()
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\_utils.py", line 722, in reraise
+    raise exception
+FileNotFoundError: Caught FileNotFoundError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\nibabel\loadsave.py", line 100, in load
+    stat_result = os.stat(filename)
+FileNotFoundError: [WinError 3] The system cannot find the path specified: 'c:\\Users\\098986\\Intership_CILM\\Data\\Mixed_HGP\\Mixed_HGP_lv_with_tumor_07073_Windowed\\CILM_CT_299660_0000.nii.gz'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\_utils\worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\_utils\fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\utils\data\_utils\fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Dataset\Dataloader.py", line 86, in __getitem__
+    output = super().__getitem__(index,*args,**kwargs)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\data\image_dataset.py", line 108, in __getitem__
+    img = self.loader(self.image_files[index])
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\transforms\io\array.py", line 255, in __call__
+    img = reader.read(filename)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\data\image_reader.py", line 908, in read
+    img = nib.load(name, **kwargs_)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\nibabel\loadsave.py", line 102, in load
+    raise FileNotFoundError(f"No such file or no access: '{filename}'")
+FileNotFoundError: No such file or no access: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\CILM_CT_299660_0000.nii.gz'

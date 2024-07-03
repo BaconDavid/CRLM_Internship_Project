@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 166, in main
+    model.to(cfg.SYSTEM.DEVICE)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 1152, in to
+    return self._apply(convert)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
+    module._apply(fn)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
+    module._apply(fn)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
+    module._apply(fn)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 825, in _apply
+    param_applied = fn(param)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\module.py", line 1150, in convert
+    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\cuda\__init__.py", line 293, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled

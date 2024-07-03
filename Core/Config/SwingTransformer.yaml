@@ -1,41 +1,95 @@
-
 # my_project/experiment.yaml
+
+###Experiment description:
+
+
+
 SYSTEM:
   NUM_GPUS: None
   DEVICE: 'cuda'
-  NUM_WORKERS: 6
+  NUM_WORKERS: 8
     
 DATA:
-  Data_dir: '/data/scratch/r098986/tm_slices_lv_region_07073_windowed/'
-  Train_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/train_cv_3.csv'
-  Valid_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/val_cv_3.csv'
+  Data_dir: '/data/scratch/r098986/MIXED_HGP/Final_Dataset/largest_tm_lv_07071_windowed/'
+  Train_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Final_Labels/lg_mixed_extended+5_folds/'
+  Valid_file: '/data/scratch/r098986/MIXED_HGP/True_Label/Final_Labels/lg_mixed_extended+5_folds/'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
+  Data_mask_dir: '/data/scratch/r098986/MIXED_HGP/Final_Dataset/largest_tm_lv_mask_07071/'
 
 LABEL:
-  label_dir: '/data/scratch/r098986/MIXED_HGP/True_Label/'
   label_name: 'HGP_Type'
 
+#LOSS's task should be classification, selective, regression
 LOSS:
-  loss_mode: 'classification'
-  loss_name: 'CrossEntropyLoss'
+  task: 'classification'
+
+  RegressionLoss:
+    loss: 'MSE'
+
+#loss should be GamblerLoss or SelectiveLoss
+  SelectiveLoss:
+    loss: 'SelectiveLoss'
+
+    GamblerLoss:
+      reward: 1.2
+      
+    SelectiveNetLoss:
+      loss: 'SelectiveLoss'
+      coverage: 0.9
+      lm: 32
+      alpha: 0.5
+
+  ClassificationLoss:
+    loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+  
+  CommonLoss:
+    loss: 'CrossEntropyLoss'
+
+    CELoss:
+      weight: 1.0
+    
+    FocalLoss:
+      gamma: 2.0
+      alpha: 0.25
+
+
 
 TRAIN:
-  lr: 0.00001
-  batch_size: 2
+  batch_size: 1
+  batch_accumulation_size: 1
   num_epochs: 300
-  optimizer: 'Adam'
-  loss: 'CrossEntropyLoss'
   Debug: False
+  data_aug: True
+  
+Scheduler:
   scheduler: True
   scheduler_name: 'WarmupCosineSchedule'
 
-  data_aug: True
-  drop_out: 0.5
+  WarmupCosineScheduler:
+    warmup_steps: 400
+    t_total: 13000
+
+Optimizer:
+  name: 'SGD'
+  lr: 0.001
+  weight_decay: 0.0
+  
+  SGD:
+    momentum: 0.9
+  
+  scheduler: False
 
 VALID:
   batch_size: 1
-  loss: 'CrossEntropyLoss'
   data_aug: True
+  batch_accumulation_size: 1
 
 TEST:
   batch_size: 1
@@ -44,46 +98,61 @@ TEST:
 DATASET:
   WeightedRandomSampler: True
   num_classes: 2
+  num_channels: 1
+  mask: False
 
-
+## task should be claaification, selective, regression
 MODEL:
-  name: 'SwingTransformer'
+  task: 'classification'
+  name: 'SwinTransformer' #model body for classification or selective
   pretrained: False
   num_class: 2
   num_in_channels: 1
+  drop_out: 0.0
+  #only for dropblock
+  Drop_block: False
+  block_size: 5
+  drop_prob: 0.0
+  ###
   num_out_channels: 1
-  v2: True
+  # output of last layer
+  feature_dims: 512
+  selectivenet: False # whether to use selectivenet or not
+
+  Gambler:
+    pretrain_epochs: 30
+  
+  Resnet10:
+    block_inplanes: (64,128,256,512)
+
+  SwinTransformer:
+    block_depth: (2,2,2,2)
+    SparseAttention: False
+  
+
 
 LOG:
   log_dir: ./logs
   log_file: log.txt
 
 Preprocess:
-  padding_size: (256,256,64)
-
+  padding_size: (368,368,64)
   normalize: 'NormalizeIntensity'
 
-
 Augmentation:
-  SpatialPad: (256,256,64)
-  CenterSpatialCrop: (256,256,64)
-  Resize: (256,256,64)
   RandZoom: (prob = 0.3, min_zoom=1.0, max_zoom=1.2)
   RandRotate: (range_z = 0.3, prob = 0.5)
   RandFlip: (prob = 0.3)
-  RandSpatialCrop: (256,256,64)
-
+  
 SAVE:
-#need to change if exp changes
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/'
-  save_name: 'SwingTransformer'
-  fold : '04'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  save_name: ''
+  fold: ''
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/04/Weight/'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 
-#need to change if fold changes
 visual_im:
-  visual_im: True
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/SwingTransformer/SWTS_Exp_0/04/Visual/'
-  slice: 32
+  visual_im: False
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  slice: 5

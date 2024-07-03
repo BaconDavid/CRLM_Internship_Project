@@ -1,23 +1,27 @@
-
 # my_project/experiment.yaml
+
+###Experiment description:
+
+
+
 SYSTEM:
   NUM_GPUS: None
-  DEVICE: 'cpu'
+  DEVICE: 'cuda'
   NUM_WORKERS: 8
-    
+
+
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_window_+5\'
-  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Pure_scans\'
-  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Pure_scans\'
-  Data_mask_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\largest_tm_lv_slices_mask_+5\'
+  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\'
+  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
+  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
-  
+
 LABEL:
   label_name: 'HGP_Type'
 
 #LOSS's task should be classification, selective, regression
 LOSS:
-  task: 'selective'
+  task: 'classification'
 
   RegressionLoss:
     loss: 'MSE'
@@ -36,7 +40,7 @@ LOSS:
       alpha: 0.5
 
   ClassificationLoss:
-    loss: 'FocalLoss'
+    loss: 'CrossEntropyLoss'
 
     CELoss:
       weight: 1.0
@@ -45,9 +49,8 @@ LOSS:
       gamma: 2.0
       alpha: 0.25
   
-  #only use classification loss for other loss
   CommonLoss:
-    loss: 'FocalLoss'
+    loss: 'CrossEntropyLoss'
 
     CELoss:
       weight: 1.0
@@ -58,12 +61,11 @@ LOSS:
 
 
 
-
 TRAIN:
   batch_size: 1
   batch_accumulation_size: 5
-  num_epochs: 2
-  Debug: True
+  num_epochs: 300
+  Debug: False
   data_aug: True
   
 Scheduler:
@@ -71,16 +73,18 @@ Scheduler:
   scheduler_name: 'WarmupCosineSchedule'
 
   WarmupCosineScheduler:
-    warmup_steps: 300
-    t_total: 7000
+    warmup_steps: 400
+    t_total: 13000
 
 Optimizer:
   name: 'SGD'
   lr: 0.001
-  weight_decay: 0.001
+  weight_decay: 0.0
   
   SGD:
     momentum: 0.9
+  
+  scheduler: False
 
 VALID:
   batch_size: 1
@@ -99,7 +103,7 @@ DATASET:
 
 ## task should be claaification, selective, regression
 MODEL:
-  task: 'selective'
+  task: 'classification'
   name: 'Resnet10' #model body for classification or selective
   pretrained: False
   num_class: 2
@@ -108,18 +112,18 @@ MODEL:
   #only for dropblock
   Drop_block: False
   block_size: 5
-  drop_prob: 0.9
+  drop_prob: 0.0
   ###
   num_out_channels: 1
   # output of last layer
   feature_dims: 512
-  selectivenet: True # whether to use selectivenet or not
+  selectivenet: False # whether to use selectivenet or not
 
   Gambler:
-    pretrain_epochs: 20
+    pretrain_epochs: 30
   
   Resnet10:
-    block_inplanes: (16,32,64,128)
+    block_inplanes: (64,128,256,512)
   
 
 
@@ -137,14 +141,14 @@ Augmentation:
   RandFlip: (prob = 0.3)
   
 SAVE:
-  save_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   save_name: ''
   fold: ''
 
 WEIGHT:
-  weight_dir: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
 
 visual_im:
-  visual_im: True
-  visual_out_path: 'c:\Users\098986\Intership_CILM\Output\Resnet10\'
+  visual_im: False
+  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
   slice: 5

@@ -1,0 +1,5 @@
+name: "C:\\Users98986\\AppData\\Local\anaconda3\envs\\CILM"
+channels:
+  - defaults
+  - conda-forge
+prefix: "C:\\Users98986\\AppData\\Local\anaconda3\envs\\CILM"

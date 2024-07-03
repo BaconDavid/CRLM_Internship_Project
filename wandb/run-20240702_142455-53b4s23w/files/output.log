@@ -1,0 +1,64 @@
+
+<Core.model.scheduler.WeightDecayScheduler object at 0x00000232F6AA60D0> this is weight decay scheduler
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+##################
+epoch 1
+##################
+  0%|                                                                                                                                                                                                                      | 0/39 [00:00<?, ?it/s]C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\instancenorm.py:80: UserWarning: input's size at dim=0 does not match num_features. You can silence this warning by not passing in num_features, which is not used because affine=False
+  warnings.warn(f"input's size at dim={feature_dim} does not match num_features. "
+label:tensor([0]),lr:0.0):   8%|█████████████▊                                                                                                                                                                     | 3/39 [01:24<11:27, 19.09s/it]
+torch.Size([5, 2]) shape of predictionout torch.Size([5]) shape of target
+metatensor(0.6861, grad_fn=<AliasBackward0>) fcl
+label:tensor([1]),lr:0.0):  10%|██████████████████▎                                                                                                                                                                | 4/39 [01:24<06:52, 11.78s/it]C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='mean' instead.
+  warnings.warn(warning.format(ret))
+label:tensor([1]),lr:0.0):  10%|██████████████████▎                                                                                                                                                                | 4/39 [01:26<12:40, 21.72s/it]
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 251, in main
+    ave_loss,y_true,y_pred,ave_loss_dict,l2_loss= train_loop(cfg,
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 101, in train_loop
+    average_loss_train,average_loss_dict = trainer.grad_accumulate(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 227, in grad_accumulate
+    loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\loss.py", line 124, in __call__
+    emprical_risk = emprical_risk / emprical_coverage
+UnboundLocalError: local variable 'emprical_risk' referenced before assignment

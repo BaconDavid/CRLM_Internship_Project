@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Sequence
-
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 import torch
 import torch.nn as nn
@@ -44,7 +45,7 @@ __all__ = [
 ]
 
 
-class SwinUNETR(nn.Module):
+class Swin3DTransformer(nn.Module):
     """
     Swin UNETR based on: "Hatamizadeh et al.,
     Swin UNETR: Swin Transformers for Semantic Segmentation of Brain Tumors in MRI Images
@@ -67,7 +68,8 @@ class SwinUNETR(nn.Module):
         out_channels: int,
         depths: Sequence[int] = (2, 2, 2, 2),
         num_heads: Sequence[int] = (3, 6, 12, 24),
-        feature_size: int = 24,
+        num_class: int = 2,
+        feature_size: int = 48,
         norm_name: tuple | str = "instance",
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
@@ -76,8 +78,8 @@ class SwinUNETR(nn.Module):
         use_checkpoint: bool = False,
         spatial_dims: int = 3,
         downsample="merging",
+        SparseAttention=False,
         use_v2=False,
-        num_classes: int = 2,
     ) -> None:
         """
         Args:
@@ -120,7 +122,7 @@ class SwinUNETR(nn.Module):
         img_size = ensure_tuple_rep(img_size, spatial_dims)
         patch_sizes = ensure_tuple_rep(self.patch_size, spatial_dims)
         window_size = ensure_tuple_rep(7, spatial_dims)
-
+        self.final_features = feature_size * 2 ** (len(depths))
         if spatial_dims not in (2, 3):
             raise ValueError("spatial dimension should be 2 or 3.")
 
@@ -139,7 +141,7 @@ class SwinUNETR(nn.Module):
             raise ValueError("feature_size should be divisible by 12.")
 
         self.normalize = normalize
-        
+
         self.swinViT = SwinTransformer(
             in_chans=in_channels,
             embed_dim=feature_size,
@@ -158,108 +160,8 @@ class SwinUNETR(nn.Module):
             downsample=look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample,
             use_v2=use_v2,
         )
-
-        self.encoder1 = UnetrBasicBlock(
-            spatial_dims=spatial_dims,
-            in_channels=in_channels,
-            out_channels=feature_size,
-            kernel_size=3,
-            stride=1,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.encoder2 = UnetrBasicBlock(
-            spatial_dims=spatial_dims,
-            in_channels=feature_size,
-            out_channels=feature_size,
-            kernel_size=3,
-            stride=1,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.encoder3 = UnetrBasicBlock(
-            spatial_dims=spatial_dims,
-            in_channels=2 * feature_size,
-            out_channels=2 * feature_size,
-            kernel_size=3,
-            stride=1,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.encoder4 = UnetrBasicBlock(
-            spatial_dims=spatial_dims,
-            in_channels=4 * feature_size,
-            out_channels=4 * feature_size,
-            kernel_size=3,
-            stride=1,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.encoder10 = UnetrBasicBlock(
-            spatial_dims=spatial_dims,
-            in_channels=16 * feature_size,
-            out_channels=16 * feature_size,
-            kernel_size=3,
-            stride=1,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.decoder5 = UnetrUpBlock(
-            spatial_dims=spatial_dims,
-            in_channels=16 * feature_size,
-            out_channels=8 * feature_size,
-            kernel_size=3,
-            upsample_kernel_size=2,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.decoder4 = UnetrUpBlock(
-            spatial_dims=spatial_dims,
-            in_channels=feature_size * 8,
-            out_channels=feature_size * 4,
-            kernel_size=3,
-            upsample_kernel_size=2,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.decoder3 = UnetrUpBlock(
-            spatial_dims=spatial_dims,
-            in_channels=feature_size * 4,
-            out_channels=feature_size * 2,
-            kernel_size=3,
-            upsample_kernel_size=2,
-            norm_name=norm_name,
-            res_block=True,
-        )
-        self.decoder2 = UnetrUpBlock(
-            spatial_dims=spatial_dims,
-            in_channels=feature_size * 2,
-            out_channels=feature_size,
-            kernel_size=3,
-            upsample_kernel_size=2,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.decoder1 = UnetrUpBlock(
-            spatial_dims=spatial_dims,
-            in_channels=feature_size,
-            out_channels=feature_size,
-            kernel_size=3,
-            upsample_kernel_size=2,
-            norm_name=norm_name,
-            res_block=True,
-        )
-
-        self.out = UnetOutBlock(spatial_dims=spatial_dims, in_channels=feature_size, out_channels=out_channels)
-
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
+        self.head = nn.Linear(self.final_features, num_class)
     def load_from(self, weights):
         with torch.no_grad():
             self.swinViT.patch_embed.proj.weight.copy_(weights["state_dict"]["module.patch_embed.proj.weight"])
@@ -324,18 +226,11 @@ class SwinUNETR(nn.Module):
         if not torch.jit.is_scripting():
             self._check_input_size(x_in.shape[2:])
         hidden_states_out = self.swinViT(x_in, self.normalize)
-        enc0 = self.encoder1(x_in)
-        enc1 = self.encoder2(hidden_states_out[0])
-        enc2 = self.encoder3(hidden_states_out[1])
-        enc3 = self.encoder4(hidden_states_out[2])
-        dec4 = self.encoder10(hidden_states_out[4])
-        dec3 = self.decoder5(dec4, hidden_states_out[3])
-        dec2 = self.decoder4(dec3, enc3)
-        dec1 = self.decoder3(dec2, enc2)
-        dec0 = self.decoder2(dec1, enc1)
-        out = self.decoder1(dec0, enc0)
-        logits = self.out(out)
-        return logits
+        logits = self.avgpool(hidden_states_out)
+        logits = torch.flatten(logits, 1)
+        output = self.head(logits)
+
+        return output
 
 
 def window_partition(x, window_size):
@@ -1025,7 +920,7 @@ class SwinTransformer(nn.Module):
                 self.layers4.append(layer)
             if self.use_v2:
                 layerc = UnetrBasicBlock(
-                    spatial_dims=3,
+                    spatial_dims=spatial_dims,
                     in_channels=embed_dim * 2**i_layer,
                     out_channels=embed_dim * 2**i_layer,
                     kernel_size=3,
@@ -1079,7 +974,7 @@ class SwinTransformer(nn.Module):
             x3 = self.layers4c[0](x3.contiguous())
         x4 = self.layers4[0](x3.contiguous())
         x4_out = self.proj_out(x4, normalize)
-        return [x0_out, x1_out, x2_out, x3_out, x4_out]
+        return x4_out
 
 
 def filter_swinunetr(key, value):

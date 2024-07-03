@@ -6,6 +6,7 @@ import os
 from numpy import average, mask_indices
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
 
+from scipy import optimize
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -21,7 +22,7 @@ from ema_pytorch import EMA
 import numpy as np
 
 
-def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None):
+def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,scheduler=None,weight_decay_scheduler=None):
     """
     args:
         cfg: cfg configuration file
@@ -38,6 +39,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     train_bar = tqdm(dataloader)
     sample_length = len(dataloader)
     average_loss = 0
+    l2_loss = 0
 
     #set metrics record
     y_pred = []
@@ -53,7 +55,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     print("##################")
 
     optimizer.zero_grad() #clear grad
-    trainer = build_trainer(model,epoch_num,optimizer,criterion,scheduler,cfg)
+    trainer = build_trainer(model,epoch_num,optimizer,criterion,scheduler,weight_decay_scheduler,cfg)
 
     for i,data in enumerate(train_bar):
         if cfg.DATASET.mask:
@@ -96,7 +98,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                     out_select_accum = torch.cat([out[1] for out in accumulated_outputs], dim=0)
                     out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
                     label_accum = torch.cat(accumulated_labels, dim=0)
-                    average_loss_train = trainer.grad_accumulate(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+                    average_loss_train,average_loss_dict = trainer.grad_accumulate(out_class_accum,out_select_accum,out_aux_accum,label_accum)
                     trainer.update()
                     accumulated_outputs.clear(),accumulated_labels.clear() #clear accumulation list
                     average_loss += average_loss_train
@@ -108,10 +110,13 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         elif cfg.MODEL.task == 'classification':
             average_loss_train,output = trainer.grad_accumulate(im,label)
             average_loss += average_loss_train
-
             if ((i + 1) % cfg.TRAIN.batch_accumulation_size == 0):
+                        #l2_loss
+
                 trainer.update()
-                
+            average_loss_dict = None
+
+
         #store output
         y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
@@ -134,23 +139,26 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     
     print(len(train_bar),accumulated_batch,'before finaly average loss')
     average_loss = average_loss / len(train_bar)
-    print('average_loss',average_loss)
-    return average_loss,y_true,y_pred
+    for param in model.parameters():
+        l2_loss += cfg.Optimizer.weight_decay * torch.sum(torch.square(param))
+    l2_loss = l2_loss.item() #get l2 loss value
+    #print('average_loss',average_loss,average_loss_dict)
+    return average_loss,y_true,y_pred,average_loss_dict,l2_loss
 
 
 
-def build_trainer(model,epoch_num,optimizer,criterion,scheduler,cfg):
+def build_trainer(model,epoch_num,optimizer,criterion,scheduler,weight_decay_scheduler,cfg):
     if cfg.MODEL.task == 'selective':
         if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-            return GamblerTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
+            return GamblerTrain(model,epoch_num,optimizer,criterion,scheduler,weight_decay_scheduler,cfg)
         elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
-            return SelectiveTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
+            return SelectiveTrain(model,epoch_num,optimizer,criterion,scheduler,weight_decay_scheduler,cfg)
     elif cfg.MODEL.task == 'classification':
-        return ClassificationTrain(model,epoch_num,optimizer,criterion,scheduler,cfg)
+        return ClassificationTrain(model,epoch_num,optimizer,criterion,scheduler,weight_decay_scheduler,cfg)
 
 
 class GamblerTrain:
-    def __init__(self, model, epoch_num, optimizer, criterion, scheduler, cfg):
+    def __init__(self, model, epoch_num, optimizer, criterion, scheduler,weight_decay_scheduler, cfg):
         self.model = model
         self.epoch_num = epoch_num
         self.optimizer = optimizer
@@ -176,12 +184,12 @@ class GamblerTrain:
             loss.backward()
         else:
             output = self.model(im)
-            loss = self.criterion(output, label)
+            loss, loss_dict = self.criterion(output, label)
             loss.backward()
 
         loss_value = loss.item()
         output = torch.nn.functional.softmax(output,dim=1)
-        return loss_value, output
+        return loss_value, output, loss_dict
 
     def update(self):
         #update
@@ -192,12 +200,13 @@ class GamblerTrain:
 
     
 class SelectiveTrain:
-    def __init__(self, model, epoch_num, optimizer, criterion, scheduler, cfg):
+    def __init__(self, model, epoch_num, optimizer, criterion, scheduler,weight_decay_scheduler, cfg):
         self.model = model
         self.epoch_num = epoch_num
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
+        self.weight_decay_scheduler = weight_decay_scheduler
         self.cfg = cfg
     
     def grad_accumulate(self,
@@ -218,24 +227,28 @@ class SelectiveTrain:
         loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
         loss.backward()
         average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
-        return average_loss
+        return average_loss,loss_dict
     
 
     def update(self):
         self.optimizer.step()
-        self.optimizer.zero_grad()
+        print('weigh_decay',self.optimizer.param_groups[0]['weight_decay'])
         if self.scheduler:
             self.scheduler.step()
+        if self.weight_decay_scheduler:
+            self.weight_decay_scheduler.step()
+
         #print(out_class_accum.shape,out_aux_accum.shape,out_select_accum.shape,'shape of each part')
         self.optimizer.zero_grad()
 
 class ClassificationTrain:
-    def __init__(self, model, epoch_num, optimizer, criterion, scheduler, cfg):
+    def __init__(self, model, epoch_num, optimizer, criterion, scheduler, weight_decay_scheduler, cfg):
         self.model = model
         self.epoch_num = epoch_num
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
+        self.weight_decay_scheduler = weight_decay_scheduler
         self.cfg = cfg
     
     def grad_accumulate(self,im,label):
@@ -260,6 +273,10 @@ class ClassificationTrain:
         self.optimizer.step()
         if self.scheduler:
             self.scheduler.step()
+        
+        if self.weight_decay_scheduler:
+            self.weight_decay_scheduler.step()
+
         self.optimizer.zero_grad()
 
 

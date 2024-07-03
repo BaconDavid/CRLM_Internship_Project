@@ -61,9 +61,10 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                 output = (model(im))
                 #loss = criterion(output,label)
                 average_loss_valid,output = validator.grad_accumulate(im,label)
-                print('average_loss in validation one epoch!',average_loss_valid)
-                print('output in validation one epoch!',output)
+                #print('average_loss in validation one epoch!',average_loss_valid)
+                #print('output in validation one epoch!',output)
                 average_loss += average_loss_valid
+                average_loss_dict = None
 
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
@@ -81,7 +82,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                         out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
                         label_accum = torch.cat(accumulated_labels, dim=0)
                         #print('accumulated',out_class_accum,out_select_accum,out_aux_accum)
-                        average_loss_valid = validator.grad_accumulate(out_class_accum, out_select_accum,out_aux_accum,label_accum)
+                        average_loss_valid, average_loss_dict = validator.grad_accumulate(out_class_accum, out_select_accum,out_aux_accum,label_accum)
                         average_loss += average_loss_valid
                         accumulated_outputs.clear(),accumulated_labels.clear() #clear accumulation list
 
@@ -97,7 +98,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     average_loss = average_loss / len(vali_bar)
 
     print('this is average loss',average_loss)
-    return average_loss,y_pred,y_true
+    return average_loss,y_pred,y_true,average_loss_dict
 
 def build_validator(model, epoch_num, criterion, cfg):
     if cfg.MODEL.task == 'selective':
@@ -162,7 +163,7 @@ class SelectiveValidate:
 
         loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
         average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
-        return average_loss
+        return average_loss,loss_dict
     
 
     

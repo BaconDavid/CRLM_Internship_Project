@@ -32,8 +32,8 @@ def data_aug(cfg):
             #'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
 
             'RandZoom':RandZoom(prob=0.5, min_zoom=1.0, max_zoom=1.2),
-            'RandRotate':RandRotate(range_z=0.3,prob=0.5),
-            'RandFlip':RandFlip(prob=0.3),
+            'RandRotate':RandRotate(range_z=0.3,prob=0.8),
+            'RandFlip':RandFlip(prob=0.5),
             'NormalizeIntensity':NormalizeIntensity(),
             'ToTensor':ToTensor(),
         }

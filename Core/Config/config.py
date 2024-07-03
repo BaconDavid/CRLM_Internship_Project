@@ -41,6 +41,7 @@ _C.Optimizer = CN()
 _C.Optimizer.name = 'SGD'
 _C.Optimizer.lr = 0.001
 _C.Optimizer.weight_decay = 0.0001
+_C.Optimizer.scheduler = True
 _C.Optimizer.SGD = CN()
 _C.Optimizer.SGD.momentum = 0.9
 
@@ -133,6 +134,9 @@ _C.MODEL.SelectiveNet.alpha = 0.5
 _C.MODEL.SelectiveNet.coverage = 0.5
 _C.MODEL.Resnet10 = CN()
 _C.MODEL.Resnet10.block_inplanes = (64,128,256,512)
+_C.MODEL.SwinTransformer = CN()
+_C.MODEL.SwinTransformer.block_depth = (2,2,6,2)
+_C.MODEL.SwinTransformer.SparseAttention = False
 
 
 _C.LOG = CN()

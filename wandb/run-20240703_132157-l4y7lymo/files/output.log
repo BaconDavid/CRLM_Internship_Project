@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 129, in main
+    tr_results = SaveResults(cfg.SAVE.save_dir + cfg.SAVE.fold +'/', 'train') # save results
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Utils\Utility.py", line 146, in __init__
+    self._path_check()
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Utils\Utility.py", line 186, in _path_check
+    os.makedirs(self.result_path)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  [Previous line repeated 4 more times]
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [WinError 5] Access is denied: '/data'

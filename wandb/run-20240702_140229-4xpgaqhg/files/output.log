@@ -1,0 +1,89 @@
+
+<Core.model.scheduler.WeightDecayScheduler object at 0x000002C50AA93250> this is weight decay scheduler
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+##################
+epoch 1
+##################
+  0%|                                                                                                                                                                                                                      | 0/39 [00:00<?, ?it/s]C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\modules\instancenorm.py:80: UserWarning: input's size at dim=0 does not match num_features. You can silence this warning by not passing in num_features, which is not used because affine=False
+  warnings.warn(f"input's size at dim={feature_dim} does not match num_features. "
+
+label:tensor([1]),lr:0.0):  10%|██████████████████▎                                                                                                                                                                | 4/39 [01:46<08:33, 14.68s/it]C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\nn\_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='mean' instead.
+  warnings.warn(warning.format(ret))
+label:tensor([0]),lr:5e-05):  15%|███████████████████████████▏                                                                                                                                                     | 6/39 [01:56<04:45,  8.66s/it]
+weigh_decay 0.05
+
+
+label:tensor([0]),lr:0.0001):  28%|█████████████████████████████████████████████████▎                                                                                                                             | 11/39 [02:06<01:34,  3.37s/it]
+weigh_decay 0.0475
+
+
+label:tensor([0]),lr:0.00015):  41%|███████████████████████████████████████████████████████████████████████▍                                                                                                      | 16/39 [02:16<00:57,  2.50s/it]
+weigh_decay 0.045
+
+
+label:tensor([1]),lr:0.0002):  54%|██████████████████████████████████████████████████████████████████████████████████████████████▏                                                                                | 21/39 [02:26<00:43,  2.44s/it]
+weigh_decay 0.0425
+
+label:tensor([0]),lr:0.0002):  62%|███████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                                                   | 24/39 [03:20<02:05,  8.35s/it]
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 251, in main
+    ave_loss,y_true,y_pred,ave_loss_dict,l2_loss= train_loop(cfg,
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 101, in train_loop
+    average_loss_train,average_loss_dict = trainer.grad_accumulate(out_class_accum,out_select_accum,out_aux_accum,label_accum)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 228, in grad_accumulate
+    loss.backward()
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\_tensor.py", line 513, in backward
+    return handle_torch_function(
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\overrides.py", line 1621, in handle_torch_function
+    result = torch_func_method(public_api, types, args, kwargs)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\data\meta_tensor.py", line 282, in __torch_function__
+    ret = super().__torch_function__(func, types, args, kwargs)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\_tensor.py", line 1418, in __torch_function__
+    ret = func(*args, **kwargs)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\_tensor.py", line 522, in backward
+    torch.autograd.backward(
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\torch\autograd\__init__.py", line 266, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\wandb\wandb_torch.py", line 271, in <lambda>
+    handle = var.register_hook(lambda grad: _callback(grad, log_track))
+KeyboardInterrupt

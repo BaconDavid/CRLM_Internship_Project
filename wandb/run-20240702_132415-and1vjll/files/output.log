@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\nibabel\loadsave.py", line 100, in load
+    stat_result = os.stat(filename)
+FileNotFoundError: [WinError 2] The system cannot find the file specified: 'C:\\Users\\098986\\Intership_CILM\\Data\\Test\\Final_DataSet\\Dataset\\largest_tm_lv_mask_07071\\CILM_CT_10033_0_mask.nii.gz'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 428, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 149, in main
+    train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))] #labels and images for subset
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 149, in <listcomp>
+    train_labels = [tr_dataset[i][1] for i in range(len(tr_dataset_sub))] #labels and images for subset
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\Dataset\Dataloader.py", line 86, in __getitem__
+    output = super().__getitem__(index,*args,**kwargs)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\data\image_dataset.py", line 110, in __getitem__
+    seg = self.loader(self.seg_files[index])
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\transforms\io\array.py", line 255, in __call__
+    img = reader.read(filename)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\monai\data\image_reader.py", line 908, in read
+    img = nib.load(name, **kwargs_)
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\nibabel\loadsave.py", line 102, in load
+    raise FileNotFoundError(f"No such file or no access: '{filename}'")
+FileNotFoundError: No such file or no access: 'C:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Dataset\largest_tm_lv_mask_07071\CILM_CT_10033_0_mask.nii.gz'

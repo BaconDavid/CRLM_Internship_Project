@@ -2,10 +2,11 @@ from asyncio import tasks
 import re
 import sys
 import os
+from numpy import block
 import torch
 sys.path.append("..") # Adds higher directory to python modules path.
 from Network import Resnet
-from Network import Swin_Transformer_Classification,Swin_TS_Sparse,SelectiveNet
+from Network import swin_unetr,Swin_TS_Sparse,SelectiveNet
 from typing import Any
 
 #from monai.networks.nets import resnet10,ResNet,ResNetBlock,ResNetBottleneck,resnet18
@@ -104,12 +105,13 @@ class SwinTransformer(Model):
     
     def build_model(self,**kwargs):
         if self.cfg.MODEL.name == "SwinTransformer":
-            return Swin_Transformer_Classification.Swintransformer(img_size=(64,256,256),
-                                                                   in_channels=self.cfg.MODEL.num_in_channels, 
-                                                                   num_classes=self.cfg.MODEL.num_class,
-                                                                     num_heads=[3, 6, 12, 24],
-                                                                     out_channels=1,
-                                                                     **kwargs)
+            return swin_unetr.Swin3DTransformer(img_size=(64,256,256),
+                                                in_channels=self.cfg.MODEL.num_in_channels, 
+                                                num_class=self.cfg.MODEL.num_class,
+                                                num_heads=[3, 6, 12, 24],
+                                                out_channels=1,
+                                                depths = self.cfg.MODEL.SwinTransformer.block_depth,
+                                                 **kwargs)
         elif self.cfg.MODEL.name == "SwinTransformerSparse":
             return Swin_TS_Sparse.SwinSparseTransformer(in_channels=self.cfg.MODEL.num_in_channels,
                                                           num_classes=self.cfg.MODEL.num_class,

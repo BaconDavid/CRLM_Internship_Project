@@ -1,0 +1,55 @@
+
+<Core.model.scheduler.WeightDecayScheduler object at 0x0000013F1B4B1310> this is weight decay scheduler
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+yes!
+##################
+epoch 1
+##################
+  0%|                                                                                                                                                                                                                      | 0/39 [01:55<?, ?it/s]
+Traceback (most recent call last):
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 427, in <module>
+    main(cfg,mode=args.mode)
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\main.py", line 250, in main
+    ave_loss,y_true,y_pred,ave_loss_dict,l2_loss= train_loop(cfg,
+  File "C:\Users\098986\Intership_CILM\CRLM_Internship_Project\Core\model\train.py", line 65, in train_loop
+    np.save('../../../Data/Test/Final_DataSet/im.npy', im.detach().numpy())
+  File "C:\Users\098986\AppData\Local\anaconda3\envs\CILM\lib\site-packages\numpy\lib\npyio.py", line 542, in save
+    file_ctx = open(file, "wb")
+FileNotFoundError: [Errno 2] No such file or directory: '../../../Data/Test/Final_DataSet/im.npy'

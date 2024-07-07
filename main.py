@@ -194,7 +194,6 @@ def main(cfg,mode='train'):
         else:
             weight_decay_scheduler = None
         
-        print(weight_decay_scheduler,'this is weight decay scheduler')
         epoch_loss_values, train_loss_epoch_x_axis = [], []
         val_loss_values, val_loss_epoch_x_axis = [], []
 

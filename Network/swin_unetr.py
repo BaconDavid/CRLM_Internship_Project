@@ -69,7 +69,7 @@ class Swin3DTransformer(nn.Module):
         depths: Sequence[int] = (2, 2, 2, 2),
         num_heads: Sequence[int] = (3, 6, 12, 24),
         num_class: int = 2,
-        feature_size: int = 48,
+        feature_size: int = 24,
         norm_name: tuple | str = "instance",
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
@@ -160,6 +160,7 @@ class Swin3DTransformer(nn.Module):
             downsample=look_up_option(downsample, MERGING_MODE) if isinstance(downsample, str) else downsample,
             use_v2=use_v2,
         )
+        print(depths,'this is depths of model')
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.head = nn.Linear(self.final_features, num_class)
     def load_from(self, weights):

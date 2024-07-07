@@ -72,7 +72,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         im = im.permute(0,1,4,2,3)
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE) # to device
         label = label.long()
-
+        np.save('../Data/Test/im.npy',im.cpu().numpy())
         ##TRAIN by task    
         if cfg.MODEL.task == 'selective':
             if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':

@@ -9,6 +9,7 @@ def build_optimizer(cfg,params,**kwargs):
         return torch.optim.SGD(params,lr=cfg.Optimizer.lr,
                                momentum=0.9,
                                weight_decay = cfg.Optimizer.weight_decay,
+                               nesterov=True,
                                **kwargs)
 
 

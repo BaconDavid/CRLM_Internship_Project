@@ -6,14 +6,14 @@
 
 SYSTEM:
   NUM_GPUS: None
-  DEVICE: 'cuda'
+  DEVICE: 'cpu'
   NUM_WORKERS: 8
 
 
 DATA:
-  Data_dir: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\Mixed_HGP_lv_with_tumor_07073_Windowed\'
-  Train_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
-  Valid_file: 'c:\Users\098986\Intership_CILM\Data\Mixed_HGP\True_Label\Largest_Tumor\'
+  Data_dir: 'C:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Dataset\largest_tm_lv_07071_windowed_+5\'
+  Train_file: 'C:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Labels\lg_mixed_extended+5_folds\'
+  Valid_file: 'C:\Users\098986\Intership_CILM\Data\Test\Final_DataSet\Labels\lg_mixed_extended+5_folds\'
   Test_dir: '/data/scratch/r098986/MIXED_HGP/HGP_Mixed_Only_Liver_07073_Windowed_Test/'
 
 LABEL:
@@ -141,14 +141,14 @@ Augmentation:
   RandFlip: (prob = 0.3)
   
 SAVE:
-  save_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  save_dir: 'C:\Users\098986\Intership_CILM\Output\Resnet10'
   save_name: ''
   fold: ''
 
 WEIGHT:
-  weight_dir: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  weight_dir: 'C:\Users\098986\Intership_CILM\Output\Resnet10'
 
 visual_im:
   visual_im: False
-  visual_out_path: '/data/scratch/r098986/MIXED_HGP/Results/Resnet10/'
+  visual_out_path: 'C:\Users\098986\Intership_CILM\Output\Resnet10'
   slice: 5

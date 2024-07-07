@@ -126,6 +126,7 @@ class LiverBoundingBox():
                     max_label = label
                     max_size = label_size
             mask = np.where(labeled == max_label, 1, 0)
+            print(mask,mask.shape,777)
         return mask
     
 
@@ -137,6 +138,7 @@ class LiverBoundingBox():
 
         if len(image_probs) == 0:
             print(f'[WARNING] {self.file_name} no liver found')
+        print(liver_mask.shape,666,liver_mask)
 
         ## find the adjacent box that contains the liver
         ones_indices = np.argwhere(liver_mask == 1)
@@ -321,12 +323,12 @@ def extend_margin_slice(crop_df,image_array,slice_margin: Union[int ,float] = 5,
         print(new_min_z,new_max_z,'new_min_z,new_max_z')
         #if we set a threshold for slices limitation
 
-        if threshold is not None and (max_z - min_z) >= threshold:
-            new_min_z, new_max_z = min_z, max_z # keep the same if the slices are under the threshold.
+        #if threshold is not None and (max_z - min_z) >= threshold:
+            #new_min_z, new_max_z = min_z, max_z # keep the same if the slices are under the threshold.
             
         crop_df.loc[i, 'extension_min_z'] = new_min_z
         crop_df.loc[i, 'extension_max_z'] = new_max_z        
-        print(crop_df.loc[i,['min_z','max_z','extension_min_z','extension_max_z']])
+        print(crop_df.loc[i,['min_z','max_z','extension_min_z','extension_max_z']],666)
     return crop_df
 
 def crop_liver_tumor(crop_df,reader = 'sitk',tumor_type='largest',img_path=None,mask_path=None,output_img_path=None,output_path=None):
@@ -340,7 +342,6 @@ def crop_liver_tumor(crop_df,reader = 'sitk',tumor_type='largest',img_path=None,
             mask, mask_array = sitk.ReadImage(liver_img_path), sitk.GetArrayFromImage(sitk.ReadImage(liver_mask_path))
             image, image_array = sitk.ReadImage(liver_img_path), sitk.GetArrayFromImage(sitk.ReadImage(liver_img_path))
             extracted_img_array = image_array[min_z:max_z,min_y:max_y,min_x:max_x]
-            print(extracted_img_array.shape,'shitttt')
             #write new cropped image
             extracted_img = sitk.GetImageFromArray(extracted_img_array)
             extracted_img.SetSpacing(image.GetSpacing())
@@ -375,9 +376,9 @@ if __name__ == "__main__":
     tumor_bbx_dict = {}
 
 
-    img, img_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'))
+    img, img_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_07071/CILM_CT_16466_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_16466_0.nii.gz'))
 
-    mask, mask_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_27232_0.nii.gz'))
+    mask, mask_array = sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_16466_0.nii.gz'), sitk.GetArrayFromImage(sitk.ReadImage('../../Data/Mixed_HGP/Mixed_HGP_mask_07071/CILM_CT_16466_0.nii.gz'))
 
 
     liver_bbx = LiverBoundingBox(img_array,mask_array)
@@ -386,25 +387,23 @@ if __name__ == "__main__":
     tumor_bounding_size = tumor_bbx.get_tumor_bounding_box()
 
     # #store info
-    liver_bbx_dict['CILM_CT_27354_0'] = liver_bounding
-    tumor_bbx_dict['CILM_CT_27354_0'] = tumor_bounding_size
+    liver_bbx_dict['CILM_CT_16466_0'] = liver_bounding
+    tumor_bbx_dict['CILM_CT_16466_0'] = tumor_bounding_size
     liver_bbx_df = generate_bounding_df(liver_bbx_dict,type='liver')
     tumor_bbx_df = generate_bounding_df(tumor_bbx_dict, type='tumor')
     tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, img_array, slice_margin=5, threshold=17)
     liver_bbx_extend_df = extend_margin_slice(liver_bbx_df, img_array, slice_margin=5, threshold=17)
+    print(liver_bbx_extend_df,tumor_bbx_extend_df)
     
-    print(tumor_bbx_extend_df,tumor_bbx_dict)
-        
+    '''
     for i in range(scans_info.shape[0]):
 
         #create dic to store the bounding box
         image, image_array = img_reader.load_image()
         mask, mask_array = mask_readr.load_image()
         image_name, mask_name = img_reader.load_image_name(), mask_readr.load_image_name()
-        print(image_name,mask_name,'666')
         file_name = "CILM_" + scans_info.iloc[i]['Experiment'] + "_" + str(scans_info.iloc[i]['Scan_Id']) #remember to have such two columns! 
         
-        print(file_name,"processing!")
         assert image_array.shape == mask_array.shape, "The shape of image and mask is not the same"
 
         liver_bbx = LiverBoundingBox(image_array,mask_array)
@@ -415,7 +414,7 @@ if __name__ == "__main__":
         #store info
         liver_bbx_dict[file_name] = liver_bounding
         tumor_bbx_dict[file_name] = tumor_bounding_size
-        print(tumor_bbx_dict)
+        break
         
 
         
@@ -425,14 +424,13 @@ if __name__ == "__main__":
     liver_bbx_df = generate_bounding_df(liver_bbx_dict,type='liver')
     tumor_bbx_df = generate_bounding_df(tumor_bbx_dict, type='tumor')
     #extend margin slice
-    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, image_array, slice_margin=5, threshold=17)
-    liver_bbx_extend_df = extend_margin_slice(liver_bbx_df, image_array, slice_margin=5, threshold=17)
+    tumor_bbx_extend_df = extend_margin_slice(tumor_bbx_df, image_array, slice_margin=10, threshold=17)
+    liver_bbx_extend_df = extend_margin_slice(liver_bbx_df, image_array, slice_margin=10, threshold=17)
     #crop_liver_tumor(liver_bbx_extend_df,tumor_type='largest',img_path=image_path,mask_path=mask_path,output_path= "../Data/Test/")
-    print(liver_bbx_df,tumor_bbx_df)
-    tumor_bbx_extend_df.to_csv('../../Data/Test/tumor_lg_mix_df.csv')
+    tumor_bbx_extend_df.to_csv('../../Data/Test/tumor_lg_mix_df_+10.csv')
 
-    liver_bbx_extend_df.to_csv('../../Data/Test/liver_lg_mix_df.csv')
-    
+    liver_bbx_extend_df.to_csv('../../Data/Test/liver_lg_mix_df_+10.csv')
+    '''
 
 
     

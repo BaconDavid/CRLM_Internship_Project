@@ -69,7 +69,8 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                     average_loss_valid,output = validator.grad_accumulate(im,label)
-                    average_loss += average_loss_valid            
+                    average_loss += average_loss_valid
+                    average_loss_dict = None      
 
                 elif cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                     output = model(im)
@@ -131,7 +132,7 @@ class GamblerValidate:
             loss = torch.nn.CrossEntropyLoss()(output[:, :-1], label)
         else:
             output = self.model(im)
-            loss = self.criterion(output, label)
+            loss,loss_dict = self.criterion(output, label)
             
         loss_value = loss.item()
         output = torch.nn.functional.softmax(output,dim=1)

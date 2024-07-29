@@ -118,7 +118,6 @@ class SwinTransformer(Model):
                                                           img_size=(64,256,256),
                                                           num_heads=[3, 6, 12, 24],
                                                           out_channels=1,
-                                                          dropout = self.cfg.MODEL.drop_out,
                                                           **kwargs)
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")

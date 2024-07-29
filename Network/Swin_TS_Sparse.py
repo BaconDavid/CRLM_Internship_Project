@@ -8,7 +8,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import annotations
 
 import itertools
@@ -66,9 +65,9 @@ class SwinSparseTransformer(nn.Module):
         img_size: Sequence[int] | int,
         in_channels: int,
         out_channels: int,
-        depths: Sequence[int] = (2, 2, 6, 2),
+        depths: Sequence[int] = (1, 1, 1, 1),
         num_heads: Sequence[int] = (3, 6, 12, 24),
-        feature_size: int = 48,
+        feature_size: int = 24,
         norm_name: tuple | str = "instance",
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
@@ -79,7 +78,7 @@ class SwinSparseTransformer(nn.Module):
         downsample="merging",
         use_v2=False,
         num_classes = 2,
-        interval = [(4,16),(2,8),(2,4),(2,4)]
+        interval = [(4,16),(4,16),(4,16),(2,8)]
     ) -> None:
         """
         Args:
@@ -501,7 +500,7 @@ class SparseBlock(nn.Module):
     
     def forward_part1(self,x):
         x_shape = x.size()
-       # print('x shape',x_shape)
+        print('x shape',x_shape)
         x = self.norm1(x)
         if len(x_shape) == 5:
             b, d, h, w, c = x.shape
@@ -516,7 +515,7 @@ class SparseBlock(nn.Module):
             dims = [b, dp, hp, wp]
 
 
-
+            print(pad_l,pad_b,pad_r,'padding')
 
 
 
@@ -609,7 +608,6 @@ class SwinTransformerBlock(nn.Module):
 
     def forward_part1(self, x, mask_matrix):
         x_shape = x.size()
-        #print('x shape',x_shape)
         x = self.norm1(x)
         if len(x_shape) == 5:
             b, d, h, w, c = x.shape
@@ -897,7 +895,7 @@ class BasicLayer(nn.Module):
                     dim=dim,
                     num_heads=num_heads,
                     window_size=self.window_size,
-                    shift_size=self.no_shift if (i % 2 == 0) else self.shift_size,
+                    shift_size=self.no_shift,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
                     drop=drop,
@@ -919,7 +917,7 @@ class BasicLayer(nn.Module):
                     drop=drop,
                     attn_drop=attn_drop,
                     norm_layer=norm_layer,
-                    drop_path = drop_path[2] if isinstance(drop_path, list) else drop_path
+                    drop_path = drop_path[0] if isinstance(drop_path, list) else drop_path
                     ))
         #就是patch merging
         self.downsample = downsample

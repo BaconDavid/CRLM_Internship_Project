@@ -76,11 +76,14 @@ class GamblerLoss(Loss):
         outputs, reservation = outputs[:, :-1], outputs[:, -1]
         
         gain = torch.gather(outputs, dim=1, index=targets.unsqueeze(1)).squeeze()
+        print('gain',gain)
         
         doubling_rate = (gain + reservation / self.cfg.LOSS.SelectiveLoss.GamblerLoss.reward).log()  # 假设reward为1
+        print(doubling_rate,'doubling_rate')
         # 计算损失，即负的增益率的平均值
         loss = -doubling_rate.mean()
-        return loss
+        print('gambelr loss',loss)
+        return loss,None
     
 class SelectiveLoss(Loss):
     def __init__(self,cfg):
@@ -110,15 +113,17 @@ class SelectiveLoss(Loss):
         """
         # compute emprical coverage (=phi^)
         emprical_coverage = selection_out.mean() 
-        #print(selection_out.shape,'shape of selectionout')
+        print('emprical_coverage',emprical_coverage)
         # compute emprical risk (=r^)
         emprical_risk = (self.loss_func(prediction_out, target)*selection_out.view(-1)).mean()
+        print('shape of loss',self.loss_func(prediction_out, target))
         emprical_risk = emprical_risk / emprical_coverage
 
         # compute penulty (=psi)
         coverage = torch.tensor([self.coverage], dtype=torch.float32, requires_grad=True, device=self.cfg.SYSTEM.DEVICE)
         penulty = torch.max(coverage-emprical_coverage, torch.tensor([0.0], dtype=torch.float32, requires_grad=True, device=self.cfg.SYSTEM.DEVICE))**2
         penulty *= self.lm
+        print('penulty',penulty)
 
         # compute aux loss
         common_loss = CommonLoss(self.cfg).build_loss()

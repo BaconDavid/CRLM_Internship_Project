@@ -72,11 +72,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
         im = im.permute(0,1,4,2,3)
         im,label = im.to(cfg.SYSTEM.DEVICE),label.to(cfg.SYSTEM.DEVICE) # to device
         label = label.long()
-        np.save('../Data/Test/im.npy',im.cpu().numpy())
+
         ##TRAIN by task    
         if cfg.MODEL.task == 'selective':
             if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-                average_loss_train, output = trainer.grad_accumulate(im,label) #accmulated loss 
+                average_loss_train, output,average_loss_dict = trainer.grad_accumulate(im,label) #accmulated loss 
                 if ((i + 1) % cfg.TRAIN.batch_accumulation_size == 0):
                     trainer.update()
                 average_loss += average_loss_train
@@ -86,12 +86,11 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                 output = model(im)
                 out_class,out_select,out_aux = output
                 accumulated_outputs.append(output), accumulated_labels.append(label)
-               
+                print('this is accumulation output',accumulated_outputs)
                 #softmax for class and aux
                 out_class = torch.nn.functional.softmax(out_class,dim=1)
                 out_aux = torch.nn.functional.softmax(out_aux,dim=1)
                 output = (out_class,out_select,out_aux)
-                
                 # every 5 batch gradient accumulation
                 if ((i + 1) % cfg.TRAIN.batch_accumulation_size == 0) or (i == sample_length - 1):
                     out_class_accum = torch.cat([out[0] for out in accumulated_outputs], dim=0)
@@ -184,7 +183,8 @@ class GamblerTrain:
             loss.backward()
         else:
             output = self.model(im)
-            loss, loss_dict = self.criterion(output, label)
+            print(output,label,'output! and label')
+            loss,loss_dict = self.criterion(output, label)
             loss.backward()
 
         loss_value = loss.item()
@@ -223,7 +223,6 @@ class SelectiveTrain:
         """
         average_loss = 0
         self.model.train()
-
         loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
         loss.backward()
         average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size

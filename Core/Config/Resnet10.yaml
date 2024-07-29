@@ -85,7 +85,7 @@ Optimizer:
   SGD:
     momentum: 0.9
   
-  scheduler: True
+  scheduler: False
 
 VALID:
   batch_size: 1

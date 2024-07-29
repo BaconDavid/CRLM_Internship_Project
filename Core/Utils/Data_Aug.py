@@ -54,9 +54,9 @@ def data_aug(cfg):
         data_aug_dict_train = {
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'Resize':Resize(cfg.Augmentation.Resize),
-             'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
-            'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
-            #'RandSpatialCrop':RandSpatialCrop(cfg.RandSpatialCrop,random_size=False,random_center=False),
+             'SpatialPad':SpatialPad((256,256,32)),
+            #'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
+            'RandSpatialCrop':RandSpatialCrop((256,256,32),random_size=False,random_center=False),
             'RandZoom':RandZoom(prob=0.5, min_zoom=1.0, max_zoom=1.2),
             'RandRotate':RandRotate(range_z=0.35,prob=0.8),
             'RandFlip':RandFlip(prob=0.5),
@@ -67,8 +67,8 @@ def data_aug(cfg):
         data_aug_dict_vali = {
             'EnsureChannelFirst':EnsureChannelFirst(),
             #'Resize':Resize(cfg.Augmentation.Resize),
-            'SpatialPad':SpatialPad(cfg.Augmentation.SpatialPad),
-            'CenterSpatialCrop':CenterSpatialCrop(cfg.Augmentation.CenterSpatialCrop),
+            'SpatialPad':SpatialPad((256,256,32)),
+            'CenterSpatialCrop':CenterSpatialCrop((256,256,32)),
             'NormalizeIntensity':NormalizeIntensity(),
             'ToTensor':ToTensor(),
         }

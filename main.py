@@ -194,6 +194,7 @@ def main(cfg,mode='train'):
         else:
             weight_decay_scheduler = None
         
+        print(weight_decay_scheduler,'this is weight decay scheduler')
         epoch_loss_values, train_loss_epoch_x_axis = [], []
         val_loss_values, val_loss_epoch_x_axis = [], []
 
@@ -233,7 +234,7 @@ def main(cfg,mode='train'):
 
             elif cfg.MODEL.task == 'selective':
                 if cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
-                    ave_loss,y_true,y_pred = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun)
+                    ave_loss,y_true,y_pred,average_loss_dict,l2_loss = train_loop(cfg,model,tr_dataloader,epoch,optimizer_fun,loss_fun,ema=ema,scheduler=scheduler_fun,weight_decay_scheduler = weight_decay_scheduler)
                     metrics = SelectiveMetrics(y_true,
                                                y_pred,
                                                ave_loss,
@@ -241,7 +242,7 @@ def main(cfg,mode='train'):
                                                coverage=[(i+1)/10 for i in range(10)],
                                                #coverage=[0.5],
                                                loss_type='GamblerLoss',
-                                               weight_decay_scheduler = weight_decay_scheduler)
+                                               )
                     metrics.calculate_selected_metrics()
                     singel_metric = metrics.generate_metrics_df(epoch+1)
                     tr_results.store_results(singel_metric,'metrics')

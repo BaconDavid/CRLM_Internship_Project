@@ -103,7 +103,7 @@ DATASET:
 ## task should be claaification, selective, regression
 MODEL:
   task: 'classification'
-  name: 'SwinTransformer' #model body for classification or selective
+  name: 'SwinTransformerSparse' #model body for classification or selective
   pretrained: False
   num_class: 2
   num_in_channels: 1

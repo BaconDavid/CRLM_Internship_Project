@@ -272,6 +272,7 @@ def main(cfg,mode='train'):
                     y_pred_tr_lst.append(metrics.y_pred)
                     y_selection_tr_lst.append(metrics.y_select)
                     y_true_tr_lst.append(metrics.y_true)
+                    y_aux_tr_lst.append(metrics.y_aux)
 
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()
@@ -360,6 +361,7 @@ def main(cfg,mode='train'):
                     y_pred_lst.append(metrics.y_pred)
                     y_selection_lst.append(metrics.y_select)
                     y_true_lst.append(metrics.y_true)
+                    y_aux_lst.append(metrics.y_aux)
                     
                     metrics.calculate_selected_metrics()
                     metrics.get_four_rate()
@@ -369,26 +371,31 @@ def main(cfg,mode='train'):
                     val_results.store_results(singel_metric,'metrics')
                     val_results.store_results(four_rate_metric,'four rates')
 
-  
+        if epoch == cfg.TRAIN.num_epochs - 1:
+        # Save only the model's weights
+            torch.save(ema_model.state_dict(), f"{cfg.SAVE.save_dir}/{cfg.SAVE.fold}/best_metric_{epoch + 1}.pth")
+
+    
         #stack y_pred_lst except the selective loss
         if cfg.MODEL.task == 'selective':
             if cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
                 y_selection_array = np.stack(y_selection_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,1) # for selection head in SENet
                 y_true_array = np.stack(y_true_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1)
-
+                y_aux_array = np.stack(y_aux_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class) # for auxiliary head in SENet
                 y_pred_tr_array = np.stack(y_pred_tr_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class)
                 y_selection_tr_array = np.stack(y_selection_tr_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,1) # for selection head in SENet
                 y_true_tr_array  = np.stack(y_true_tr_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1)
-
+                y_aux_tr_array = np.stack(y_aux_tr_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class) # for auxiliary head in SENet
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_selection.npy',y_selection_array)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_true.npy',y_true_array)
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_aux.npy',y_aux_array)
 
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred_tr.npy',y_pred_tr_array)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_selection_tr.npy',y_selection_tr_array)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_true_tr.npy',y_true_tr_array)
-
+                np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_aux_tr.npy',y_aux_tr_array)
             elif cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
                 y_pred_array = np.stack(y_pred_lst,axis=0).reshape(cfg.TRAIN.num_epochs,-1,cfg.MODEL.num_class+1)
                 np.save(cfg.SAVE.save_dir + cfg.SAVE.fold + '/' + 'y_pred.npy',y_pred_array)

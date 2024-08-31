@@ -32,7 +32,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
     accumulated_outputs = []
     accumulated_labels = []
     accumulated_batch = cfg.VALID.batch_accumulation_size
-    sample_num = len(vali_bar)
+    sample_length = len(vali_bar)
     print("##################")
     print("##################")
     #model = model.to(device)
@@ -77,7 +77,7 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
                     out_class,out_select,out_aux = output
                     accumulated_outputs.append(output),accumulated_labels.append(label)
                     #calculate batch accumulation
-                    if (i+1) % accumulated_batch ==0:
+                    if (i+1) % accumulated_batch ==0 or (i == sample_length - 1):
                         out_class_accum = torch.cat([out[0] for out in accumulated_outputs], dim=0)
                         out_select_accum = torch.cat([out[1] for out in accumulated_outputs], dim=0)
                         out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
@@ -95,9 +95,10 @@ def Validation_loop(cfg,model,dataloader,criterion,epoch_num):
         y_pred.append(output)
         y_true.extend(label.cpu().numpy().tolist())
         vali_bar.set_description(f"label{label},loss:{average_loss}")
-
-    average_loss = average_loss / len(vali_bar)
-
+    if cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+        average_loss = average_loss / ((len(vali_bar) // cfg.VALID.batch_accumulation_size)+1) 
+    else:
+        average_loss = average_loss / len(vali_bar)
     print('this is average loss',average_loss)
     return average_loss,y_pred,y_true,average_loss_dict
 
@@ -163,7 +164,7 @@ class SelectiveValidate:
         self.model.train()
 
         loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
-        average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
+        average_loss = loss.item() #every batch size calculate loss so multiple batch size
         return average_loss,loss_dict
     
 
@@ -187,6 +188,7 @@ class ClassificationValidate:
         output = self.model(im)
         loss = self.criterion(output, label)
         loss_value = loss.item()
+        
         output = torch.nn.functional.softmax(output,dim=1)
         return loss_value, output
 

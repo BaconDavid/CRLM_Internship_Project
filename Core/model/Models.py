@@ -18,6 +18,7 @@ from torch import Tensor, dropout
 from typing import Union
 
 
+
 class Model:
     def __init__(self,cfg) -> None:
         """
@@ -121,6 +122,18 @@ class SwinTransformer(Model):
                                                           **kwargs)
         else:
             raise NotImplementedError(f"model {self.cfg.MODEL.name} not implemented")
+        
+    def build_selective_modle(self,**kwargs):
+        if self.cfg.MODEL.name == 'SwinTransformer':
+            if self.cfg.LOSS.SelectiveLoss.loss == 'SelectiveLoss':
+                return swin_unetr.SelectiveNetSwinTs(img_size=(32,256,256),
+                                                    in_channels=self.cfg.MODEL.num_in_channels, 
+                                                    num_class=self.cfg.MODEL.num_class,
+                                                    num_heads=[3, 6, 12, 24],
+                                                    out_channels=1,
+                                                    depths = self.cfg.MODEL.SwinTransformer.block_depth,
+                                                    **kwargs)
+            
     
 
 
@@ -132,6 +145,9 @@ class SelectiveNet(Model):
     def build_model(self,**kwargs):
         if self.cfg.MODEL.name.startswith('Resnet'):
             model = ResNet(self.cfg).build_model(**kwargs)# choose main body of the model
+            return model
+        elif self.cfg.MODEL.name.startswith('Swin'):
+            model = SwinTransformer(self.cfg).build_selective_modle(**kwargs)
             return model
                 
         else:
@@ -161,6 +177,15 @@ class GamblerNet(Model):
                             drop_rate=self.cfg.MODEL.drop_out,
                             task=self.cfg.MODEL.task,
                             **kwargs)
+        if self.cfg.MODEL.name.startswith('Swin'):
+            if self.cfg.LOSS.SelectiveLoss.loss == 'GamblerLoss':
+                model =swin_unetr.GamblerSwinTS(img_size=(32,256,256),
+                                                    in_channels=self.cfg.MODEL.num_in_channels, 
+                                                    num_class=self.cfg.MODEL.num_class+1,
+                                                    num_heads=[3, 6, 12, 24],
+                                                    out_channels=1,
+                                                    depths = self.cfg.MODEL.SwinTransformer.block_depth,
+                                                    **kwargs) 
         return model
     
       

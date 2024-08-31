@@ -77,12 +77,12 @@ class GamblerLoss(Loss):
         
         gain = torch.gather(outputs, dim=1, index=targets.unsqueeze(1)).squeeze()
         print('gain',gain)
-        
-        doubling_rate = (gain + reservation / self.cfg.LOSS.SelectiveLoss.GamblerLoss.reward).log()  # 假设reward为1
+        reward = torch.tensor(self.cfg.LOSS.SelectiveLoss.GamblerLoss.reward,dtype=torch.float32,requires_grad=True,device=self.cfg.SYSTEM.DEVICE)
+        doubling_rate = (gain + reservation / reward).log()  # 假设reward为1
         print(doubling_rate,'doubling_rate')
         # 计算损失，即负的增益率的平均值
         loss = -doubling_rate.mean()
-        print('gambelr loss',loss)
+        print('gambelr loss & reward',loss,reward)
         return loss,None
     
 class SelectiveLoss(Loss):
@@ -137,6 +137,7 @@ class SelectiveLoss(Loss):
         loss_dict['penulty'] = penulty.detach().cpu().item()
         loss_dict['aux_loss'] = aux_loss.detach().cpu().item()
         selective_loss = self.alpha*(emprical_risk + penulty) + (1-self.alpha)*aux_loss
+        print(selection_out,loss_dict,'6666')
 
         return selective_loss, loss_dict
     

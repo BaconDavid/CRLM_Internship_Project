@@ -92,7 +92,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
                 out_aux = torch.nn.functional.softmax(out_aux,dim=1)
                 output = (out_class,out_select,out_aux)
                 # every 5 batch gradient accumulation
-                if ((i + 1) % cfg.TRAIN.batch_accumulation_size == 0) or (i == sample_length - 1):
+                if ((i + 1) % cfg.TRAIN.batch_accumulation_size == 0):
                     out_class_accum = torch.cat([out[0] for out in accumulated_outputs], dim=0)
                     out_select_accum = torch.cat([out[1] for out in accumulated_outputs], dim=0)
                     out_aux_accum = torch.cat([out[2] for out in accumulated_outputs], dim=0)
@@ -137,7 +137,7 @@ def train_loop(cfg,model,dataloader,epoch_num,optimizer,criterion,ema=None,sched
     #print('accur',accuracy)
     
     print(len(train_bar),accumulated_batch,'before finaly average loss')
-    average_loss = average_loss / len(train_bar)
+    average_loss = average_loss/ ((len(dataloader) // cfg.TRAIN.batch_accumulation_size))
     for param in model.parameters():
         l2_loss += cfg.Optimizer.weight_decay * torch.sum(torch.square(param))
     l2_loss = l2_loss.item() #get l2 loss value
@@ -179,12 +179,13 @@ class GamblerTrain:
             # 仅提取0,1类别进行交叉熵损失计算
             #loss = nn.CrossEntropyLoss()(output[:, :-1], label)
             loss = nn.CrossEntropyLoss()(output[:, ], label)
-
+            loss /= self.cfg.TRAIN.batch_accumulation_size
             loss.backward()
         else:
             output = self.model(im)
             print(output,label,'output! and label')
             loss,loss_dict = self.criterion(output, label)
+            loss /= self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
             loss.backward()
 
         loss_value = loss.item()
@@ -225,7 +226,7 @@ class SelectiveTrain:
         self.model.train()
         loss, loss_dict = self.criterion(out_class_accum,out_select_accum,out_aux_accum,label_accum)
         loss.backward()
-        average_loss = loss.item() * self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
+        average_loss = loss.item()  #every batch size calculate loss so multiple batch size
         return average_loss,loss_dict
     
 
@@ -261,6 +262,7 @@ class ClassificationTrain:
         output = self.model(im)
         print('here it is!')
         loss = self.criterion(output, label)
+        loss /= self.cfg.TRAIN.batch_accumulation_size #every batch size calculate loss so multiple batch size
         loss.backward()
 
         loss_value = loss.item()

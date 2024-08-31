@@ -135,7 +135,7 @@ _C.MODEL.SelectiveNet.coverage = 0.5
 _C.MODEL.Resnet10 = CN()
 _C.MODEL.Resnet10.block_inplanes = (64,128,256,512)
 _C.MODEL.SwinTransformer = CN()
-_C.MODEL.SwinTransformer.block_depth = (2,2,6,2)
+_C.MODEL.SwinTransformer.block_depth = (2,2,2,2)
 _C.MODEL.SwinTransformer.SparseAttention = False
 
 

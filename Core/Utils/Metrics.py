@@ -146,12 +146,10 @@ class SelectiveMetrics(Metrics):
             self.y_pred_label = np.argmax(self.y_pred,axis=2)
             print('validation?',self.y_pred_label,self.y_pred,self.y_select)
         
-        
-
-
         self.coverage = coverage # only for gambler input a list of coverage
-        self.aux_loss = loss_dict['aux_loss']
-        self.emprical_loss = loss_dict['emprical_loss']
+        if loss_type == 'SelectiveLoss':
+            self.aux_loss = loss_dict['aux_loss']
+            self.emprical_loss = loss_dict['emprical_loss']
         self.l2_loss = l2_loss #
         #check if loss_type is Gambler or Selective
         self.metrics = {f"{i}_coverage_{j}": {'f1': 0, 'auc': 0, 'accuracy': 0, 'precision': 0, 'recall': 0,'loss':self.ave_loss} for i in range(self.num_class) for j in self.coverage}

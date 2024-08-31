@@ -126,6 +126,9 @@ MODEL:
   Resnet10:
     block_inplanes: (16,32,64,128)
   
+  SwinTransformer:
+    block_depth: (2,2,2,2)
+
 
 
 

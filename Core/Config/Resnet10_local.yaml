@@ -28,7 +28,7 @@ LOSS:
 
 #loss should be GamblerLoss or SelectiveLoss
   SelectiveLoss:
-    loss: 'SelectiveLoss'
+    loss: 'GamblerLoss'
 
     GamblerLoss:
       reward: 1.2
@@ -64,7 +64,7 @@ LOSS:
 TRAIN:
   batch_size: 1
   batch_accumulation_size: 5
-  num_epochs: 1
+  num_epochs: 2
   Debug: True
   data_aug: True
   
@@ -73,8 +73,8 @@ Scheduler:
   scheduler_name: 'WarmupCosineSchedule'
 
   WarmupCosineScheduler:
-    warmup_steps: 200
-    t_total: 13000
+    warmup_steps: 2
+    t_total: 20
 
 Optimizer:
   name: 'SGD'
@@ -104,7 +104,7 @@ DATASET:
 ## task should be claaification, selective, regression
 MODEL:
   task: 'selective'
-  name: 'Resnet10' #model body for classification or selective
+  name: 'SwinTransformer' #model body for classification or selective
   pretrained: False
   num_class: 2
   num_in_channels: 1
